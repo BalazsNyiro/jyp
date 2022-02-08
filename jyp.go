@@ -1,11 +1,12 @@
 package jyp
+
 import "fmt"
 
 func main() {
-  fmt.Println("hello world")
+	fmt.Println("hello world")
 }
 
-func json_parse(src string) int {
-  fmt.Println("json_parse:" + "hello world")
-  return len(src)
+func Json_parse(src string) (int, error) {
+	fmt.Println("json_parse:" + src)
+	return len(src), nil
 }
