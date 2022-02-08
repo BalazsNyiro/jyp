@@ -2,13 +2,15 @@ package jyp
 
 import "testing"
 
-func TestHelloEmpty(t *testing.T) {
+func TestObjKey(t *testing.T) {
 	object_root, err := Json_parse(`{"key": 1}`)
-	result_check(object_root, err, 10, nil, t)
+
+	val_wanted := value{val_type: "number_int", val_number_int: 1}
+	result_check(object_root["key"], err, val_wanted, nil, t)
 }
 
-func result_check(object int, err error, object_wanted int, err_wanted error, t *testing.T) {
-	if object != object_wanted || err != err_wanted {
-		t.Fatalf(`ret = %v, %v, want "", error`, object, err)
+func result_check(value_received value, err error, value_wanted value, err_wanted error, t *testing.T) {
+	if value_received.val_number_int != value_wanted.val_number_int || err != err_wanted {
+		t.Fatalf(`ret = %v, %v, want "", error`, value_received, err)
 	}
 }
