@@ -50,7 +50,7 @@ func Json_object_finder(src []elem) (elem, error) {
 	var in_text = false
 	var runes = runes_new()
 
-	for i, elem_now := range src {
+	for _, elem_now := range src {
 		char := string(elem_now.val_rune)
 
 		if in_text && char == "\"" {
@@ -69,21 +69,21 @@ func Json_object_finder(src []elem) (elem, error) {
 		if char == "\"" {
 			in_text = true
 			continue
-		} else {
-			collector = append(collector, elem_now)
 		}
-		runes = runes_new()
-
-		if elem_now.val_type == "rune" {
-			fmt.Println(i, " => ", elem_now.val_type, string(elem_now.val_rune))
+		if char != " " {
+			collector = append(collector, elem_now)
 		}
 	}
 
 	for i, elem := range collector {
-		fmt.Println(i, "--->", elem.val_type, string(elem.val_rune), string(elem.val_string))
+
+		if elem.val_type == "string" {
+			fmt.Println(i, "--->", elem.val_type, string(elem.val_string))
+		} else {
+			fmt.Println(i, "--->", elem.val_type, string(elem.val_rune))
+		}
 	}
 	fmt.Println(string(runes))
-	// ********** find basic string elems *****************
 
 	return src[0], nil
 }
