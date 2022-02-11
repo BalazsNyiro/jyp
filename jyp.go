@@ -36,16 +36,23 @@ func Json_parse(src string) (map[string]elem, error) {
 	return obj, nil
 }
 
-// first
+func collector_new() elem {
+	return elem{val_string: make([]rune, 4), val_type: "string"}
+}
+func elems_new(size int) []elem {
+	return make([]elem, size)
+}
+
 func Json_object_finder(src []elem) (elem, error) {
 
 	// ********** find basic string elems *****************
-	var src_with_string_elems = make([]elem, len(src))
+	var src_with_string_elems = elems_new(len(src))
 	var in_text = false
-	var collector = elem{val_string: make([]rune, 4), val_type: "string"}
+	var runes = make([]rune, 4)
+
 	for i, elem := range src {
 		if in_text {
-			collector.val_string = append(collector.val_string, elem.val_rune)
+			runes = append(runes, elem.val_rune)
 		} else {
 		}
 		if elem.val_type == "rune" {
@@ -56,6 +63,8 @@ func Json_object_finder(src []elem) (elem, error) {
 	for i, elem := range src_with_string_elems {
 		fmt.Println(i, "--->", elem.val_type)
 	}
-	fmt.Println(string(collector.val_string))
+	fmt.Println(string(runes))
+	// ********** find basic string elems *****************
+
 	return src[0], nil
 }
