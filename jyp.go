@@ -51,9 +51,9 @@ func Json_object_finder(src []elem) (elem, error) {
 	var runes = runes_new()
 
 	for _, elem_now := range src {
-		char := string(elem_now.val_rune)
+		rune_now := elem_now.val_rune
 
-		if in_text && char == "\"" {
+		if in_text && rune_now == '"' {
 			in_text = false
 			collector = append(collector,
 				elem{val_string: runes, val_type: "string"})
@@ -66,11 +66,11 @@ func Json_object_finder(src []elem) (elem, error) {
 			continue
 		}
 
-		if char == "\"" {
+		if rune_now == '"' {
 			in_text = true
 			continue
 		}
-		if char != " " {
+		if rune_now != ' ' {
 			collector = append(collector, elem_now)
 		}
 	}
