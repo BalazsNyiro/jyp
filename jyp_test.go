@@ -3,7 +3,7 @@ package jyp
 import "testing"
 
 func TestObjKey(t *testing.T) {
-	object_root, err := Json_parse(`{"key": 1}`)
+	object_root, err := Json_parse(`{"age": 7, "friends": ["Bob", "Eve"]}`)
 
 	val_wanted := elem{val_type: "number_int", val_number_int: 1}
 	result_check(object_root["key"], err, val_wanted, nil, t)

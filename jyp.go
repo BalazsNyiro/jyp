@@ -8,7 +8,7 @@ type elem struct {
 	// object, array, true, false, null
 
 	val_rune         rune
-	val_string       string
+	val_string       []rune
 	val_number_int   int
 	val_number_float float64
 	val_object       map[string]elem
@@ -31,16 +31,31 @@ func Json_parse(src string) (map[string]elem, error) {
 		fmt.Println(i, "->", string(rune))
 		chars[i] = elem{val_rune: rune, val_type: "rune"}
 	}
-	Json_recursive_object_finder(chars)
+	Json_object_finder(chars)
 
 	return obj, nil
 }
 
-func Json_recursive_object_finder(src []elem) (elem, error) {
+// first
+func Json_object_finder(src []elem) (elem, error) {
+
+	// ********** find basic string elems *****************
+	var src_with_string_elems = make([]elem, len(src))
+	var in_text = false
+	var collector = elem{val_string: make([]rune, 4), val_type: "string"}
 	for i, elem := range src {
+		if in_text {
+			collector.val_string = append(collector.val_string, elem.val_rune)
+		} else {
+		}
 		if elem.val_type == "rune" {
 			fmt.Println(i, " => ", elem.val_type, string(elem.val_rune))
 		}
 	}
+
+	for i, elem := range src_with_string_elems {
+		fmt.Println(i, "--->", elem.val_type)
+	}
+	fmt.Println(string(collector.val_string))
 	return src[0], nil
 }
