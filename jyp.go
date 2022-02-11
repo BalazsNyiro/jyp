@@ -36,8 +36,8 @@ func Json_parse(src string) (map[string]elem, error) {
 	return obj, nil
 }
 
-func collector_new() elem {
-	return elem{val_string: make([]rune, 4), val_type: "string"}
+func runes_new() []rune {
+	return make([]rune, 0)
 }
 func elems_new(size int) []elem {
 	return make([]elem, size)
@@ -46,22 +46,41 @@ func elems_new(size int) []elem {
 func Json_object_finder(src []elem) (elem, error) {
 
 	// ********** find basic string elems *****************
-	var src_with_string_elems = elems_new(len(src))
+	var collector = elems_new(len(src))
 	var in_text = false
-	var runes = make([]rune, 4)
+	var runes = runes_new()
 
-	for i, elem := range src {
-		if in_text {
-			runes = append(runes, elem.val_rune)
-		} else {
+	for i, elem_now := range src {
+		char := string(elem_now.val_rune)
+
+		if in_text && char == "\"" {
+			in_text = false
+			collector = append(collector,
+				elem{val_string: runes, val_type: "string"})
+			runes = runes_new()
+			continue
 		}
-		if elem.val_type == "rune" {
-			fmt.Println(i, " => ", elem.val_type, string(elem.val_rune))
+
+		if in_text {
+			runes = append(runes, elem_now.val_rune)
+			continue
+		}
+
+		if char == "\"" {
+			in_text = true
+			continue
+		} else {
+			collector = append(collector, elem_now)
+		}
+		runes = runes_new()
+
+		if elem_now.val_type == "rune" {
+			fmt.Println(i, " => ", elem_now.val_type, string(elem_now.val_rune))
 		}
 	}
 
-	for i, elem := range src_with_string_elems {
-		fmt.Println(i, "--->", elem.val_type)
+	for i, elem := range collector {
+		fmt.Println(i, "--->", elem.val_type, string(elem.val_rune), string(elem.val_string))
 	}
 	fmt.Println(string(runes))
 	// ********** find basic string elems *****************
