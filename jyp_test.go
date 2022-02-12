@@ -13,8 +13,6 @@ func Test_string_detection_key_val_pairs(t *testing.T) {
 	elems_with_runes := elems_from_str(`"name": "Bob", "age": 7`)
 	elems_strings_detected, _ := Json_string_find_in_elems__remove_spaces(elems_with_runes)
 
-	elems_print(elems_strings_detected)
-
 	wanted := []elem{
 		elem{val_string: []rune("name"), val_type: "string"},
 		elem{val_rune: ':', val_type: "rune"},
@@ -24,7 +22,6 @@ func Test_string_detection_key_val_pairs(t *testing.T) {
 		elem{val_rune: ':', val_type: "rune"},
 		elem{val_rune: '7', val_type: "rune"},
 	}
-	elems_print(wanted)
 	check_elems__string_rune(elems_strings_detected, wanted, t)
 }
 func check_elems__string_rune(receiveds []elem, wanteds []elem, t *testing.T) {
