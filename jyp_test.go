@@ -9,12 +9,11 @@ func Test_string_detection_simple(t *testing.T) {
 	check_elem__string_rune(elems_strings_detected[0], wanted, t)
 }
 
-func Test_string_detection_key_val_pairs(t *testing.T) {
-	elems_with_runes := elems_from_str(`"name": "Bob", "age": 7`)
+func Test_string_detection_double(t *testing.T) {
+	elems_with_runes := elems_from_str(`"\"name\"": "Bob", "age": 7`)
 	elems_strings_detected, _ := Json_string_find_in_elems__remove_spaces(elems_with_runes)
-
 	wanted := []elem{
-		elem{val_string: []rune("name"), val_type: "string"},
+		elem{val_string: []rune("\\\"name\\\""), val_type: "string"},
 		elem{val_rune: ':', val_type: "rune"},
 		elem{val_string: []rune("Bob"), val_type: "string"},
 		elem{val_rune: ',', val_type: "rune"},
@@ -35,7 +34,7 @@ func check_elems__string_rune(receiveds []elem, wanteds []elem, t *testing.T) {
 
 func check_elem__string_rune(received elem, wanted elem, t *testing.T) {
 	if !runes_are_similar(received.val_string, wanted.val_string) {
-		t.Fatalf(`received string = %v, wanted: %v, error`,
+		t.Fatalf("\nreceived: %v\n  wanted: %v, error",
 			received.val_string, wanted.val_string)
 	}
 	if received.val_rune != wanted.val_rune {

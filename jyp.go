@@ -28,15 +28,19 @@ func Json_string_find_in_elems__remove_spaces(src []elem) ([]elem, error) {
 	var in_text = false
 	var runes = runes_new()
 
-	for _, elem_now := range src {
+	for id, elem_now := range src {
 		rune_now := elem_now.val_rune
 
 		if in_text && rune_now == '"' {
-			in_text = false
-			collector = append(collector,
-				elem{val_string: runes, val_type: "string"})
-			runes = runes_new()
-			continue
+			escaped := elem_is_escaped_in_string(id, src)
+
+			if !escaped {
+				in_text = false
+				collector = append(collector,
+					elem{val_string: runes, val_type: "string"})
+				runes = runes_new()
+				continue
+			}
 		}
 
 		if in_text {
@@ -80,4 +84,21 @@ func elems_from_str(src string) []elem {
 		chars[i] = elem{val_rune: rune, val_type: "rune"}
 	}
 	return chars
+}
+
+func elem_is_escaped_in_string(position_of_double_quote int, elems []elem) bool {
+	pos_checked := position_of_double_quote
+	escaped := false
+	for {
+		pos_checked-- // move to the previous elem
+		if pos_checked < 0 {
+			return escaped
+		}
+		if elems[pos_checked].val_rune != '\\' {
+			return escaped
+		}
+		// val_rune == \  so flip escaped...
+		escaped = !escaped
+	}
+	return escaped
 }
