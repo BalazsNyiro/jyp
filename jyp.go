@@ -20,7 +20,7 @@ func obj_empty() map[string]elem {
 	return obj_empty
 }
 
-func Json_parse(src string) (map[string]elem, error) {
+func Json_parse(src string) (elem, error) {
 	fmt.Println("json_parse:" + src)
 	obj := obj_empty()
 	val := elem{val_type: "number_int", val_number_int: 1}
@@ -31,9 +31,9 @@ func Json_parse(src string) (map[string]elem, error) {
 		fmt.Println(i, "->", string(rune))
 		chars[i] = elem{val_rune: rune, val_type: "rune"}
 	}
-	Json_object_finder(chars)
+	collector, _ := Json_string_finder(chars)
 
-	return obj, nil
+	return collector[0], nil
 }
 
 func runes_new() []rune {
@@ -43,7 +43,7 @@ func elems_new(size int) []elem {
 	return make([]elem, size)
 }
 
-func Json_object_finder(src []elem) (elem, error) {
+func Json_string_finder(src []elem) ([]elem, error) {
 
 	// ********** find basic string elems *****************
 	var collector = elems_new(len(src))
@@ -74,16 +74,16 @@ func Json_object_finder(src []elem) (elem, error) {
 			collector = append(collector, elem_now)
 		}
 	}
+	elems_print(collector)
+	return collector, nil
+}
 
-	for i, elem := range collector {
-
+func elems_print(elems []elem) {
+	for i, elem := range elems {
 		if elem.val_type == "string" {
 			fmt.Println(i, "--->", elem.val_type, string(elem.val_string))
 		} else {
 			fmt.Println(i, "--->", elem.val_type, string(elem.val_rune))
 		}
 	}
-	fmt.Println(string(runes))
-
-	return src[0], nil
 }

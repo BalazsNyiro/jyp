@@ -5,8 +5,8 @@ import "testing"
 func TestObjKey(t *testing.T) {
 	object_root, err := Json_parse(`{"age": 7, "friends": ["Bob", "Eve"]}`)
 
-	val_wanted := elem{val_type: "number_int", val_number_int: 1}
-	result_check(object_root["key"], err, val_wanted, nil, t)
+	val_wanted := elem{val_type: "number_int", val_number_int: 0}
+	result_check(object_root, err, val_wanted, nil, t)
 }
 
 func result_check(value_received elem, err error, value_wanted elem, err_wanted error, t *testing.T) {
