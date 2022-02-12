@@ -3,6 +3,9 @@ package jyp
 import "testing"
 
 func Test_string_detection_simple(t *testing.T) {
+	// this is a source code representation, so " is in the string:
+	//                                     `"............"`
+	// in the detected value, there is the content WITHOUT " signs
 	elems_with_runes := elems_from_str(`"name of king"`)
 	elems_strings_detected, _ := Json_string_find_in_elems__remove_spaces(elems_with_runes)
 	wanted := elem{val_string: []rune("name of king"), val_type: "string"}
@@ -10,10 +13,10 @@ func Test_string_detection_simple(t *testing.T) {
 }
 
 func Test_string_detection_double(t *testing.T) {
-	elems_with_runes := elems_from_str(`"\"name\"": "Bob", "age": 7`)
+	elems_with_runes := elems_from_str(`"name": "Bob", "age": 7`)
 	elems_strings_detected, _ := Json_string_find_in_elems__remove_spaces(elems_with_runes)
 	wanted := []elem{
-		elem{val_string: []rune("\\\"name\\\""), val_type: "string"},
+		elem{val_string: []rune("name"), val_type: "string"},
 		elem{val_rune: ':', val_type: "rune"},
 		elem{val_string: []rune("Bob"), val_type: "string"},
 		elem{val_rune: ',', val_type: "rune"},
@@ -23,6 +26,16 @@ func Test_string_detection_double(t *testing.T) {
 	}
 	check_elems__string_rune(elems_strings_detected, wanted, t)
 }
+
+func Test_string_detection_escaped_char(t *testing.T) {
+	elems_with_runes := elems_from_str(`"he is \"Eduard\""`)
+	elems_strings_detected, _ := Json_string_find_in_elems__remove_spaces(elems_with_runes)
+	wanted := elem{val_string: []rune("he is \\\"Eduard\\\""), val_type: "string"}
+	check_elem__string_rune(elems_strings_detected[0], wanted, t)
+}
+
+////////////////////////////////////////////////////////////////////////
+
 func check_elems__string_rune(receiveds []elem, wanteds []elem, t *testing.T) {
 	if len(receiveds) != len(wanteds) {
 		t.Fatalf(`len(received_elems) != len(wanted_elems)`)
