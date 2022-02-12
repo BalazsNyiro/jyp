@@ -18,12 +18,12 @@ type elem struct {
 func Json_parse(src string) (elem, error) {
 	fmt.Println("json_parse:" + src)
 	chars := elems_from_str(src)
-	collector, _ := Json_string_finder_in_elems(chars)
+	collector, _ := Json_string_find_in_elems__remove_spaces(chars)
 	elems_print(collector)
 	return collector[0], nil
 }
 
-func Json_string_finder_in_elems(src []elem) ([]elem, error) {
+func Json_string_find_in_elems__remove_spaces(src []elem) ([]elem, error) {
 	var collector = elems_new()
 	var in_text = false
 	var runes = runes_new()

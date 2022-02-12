@@ -4,14 +4,47 @@ import "testing"
 
 func Test_string_detection_simple(t *testing.T) {
 	elems_with_runes := elems_from_str(`"name of king"`)
-	elems_strings_detected, _ := Json_string_finder_in_elems(elems_with_runes)
-	wanted := elem{val_rune: 'n', val_string: []rune("name of king"), val_type: "string"}
-	result_check_val_string(elems_strings_detected[0], wanted, t)
+	elems_strings_detected, _ := Json_string_find_in_elems__remove_spaces(elems_with_runes)
+	wanted := elem{val_string: []rune("name of king"), val_type: "string"}
+	check_elem__string_rune(elems_strings_detected[0], wanted, t)
 }
 
-func result_check_val_string(value_received elem, value_wanted elem, t *testing.T) {
-	if !runes_are_similar(value_received.val_string, value_wanted.val_string) {
-		t.Fatalf(`received = %v, want %v, error`, value_received, value_wanted)
+func Test_string_detection_key_val_pairs(t *testing.T) {
+	elems_with_runes := elems_from_str(`"name": "Bob", "age": 7`)
+	elems_strings_detected, _ := Json_string_find_in_elems__remove_spaces(elems_with_runes)
+
+	elems_print(elems_strings_detected)
+
+	wanted := []elem{
+		elem{val_string: []rune("name"), val_type: "string"},
+		elem{val_rune: ':', val_type: "rune"},
+		elem{val_string: []rune("Bob"), val_type: "string"},
+		elem{val_rune: ',', val_type: "rune"},
+		elem{val_string: []rune("age"), val_type: "string"},
+		elem{val_rune: ':', val_type: "rune"},
+		elem{val_rune: '7', val_type: "rune"},
+	}
+	elems_print(wanted)
+	check_elems__string_rune(elems_strings_detected, wanted, t)
+}
+func check_elems__string_rune(receiveds []elem, wanteds []elem, t *testing.T) {
+	if len(receiveds) != len(wanteds) {
+		t.Fatalf(`len(received_elems) != len(wanted_elems)`)
+	}
+	for i := 0; i < len(receiveds); i++ {
+		check_elem__string_rune(receiveds[i], wanteds[i], t)
+	}
+}
+
+func check_elem__string_rune(received elem, wanted elem, t *testing.T) {
+	if !runes_are_similar(received.val_string, wanted.val_string) {
+		t.Fatalf(`received string = %v, wanted: %v, error`,
+			received.val_string, wanted.val_string)
+	}
+	if received.val_rune != wanted.val_rune {
+		t.Fatalf(`received rune = %v, wanted %v, error`,
+			received.val_rune,
+			wanted.val_rune)
 	}
 }
 
