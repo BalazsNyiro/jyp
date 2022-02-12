@@ -17,12 +17,7 @@ type elem struct {
 
 func Json_parse(src string) (elem, error) {
 	fmt.Println("json_parse:" + src)
-
-	var chars = make([]elem, len(src))
-	for i, rune := range src {
-		fmt.Println(i, "->", string(rune))
-		chars[i] = elem{val_rune: rune, val_type: "rune"}
-	}
+	chars := Src_to_elems(src)
 	collector, _ := Json_string_finder(chars)
 	elems_print(collector)
 	return collector[0], nil
@@ -76,4 +71,13 @@ func runes_new() []rune {
 }
 func elems_new() []elem {
 	return make([]elem, 0)
+}
+
+func Src_to_elems(src string) []elem {
+	var chars = make([]elem, len(src))
+	for i, rune := range src {
+		// fmt.Println(i, "->", string(rune))
+		chars[i] = elem{val_rune: rune, val_type: "rune"}
+	}
+	return chars
 }

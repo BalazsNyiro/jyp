@@ -3,14 +3,26 @@ package jyp
 import "testing"
 
 func TestObjKey(t *testing.T) {
-	object_root, err := Json_parse(`{"age": 7, "friends": ["Bob", "Eve"]}`)
+	// object_root, err := Json_parse(`{"age": 7, "friends": ["Bob", "Eve"]}`)
 
-	val_wanted := elem{val_type: "number_int", val_number_int: 0}
-	result_check(object_root, err, val_wanted, nil, t)
+	// val_wanted := elem{val_type: "number_int", val_number_int: 0}
+
+	elems_runes := Src_to_elems(`"name"`)
+	elems_strings_detected, _ := Json_string_finder(elems_runes)
+	wanted := elem{val_rune: 'n', val_string: []rune("name"), val_type: "string"}
+	result_check_val_string(elems_strings_detected[0], wanted, t)
 }
 
-func result_check(value_received elem, err error, value_wanted elem, err_wanted error, t *testing.T) {
-	if value_received.val_number_int != value_wanted.val_number_int || err != err_wanted {
-		t.Fatalf(`ret = %v, %v, want "", error`, value_received, err)
+func result_check_val_string(value_received elem, value_wanted elem, t *testing.T) {
+	if !runes_are_similar(value_received.val_string, value_wanted.val_string) {
+		t.Fatalf(`received = %v, want %v, error`, value_received, value_wanted)
 	}
+}
+
+func runes_are_similar(runes1 []rune, runes2 []rune) bool {
+	if len(runes1) != len(runes2) {
+		return false
+	}
+
+	return true
 }
