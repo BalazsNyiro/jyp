@@ -2,14 +2,10 @@ package jyp
 
 import "testing"
 
-func TestObjKey(t *testing.T) {
-	// object_root, err := Json_parse(`{"age": 7, "friends": ["Bob", "Eve"]}`)
-
-	// val_wanted := elem{val_type: "number_int", val_number_int: 0}
-
-	elems_runes := Src_to_elems(`"name"`)
-	elems_strings_detected, _ := Json_string_finder(elems_runes)
-	wanted := elem{val_rune: 'n', val_string: []rune("name"), val_type: "string"}
+func Test_string_detection_simple(t *testing.T) {
+	elems_with_runes := elems_from_str(`"name of king"`)
+	elems_strings_detected, _ := Json_string_finder_in_elems(elems_with_runes)
+	wanted := elem{val_rune: 'n', val_string: []rune("name of king"), val_type: "string"}
 	result_check_val_string(elems_strings_detected[0], wanted, t)
 }
 

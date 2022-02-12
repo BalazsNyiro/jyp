@@ -17,13 +17,13 @@ type elem struct {
 
 func Json_parse(src string) (elem, error) {
 	fmt.Println("json_parse:" + src)
-	chars := Src_to_elems(src)
-	collector, _ := Json_string_finder(chars)
+	chars := elems_from_str(src)
+	collector, _ := Json_string_finder_in_elems(chars)
 	elems_print(collector)
 	return collector[0], nil
 }
 
-func Json_string_finder(src []elem) ([]elem, error) {
+func Json_string_finder_in_elems(src []elem) ([]elem, error) {
 	var collector = elems_new()
 	var in_text = false
 	var runes = runes_new()
@@ -73,7 +73,7 @@ func elems_new() []elem {
 	return make([]elem, 0)
 }
 
-func Src_to_elems(src string) []elem {
+func elems_from_str(src string) []elem {
 	var chars = make([]elem, len(src))
 	for i, rune := range src {
 		// fmt.Println(i, "->", string(rune))
