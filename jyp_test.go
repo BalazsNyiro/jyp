@@ -23,6 +23,13 @@ func runes_are_similar(runes1 []rune, runes2 []rune) bool {
 	if len(runes1) != len(runes2) {
 		return false
 	}
-
+	if len(runes1) == 0 {
+		return true
+	}
+	for i := 0; i < len(runes1); i++ {
+		if runes1[i] != runes2[i] {
+			return false
+		}
+	}
 	return true
 }
