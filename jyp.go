@@ -1,6 +1,9 @@
 package jyp
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type elem struct {
 	val_type string
@@ -23,13 +26,36 @@ func Json_parse(src string) (elem, error) {
 	elems_print(collector)
 	return collector[0], nil
 }
+func _rune_digit_info(elem_now elem) (rune, bool) {
+	digit_signs := "+-.0123456789"
+	rune_now := elem_now.val_rune
+	is_digit := strings.ContainsRune(digit_signs, rune_now)
+	return rune_now, is_digit
+}
+func elem_unprocessed(elem elem) bool {
+	return elem.val_type == "rune"
+}
 
 func Json_collect_numbers_in_elems(src []elem) []elem {
-	var collector = elems_new()
-	for id, elem_now := range src {
-		if elem_now.val_type == "rune" {
-			fmt.Println("id", id)
-		}
+	collector := elems_new()
+	runes := runes_new()
+
+	for _, elem_now := range src {
+
+		if elem_unprocessed(elem_now) {
+			rune_now, is_digit := _rune_digit_info(elem_now)
+
+			if is_digit {
+				runes = append(runes, rune_now)
+				continue
+			}
+
+			if !is_digit && len(runes) > 0 {
+				collector = append(collector, elem{val_string: runes, val_type: number_type(runes)})
+				runes = runes_new()
+			}
+		} // unprocessed
+		// { } [ ] : , true false null can be here, for example
 		collector = append(collector, elem_now)
 	}
 	return collector
@@ -113,4 +139,13 @@ func elem_is_escaped_in_string(position_of_double_quote int, elems []elem) bool 
 		escaped = !escaped
 	}
 	return escaped
+}
+
+func number_type(runes []rune) string {
+	for _, rune := range runes {
+		if rune == '.' {
+			return "number_float"
+		}
+	}
+	return "number_int"
 }
