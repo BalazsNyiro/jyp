@@ -24,13 +24,29 @@ type elem struct {
 func Json_parse(src string) (elem, error) {
 	fmt.Println("json_parse:" + src)
 	elems := elems_from_str(src)
-	elems = Json_collect_strings_in_elems__remove_spaces(elems)
-	elems = Json_collect_numbers_in_elems(elems)
+
+	elems = Json_collect_strings_in_elems__remove_spaces(elems) // string detection is the first,
+	elems = Json_collect_numbers_in_elems(elems)                // because strings can contain numbers
+	elems = Json_collect_scalars_in_elems(elems)                // or scalars, too
+
 	elems_print(elems)
 	return elems[0], nil
 }
 
+// ******************** scalar detection: true, false, null *************
+func Json_collect_scalars_in_elems(src []elem) []elem {
+	collector := elems_new()
+	for _, elem_now := range src {
+		collector = append(collector, elem_now)
+	}
+	return collector
+}
+
+// ******************** end of scalar detection: ************************
+
 // ********************* number detection *******************************
+// from one or more rune it creates one elem with collected digits
+// requirement: not unprocessed strings in the code (strings can contain numbers, too)
 func Json_collect_numbers_in_elems(src []elem) []elem {
 	collector := elems_new()
 	runes := runes_new()
@@ -78,8 +94,9 @@ func _elem_number_from_runes(runes []rune) elem {
 	return elem{val_string: runes, val_type: num_type, val_number_float: float_val}
 }
 
-// ********************* number detection *******************************
+// ********************* end of JSON number detection *******************************
 
+// from one or more rune it creates one elem with collected characters
 func Json_collect_strings_in_elems__remove_spaces(src []elem) []elem {
 	var collector = elems_new()
 	var in_text = false
