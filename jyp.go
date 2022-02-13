@@ -23,11 +23,11 @@ type elem struct {
 
 func Json_parse(src string) (elem, error) {
 	fmt.Println("json_parse:" + src)
-	chars := elems_from_str(src)
-	collector := Json_collect_strings_in_elems__remove_spaces(chars)
-	collector = Json_collect_numbers_in_elems(collector)
-	elems_print(collector)
-	return collector[0], nil
+	elems := elems_from_str(src)
+	elems = Json_collect_strings_in_elems__remove_spaces(elems)
+	elems = Json_collect_numbers_in_elems(elems)
+	elems_print(elems)
+	return elems[0], nil
 }
 
 // ********************* number detection *******************************
@@ -62,6 +62,8 @@ func _rune_digit_info(elem_now elem) (rune, bool) {
 	return rune_now, is_digit
 }
 
+// it can work if runes has elems, because it returns with an elem
+// and to determine the elem minimum one rune is necessary
 func _elem_number_from_runes(runes []rune) elem {
 	num_type := number_type(runes)
 	string_val := string(runes)
