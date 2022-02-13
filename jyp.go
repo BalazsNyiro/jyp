@@ -2,8 +2,11 @@ package jyp
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
+
+var float_bitsize = 32
 
 type elem struct {
 	val_type string
@@ -26,40 +29,51 @@ func Json_parse(src string) (elem, error) {
 	elems_print(collector)
 	return collector[0], nil
 }
+
+// ********************* number detection *******************************
+func Json_collect_numbers_in_elems(src []elem) []elem {
+	collector := elems_new()
+	runes := runes_new()
+
+	for _, elem_now := range src {
+		rune_now, is_digit := _rune_digit_info(elem_now)
+
+		if elem_unprocessed(elem_now) && is_digit {
+			runes = append(runes, rune_now)
+			continue
+		}
+		if len(runes) > 0 { // save the info after digits
+			collector = append(collector, _elem_number_from_runes(runes))
+			runes = runes_new()
+		}
+		collector = append(collector, elem_now) // save anything else
+	}
+	// save the info if digits are the last ones
+	if len(runes) > 0 {
+		collector = append(collector, _elem_number_from_runes(runes))
+	}
+	return collector
+}
+
 func _rune_digit_info(elem_now elem) (rune, bool) {
 	digit_signs := "+-.0123456789"
 	rune_now := elem_now.val_rune
 	is_digit := strings.ContainsRune(digit_signs, rune_now)
 	return rune_now, is_digit
 }
-func elem_unprocessed(elem elem) bool {
-	return elem.val_type == "rune"
-}
 
-func Json_collect_numbers_in_elems(src []elem) []elem {
-	collector := elems_new()
-	runes := runes_new()
-
-	for _, elem_now := range src {
-
-		if elem_unprocessed(elem_now) {
-			rune_now, is_digit := _rune_digit_info(elem_now)
-
-			if is_digit {
-				runes = append(runes, rune_now)
-				continue
-			}
-
-			if !is_digit && len(runes) > 0 {
-				collector = append(collector, elem{val_string: runes, val_type: number_type(runes)})
-				runes = runes_new()
-			}
-		} // unprocessed
-		// { } [ ] : , true false null can be here, for example
-		collector = append(collector, elem_now)
+func _elem_number_from_runes(runes []rune) elem {
+	num_type := number_type(runes)
+	string_val := string(runes)
+	if num_type == "number_int" {
+		int_val, _ := strconv.Atoi(string_val)
+		return elem{val_string: runes, val_type: num_type, val_number_int: int_val}
 	}
-	return collector
+	float_val, _ := strconv.ParseFloat(string_val, float_bitsize)
+	return elem{val_string: runes, val_type: num_type, val_number_float: float_val}
 }
+
+// ********************* number detection *******************************
 
 func Json_collect_strings_in_elems__remove_spaces(src []elem) []elem {
 	var collector = elems_new()
@@ -80,12 +94,10 @@ func Json_collect_strings_in_elems__remove_spaces(src []elem) []elem {
 				continue
 			}
 		}
-
 		if in_text {
 			runes = append(runes, rune_now)
 			continue
 		}
-
 		if rune_now == '"' {
 			in_text = true
 			continue
@@ -100,11 +112,20 @@ func Json_collect_strings_in_elems__remove_spaces(src []elem) []elem {
 ////////////////////////////////////////////////////////////////////////////////////
 func elems_print(elems []elem) {
 	for i, elem := range elems {
+		data := ""
 		if elem.val_type == "string" {
-			fmt.Println(i, "--->", elem.val_type, string(elem.val_string))
-		} else {
-			fmt.Println(i, "--->", elem.val_type, string(elem.val_rune))
+			data = string(elem.val_string)
 		}
+		if elem.val_type == "rune" {
+			data = string(elem.val_rune)
+		}
+		if elem.val_type == "number_float" {
+			data = strconv.FormatFloat(elem.val_number_float, 'E', -1, float_bitsize)
+		}
+		if elem.val_type == "number_int" {
+			data = strconv.Itoa(elem.val_number_int)
+		}
+		fmt.Println(i, "--->", elem.val_type, data)
 	}
 }
 
@@ -148,4 +169,8 @@ func number_type(runes []rune) string {
 		}
 	}
 	return "number_int"
+}
+
+func elem_unprocessed(elem elem) bool {
+	return elem.val_type == "rune"
 }
