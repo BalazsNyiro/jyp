@@ -18,12 +18,24 @@ type elem struct {
 func Json_parse(src string) (elem, error) {
 	fmt.Println("json_parse:" + src)
 	chars := elems_from_str(src)
-	collector, _ := Json_string_find_in_elems__remove_spaces(chars)
+	collector := Json_collect_strings_in_elems__remove_spaces(chars)
+	collector = Json_collect_numbers_in_elems(collector)
 	elems_print(collector)
 	return collector[0], nil
 }
 
-func Json_string_find_in_elems__remove_spaces(src []elem) ([]elem, error) {
+func Json_collect_numbers_in_elems(src []elem) []elem {
+	var collector = elems_new()
+	for id, elem_now := range src {
+		if elem_now.val_type == "rune" {
+			fmt.Println("id", id)
+		}
+		collector = append(collector, elem_now)
+	}
+	return collector
+}
+
+func Json_collect_strings_in_elems__remove_spaces(src []elem) []elem {
 	var collector = elems_new()
 	var in_text = false
 	var runes = runes_new()
@@ -56,7 +68,7 @@ func Json_string_find_in_elems__remove_spaces(src []elem) ([]elem, error) {
 			collector = append(collector, elem_now)
 		}
 	}
-	return collector, nil
+	return collector
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

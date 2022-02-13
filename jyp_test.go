@@ -7,14 +7,14 @@ func Test_string_detection_simple(t *testing.T) {
 	//                                     `"............"`
 	// in the detected value, there is the content WITHOUT " signs
 	elems_with_runes := elems_from_str(`"name of king"`)
-	elems_strings_detected, _ := Json_string_find_in_elems__remove_spaces(elems_with_runes)
+	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
 	wanted := elem{val_string: []rune("name of king"), val_type: "string"}
 	check_elem__string_rune(elems_strings_detected[0], wanted, t)
 }
 
 func Test_string_detection_double(t *testing.T) {
 	elems_with_runes := elems_from_str(`"name": "Bob", "age": 7`)
-	elems_strings_detected, _ := Json_string_find_in_elems__remove_spaces(elems_with_runes)
+	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
 	wanted := []elem{
 		elem{val_string: []rune("name"), val_type: "string"},
 		elem{val_rune: ':', val_type: "rune"},
@@ -29,7 +29,7 @@ func Test_string_detection_double(t *testing.T) {
 
 func Test_string_detection_escaped_char(t *testing.T) {
 	elems_with_runes := elems_from_str(`"he is \"Eduard\""`)
-	elems_strings_detected, _ := Json_string_find_in_elems__remove_spaces(elems_with_runes)
+	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
 	wanted := elem{val_string: []rune("he is \\\"Eduard\\\""), val_type: "string"}
 	check_elem__string_rune(elems_strings_detected[0], wanted, t)
 }
