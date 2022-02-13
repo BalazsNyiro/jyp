@@ -42,17 +42,20 @@ func Json_collect_numbers_in_elems(src []elem) []elem {
 			runes = append(runes, rune_now)
 			continue
 		}
-		if len(runes) > 0 { // save the info after digits
-			collector = append(collector, _elem_number_from_runes(runes))
-			runes = runes_new()
-		}
+		collector, runes = collector_append_possible_runes(collector, runes)
 		collector = append(collector, elem_now) // save anything else
 	}
 	// save the info if digits are the last ones
+	collector, _ = collector_append_possible_runes(collector, runes)
+	return collector
+}
+
+func collector_append_possible_runes(collector []elem, runes []rune) ([]elem, []rune) {
 	if len(runes) > 0 {
 		collector = append(collector, _elem_number_from_runes(runes))
+		runes = nil // clear the slice?
 	}
-	return collector
+	return collector, runes
 }
 
 func _rune_digit_info(elem_now elem) (rune, bool) {
@@ -92,7 +95,7 @@ func Json_collect_strings_in_elems__remove_spaces(src []elem) []elem {
 				in_text = false
 				collector = append(collector,
 					elem{val_string: runes, val_type: "string"})
-				runes = runes_new()
+				runes = nil
 				continue
 			}
 		}
