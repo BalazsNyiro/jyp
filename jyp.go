@@ -1,3 +1,4 @@
+// author: Balazs Nyiro, balazs.nyiro.ca@gmail.com
 package jyp
 
 import (
