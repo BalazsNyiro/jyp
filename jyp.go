@@ -44,7 +44,6 @@ func Json_collect_scalars_in_elems(src []elem) []elem {
 	for id, elemNow := range src {
 		runes = append(runes, elemNow.valRune) // collect all runes
 		collector = append(collector, elemNow) // a shortest JSON code that can contain a scalar is this: {"a":null}
-		fmt.Println("scalar -> ", string(elemNow.valRune))
 		if id < 5 {
 			continue
 		} // false needs 5 chars,
@@ -52,18 +51,26 @@ func Json_collect_scalars_in_elems(src []elem) []elem {
 		lastFourChar := string(runes[id-3 : id+1])
 		lastFiveChar := string(runes[id-4 : id+1])
 
+		idLast := (len(collector) - 1)
 		if lastFourChar == "true" {
-			//collector = collector[:id-3]
+			/* in slice operators, the TO id is excluded.
+			   collector[:idLast] means: remove the last elems from collectors.
+			   collector[:idLast-3] means: remove the last AND the prev 3, so the last 4.
+			*/
+			idCut := idLast - 3 // remove the last elems from collector
+			collector = collector[:idCut]
 			elemTrue := elem{valType: "bool", valBool: true}
 			collector = append(collector, elemTrue)
 		}
 		if lastFourChar == "null" {
-			collector = collector[:id-3]
+			idCut := idLast - 3
+			collector = collector[:idCut]
 			elemNull := elem{valType: "null"}
 			collector = append(collector, elemNull)
 		}
 		if lastFiveChar == "false" {
-			//collector = collector[:id-4]
+			idCut := idLast - 4
+			collector = collector[:idCut]
 			elemFalse := elem{valType: "bool", valBool: false}
 			collector = append(collector, elemFalse)
 		}
@@ -168,7 +175,7 @@ func elems_print(elems []elem) {
 	for i, elem := range elems {
 		data := ""
 		if elem.valType == "null" {
-			data = "NULL"
+			data = "null"
 		}
 		if elem.valType == "bool" {
 			if elem.valBool {

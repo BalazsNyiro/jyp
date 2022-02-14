@@ -52,10 +52,24 @@ func Test_number_int_detection(t *testing.T) {
 }
 
 func Test_scalar_detection(t *testing.T) {
-	elems := elems_from_str(`"age": null, "True": true, "False": false`)
+	elems := elems_from_str(`"True": true, "False": false, "age": null `)
 	elems = Json_collect_strings_in_elems__remove_spaces(elems)
 	elems = Json_collect_scalars_in_elems(elems)
 	elems_print(elems)
+	wanted := []elem{
+		elem{valString: []rune("True"), valType: "string"},
+		elem{valRune: ':', valType: "rune"},
+		elem{valBool: true, valType: "bool"},
+		elem{valRune: ',', valType: "rune"},
+		elem{valString: []rune("False"), valType: "string"},
+		elem{valRune: ':', valType: "rune"},
+		elem{valBool: false, valType: "bool"},
+		elem{valRune: ',', valType: "rune"},
+		elem{valString: []rune("age"), valType: "string"},
+		elem{valRune: ':', valType: "rune"},
+		elem{valType: "null"},
+	}
+	compare_receiveds_wanteds(elems, wanted, t)
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -84,6 +98,9 @@ func compare_one_pair_received_wanted(received elem, wanted elem, t *testing.T) 
 	}
 	if received.valNumberFloat != wanted.valNumberFloat {
 		t.Fatalf(`received float= %v, wanted %v, error`, received.valNumberFloat, wanted.valNumberFloat)
+	}
+	if received.valBool != wanted.valBool {
+		t.Fatalf(`received bool = %v, wanted %v, error`, received.valBool, wanted.valBool)
 	}
 }
 
