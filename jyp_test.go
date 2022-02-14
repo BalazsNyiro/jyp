@@ -8,7 +8,7 @@ func Test_string_detection_simple(t *testing.T) {
 	// in the detected value, there is the content WITHOUT " signs
 	elems_with_runes := elems_from_str(`"name of king"`)
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
-	wanted := elem{val_string: []rune("name of king"), val_type: "string"}
+	wanted := elem{valString: []rune("name of king"), valType: "string"}
 	compare_one_pair_received_wanted(elems_strings_detected[0], wanted, t)
 }
 
@@ -16,13 +16,13 @@ func Test_string_detection_double(t *testing.T) {
 	elems_with_runes := elems_from_str(`"name": "Bob", "age": 7`)
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
 	wanted := []elem{
-		elem{val_string: []rune("name"), val_type: "string"},
-		elem{val_rune: ':', val_type: "rune"},
-		elem{val_string: []rune("Bob"), val_type: "string"},
-		elem{val_rune: ',', val_type: "rune"},
-		elem{val_string: []rune("age"), val_type: "string"},
-		elem{val_rune: ':', val_type: "rune"},
-		elem{val_rune: '7', val_type: "rune"},
+		elem{valString: []rune("name"), valType: "string"},
+		elem{valRune: ':', valType: "rune"},
+		elem{valString: []rune("Bob"), valType: "string"},
+		elem{valRune: ',', valType: "rune"},
+		elem{valString: []rune("age"), valType: "string"},
+		elem{valRune: ':', valType: "rune"},
+		elem{valRune: '7', valType: "rune"},
 	}
 	compare_receiveds_wanteds(elems_strings_detected, wanted, t)
 }
@@ -30,7 +30,7 @@ func Test_string_detection_double(t *testing.T) {
 func Test_string_detection_escaped_char(t *testing.T) {
 	elems_with_runes := elems_from_str(`"he is \"Eduard\""`)
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
-	wanted := elem{val_string: []rune("he is \\\"Eduard\\\""), val_type: "string"}
+	wanted := elem{valString: []rune("he is \\\"Eduard\\\""), valType: "string"}
 	compare_one_pair_received_wanted(elems_strings_detected[0], wanted, t)
 }
 
@@ -40,15 +40,22 @@ func Test_number_int_detection(t *testing.T) {
 	elems_num_detected := Json_collect_numbers_in_elems(elems_strings_detected)
 	elems_print(elems_num_detected)
 	wanted := []elem{
-		elem{val_string: []rune("price"), val_type: "string"},
-		elem{val_rune: ':', val_type: "rune"},
-		elem{val_string: []rune("7.6"), val_type: "number_float", val_number_float: 7.599999904632568},
-		elem{val_rune: ',', val_type: "rune"},
-		elem{val_string: []rune("age"), val_type: "string"},
-		elem{val_rune: ':', val_type: "rune"},
-		elem{val_string: []rune("5"), val_type: "number_int", val_number_int: 5},
+		elem{valString: []rune("price"), valType: "string"},
+		elem{valRune: ':', valType: "rune"},
+		elem{valString: []rune("7.6"), valType: "number_float", valNumberFloat: 7.599999904632568},
+		elem{valRune: ',', valType: "rune"},
+		elem{valString: []rune("age"), valType: "string"},
+		elem{valRune: ':', valType: "rune"},
+		elem{valString: []rune("5"), valType: "number_int", valNumberInt: 5},
 	}
 	compare_receiveds_wanteds(elems_num_detected, wanted, t)
+}
+
+func Test_scalar_detection(t *testing.T) {
+	elems := elems_from_str(`"age": null, "True": true, "False": false`)
+	elems = Json_collect_strings_in_elems__remove_spaces(elems)
+	elems = Json_collect_scalars_in_elems(elems)
+	elems_print(elems)
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -63,20 +70,20 @@ func compare_receiveds_wanteds(receiveds []elem, wanteds []elem, t *testing.T) {
 }
 
 func compare_one_pair_received_wanted(received elem, wanted elem, t *testing.T) {
-	if !runes_are_similar(received.val_string, wanted.val_string) {
+	if !runes_are_similar(received.valString, wanted.valString) {
 		t.Fatalf("\nreceived: %v\n  wanted: %v, error",
-			received.val_string, wanted.val_string)
+			received.valString, wanted.valString)
 	}
-	if received.val_rune != wanted.val_rune {
+	if received.valRune != wanted.valRune {
 		t.Fatalf(`received rune = %v, wanted %v, error`,
-			received.val_rune,
-			wanted.val_rune)
+			received.valRune,
+			wanted.valRune)
 	}
-	if received.val_number_int != wanted.val_number_int {
-		t.Fatalf(`received int = %v, wanted %v, error`, received.val_number_int, wanted.val_number_int)
+	if received.valNumberInt != wanted.valNumberInt {
+		t.Fatalf(`received int = %v, wanted %v, error`, received.valNumberInt, wanted.valNumberInt)
 	}
-	if received.val_number_float != wanted.val_number_float {
-		t.Fatalf(`received float= %v, wanted %v, error`, received.val_number_float, wanted.val_number_float)
+	if received.valNumberFloat != wanted.valNumberFloat {
+		t.Fatalf(`received float= %v, wanted %v, error`, received.valNumberFloat, wanted.valNumberFloat)
 	}
 }
 
