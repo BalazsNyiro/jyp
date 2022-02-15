@@ -31,24 +31,27 @@ func Json_parse(src string) (elem, error) {
 	elems = Json_collect_numbers_in_elems(elems)                // because strings can contain numbers
 	elems = Json_collect_scalars_in_elems(elems)                // or scalars, too
 
-	elems_print(elems)
+	elems_print(elems, 0)
 	return elems[0], nil
 }
 
 // ******************** array detection: ********************************
 func Json_collect_arrays_in_elems(src []elem) []elem {
+	src_pair_removed := src
 	for {
 		pos_last_opening_before_first_closing, pos_first_closing := character_position_first_closed_pair(src, '[', ']')
 		fmt.Println("num of array closing signs:", pos_last_opening_before_first_closing, pos_first_closing)
 		if pos_last_opening_before_first_closing < 0 || pos_first_closing < 0 {
-			break
+			// TODO: this is an error if the [] or {} chars are not in pairs
+			return src_pair_removed
 		} else {
-			// TODO overwrite [ ... ] area with an empty filler
-			// TODO: build ARRAY object at [ position
-			break
+			elem_pair := elem{valType: "array", valArray: src[pos_last_opening_before_first_closing+1 : pos_first_closing]}
+			src_pair_removed := src[:pos_last_opening_before_first_closing]
+			src_pair_removed = append(src_pair_removed, elem_pair)
+			src_pair_removed = append(src_pair_removed, src[pos_first_closing+1:]...)
+			return Json_collect_arrays_in_elems(src_pair_removed)
 		}
 	}
-	return src
 }
 
 // ******************** array detection: ********************************
@@ -190,9 +193,13 @@ func Json_collect_strings_in_elems__remove_spaces(src []elem) []elem {
 // ********************* end of string detection *************************************
 
 //////////////////////////////////////////////////////////////////////////////////////
-func elems_print(elems []elem) {
+func elems_print(elems []elem, indent int) {
+	prefix := indentation(indent)
 	for i, elem := range elems {
 		data := ""
+		if elem.valType == "array" {
+			data = "[...]"
+		}
 		if elem.valType == "null" {
 			data = "null"
 		}
@@ -215,8 +222,20 @@ func elems_print(elems []elem) {
 		if elem.valType == "number_int" {
 			data = strconv.Itoa(elem.valNumberInt)
 		}
-		fmt.Println(i, "--->", elem.valType, data)
+		fmt.Println(prefix, i, "--->", elem.valType, data)
+		if elem.valType == "array" {
+			fmt.Println(">>> ARRAY ", indent+1)
+			elems_print(elem.valArray, indent+1)
+			fmt.Println("<<< ARRAY ", indent+1)
+		}
 	}
+}
+func indentation(level int) string {
+	indentation := ""
+	for i := 0; i < level; i++ {
+		indentation = indentation + " "
+	}
+	return indentation
 }
 
 func runes_new() []rune {

@@ -42,7 +42,7 @@ func Test_number_int_detection(t *testing.T) {
 	elems_with_runes := elems_from_str(`"price": 7.6, "age": 5`)
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
 	elems_num_detected := Json_collect_numbers_in_elems(elems_strings_detected)
-	elems_print(elems_num_detected)
+	elems_print(elems_num_detected, 0)
 	wanted := []elem{
 		elem{valString: []rune("price"), valType: "string"},
 		elem{valRune: ':', valType: "rune"},
@@ -59,7 +59,7 @@ func Test_scalar_detection(t *testing.T) {
 	elems := elems_from_str(`"True": true, "False": false, "age": null `)
 	elems = Json_collect_strings_in_elems__remove_spaces(elems)
 	elems = Json_collect_scalars_in_elems(elems)
-	elems_print(elems)
+	elems_print(elems, 0)
 	wanted := []elem{
 		elem{valString: []rune("True"), valType: "string"},
 		elem{valRune: ':', valType: "rune"},
@@ -80,8 +80,9 @@ func Test_array_detection(t *testing.T) {
 	elems := elems_from_str(`"name": "Bob", "scores": [4, 6], "friends": ["Eve", "Joe"]`)
 	elems = Json_collect_strings_in_elems__remove_spaces(elems)
 	elems = Json_collect_numbers_in_elems(elems)
-	array_closing_first_pos := Json_collect_arrays_in_elems(elems)
-	fmt.Println("arrays detected:", array_closing_first_pos)
+	array := Json_collect_arrays_in_elems(elems)
+	fmt.Println("arrays detected:")
+	elems_print(array, 0)
 }
 
 ////////////////////////////////////////////////////////////////////////
