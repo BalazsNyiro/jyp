@@ -37,20 +37,18 @@ func Json_parse(src string) (elem, error) {
 
 // ******************** array detection: ********************************
 func Json_collect_arrays_in_elems(src []elem) []elem {
-	array_closing_first_pos := json_array_end_position_first(src)
-	fmt.Println("num of array closing signs:", array_closing_first_pos)
-	return src
-}
-
-// if 0 or positive num: the position of first ] elem
-// -1 means: src doesn't have ]
-func json_array_end_position_first(src []elem) int {
-	for id, elemNow := range src {
-		if elemNow.valRune == ']' {
-			return id
+	for {
+		pos_last_opening_before_first_closing, pos_first_closing := character_position_first_closed_pair(src, '[', ']')
+		fmt.Println("num of array closing signs:", pos_last_opening_before_first_closing, pos_first_closing)
+		if pos_last_opening_before_first_closing < 0 || pos_first_closing < 0 {
+			break
+		} else {
+			// TODO overwrite [ ... ] area with an empty filler
+			// TODO: build ARRAY object at [ position
+			break
 		}
 	}
-	return -1
+	return src
 }
 
 // ******************** array detection: ********************************
@@ -264,4 +262,20 @@ func number_type(runes []rune) string {
 
 func elem_unprocessed(elem elem) bool {
 	return elem.valType == "rune"
+}
+
+// Goal: find [ ]  { } pairs ....
+// if 0 or positive num: the position of first ] elem
+// -1 means: src doesn't have the char
+func character_position_first_closed_pair(src []elem, charOpen rune, charClose rune) (int, int) {
+	posOpen := -1
+	for id, elemNow := range src {
+		if elemNow.valRune == charOpen {
+			posOpen = id
+		}
+		if elemNow.valRune == charClose {
+			return posOpen, id
+		}
+	}
+	return posOpen, -1
 }
