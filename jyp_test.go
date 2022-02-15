@@ -1,7 +1,10 @@
 // author: Balazs Nyiro, balazs.nyiro.ca@gmail.com
 package jyp
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func Test_string_detection_simple(t *testing.T) {
 	// this is a source code representation, so " is in the string:
@@ -71,6 +74,14 @@ func Test_scalar_detection(t *testing.T) {
 		elem{valType: "null"},
 	}
 	compare_receiveds_wanteds(elems, wanted, t)
+}
+
+func Test_array_detection(t *testing.T) {
+	elems := elems_from_str(`"name": "Bob", "scores": [4, 6], "friends": ["Eve", "Joe"]`)
+	elems = Json_collect_strings_in_elems__remove_spaces(elems)
+	elems = Json_collect_numbers_in_elems(elems)
+	array_closing_first_pos := Json_collect_arrays_in_elems(elems)
+	fmt.Println("arrays detected:", array_closing_first_pos)
 }
 
 ////////////////////////////////////////////////////////////////////////

@@ -35,6 +35,26 @@ func Json_parse(src string) (elem, error) {
 	return elems[0], nil
 }
 
+// ******************** array detection: ********************************
+func Json_collect_arrays_in_elems(src []elem) []elem {
+	array_closing_first_pos := json_array_end_position_first(src)
+	fmt.Println("num of array closing signs:", array_closing_first_pos)
+	return src
+}
+
+// if 0 or positive num: the position of first ] elem
+// -1 means: src doesn't have ]
+func json_array_end_position_first(src []elem) int {
+	for id, elemNow := range src {
+		if elemNow.valRune == ']' {
+			return id
+		}
+	}
+	return -1
+}
+
+// ******************** array detection: ********************************
+
 // ******************** scalar detection: true, false, null *************
 // from more fixed runes it creates one elem
 // src can't contain strings! (strings can contain scalar words, too)
