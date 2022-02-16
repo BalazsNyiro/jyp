@@ -35,7 +35,7 @@ func Test_string_detection_double(t *testing.T) {
 func Test_string_detection_escaped_char(t *testing.T) {
 	elems_with_runes := elems_from_str(`"he is \"Eduard\""`)
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
-	wanted := elem{valString: []rune("he is \\\"Eduard\\\""), valType: "string"}
+	wanted := elem_string("he is \\\"Eduard\\\"")
 	compare_one_pair_received_wanted(elems_strings_detected[0], wanted, t)
 }
 
@@ -47,11 +47,11 @@ func Test_number_int_detection(t *testing.T) {
 	wanted := []elem{
 		elem_string("price"),
 		elem_rune(':'),
-		elem{valString: []rune("7.6"), valType: "number_float", valNumberFloat: 7.599999904632568},
-		elem{valRune: ',', valType: "rune"},
-		elem{valString: []rune("age"), valType: "string"},
-		elem{valRune: ':', valType: "rune"},
-		elem{valString: []rune("5"), valType: "number_int", valNumberInt: 5},
+		elem_number_float("7.6", 7.599999904632568),
+		elem_rune(','),
+		elem_string("age"),
+		elem_rune(':'),
+		elem_number_int(5),
 	}
 	compare_receiveds_wanteds(elems_num_detected, wanted, t)
 }
@@ -62,17 +62,17 @@ func Test_scalar_detection(t *testing.T) {
 	elems = Json_collect_scalars_in_elems(elems)
 	// elems_print(elems, 0)
 	wanted := []elem{
-		elem{valString: []rune("True"), valType: "string"},
-		elem{valRune: ':', valType: "rune"},
-		elem{valBool: true, valType: "bool"},
-		elem{valRune: ',', valType: "rune"},
-		elem{valString: []rune("False"), valType: "string"},
-		elem{valRune: ':', valType: "rune"},
-		elem{valBool: false, valType: "bool"},
-		elem{valRune: ',', valType: "rune"},
-		elem{valString: []rune("age"), valType: "string"},
-		elem{valRune: ':', valType: "rune"},
-		elem{valType: "null"},
+		elem_string("True"),
+		elem_rune(':'),
+		elem_true(),
+		elem_rune(','),
+		elem_string("False"),
+		elem_rune(':'),
+		elem_false(),
+		elem_rune(','),
+		elem_string("age"),
+		elem_rune(':'),
+		elem_null(),
 	}
 	compare_receiveds_wanteds(elems, wanted, t)
 }
@@ -110,7 +110,7 @@ func elem_number_int(value int) elem {
 	return elem{valString: []rune(strconv.Itoa(value)), valType: "number_int", valNumberInt: value}
 }
 
-func elem_number_float(value_more_or_less_precise float64, value_str_representation string) elem {
+func elem_number_float(value_str_representation string, value_more_or_less_precise float64) elem {
 	// elem{valString: []rune("7.6"), valType: "number_float", valNumberFloat: 7.599999904632568},
 	return elem{valString: []rune(value_str_representation), valType: "number_float", valNumberFloat: value_more_or_less_precise}
 
@@ -120,6 +120,17 @@ func elem_string(value string) elem {
 	// example:
 	// elem{valString: []rune("age"), valType: "string"},
 	return elem{valString: []rune(value), valType: "string"}
+}
+func elem_true() elem {
+	return elem{valBool: true, valType: "bool"}
+}
+
+func elem_false() elem {
+	return elem{valBool: false, valType: "bool"}
+}
+
+func elem_null() elem {
+	return elem{valType: "null"}
 }
 
 func elem_rune(value rune) elem {
