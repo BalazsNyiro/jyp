@@ -35,12 +35,20 @@ func Json_parse(src string) (elem, error) {
 	return elems[0], nil
 }
 
-// ******************** array detection: ********************************
+// ******************** array/object detection: ********************************
 func Json_collect_arrays_in_elems(src []elem) []elem {
+	return Json_structure_ranges_and_hierarchies_in_elems(src, '[', ']')
+}
+
+func Json_collect_objects_in_elems(src []elem) []elem {
+	return Json_structure_ranges_and_hierarchies_in_elems(src, '{', '}')
+}
+
+func Json_structure_ranges_and_hierarchies_in_elems(src []elem, charOpen rune, charClose rune) []elem {
 	src_pair_removed := src
 	for {
 		pos_last_opening_before_first_closing, pos_first_closing :=
-			character_position_first_closed_pair(src_pair_removed, '[', ']')
+			character_position_first_closed_pair(src_pair_removed, charOpen, charClose)
 		if pos_last_opening_before_first_closing < 0 || pos_first_closing < 0 {
 			return src_pair_removed
 		} else {
@@ -54,7 +62,7 @@ func Json_collect_arrays_in_elems(src []elem) []elem {
 	}
 }
 
-// ******************** array detection: ********************************
+// ******************** array/object detection: ********************************
 
 // ******************** scalar detection: true, false, null *************
 // from more fixed runes it creates one elem
