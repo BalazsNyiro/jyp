@@ -3,6 +3,7 @@ package jyp
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 )
 
@@ -20,13 +21,13 @@ func Test_string_detection_double(t *testing.T) {
 	elems_with_runes := elems_from_str(`"name": "Bob", "age": 7`)
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
 	wanted := []elem{
-		elem{valString: []rune("name"), valType: "string"},
-		elem{valRune: ':', valType: "rune"},
-		elem{valString: []rune("Bob"), valType: "string"},
-		elem{valRune: ',', valType: "rune"},
-		elem{valString: []rune("age"), valType: "string"},
-		elem{valRune: ':', valType: "rune"},
-		elem{valRune: '7', valType: "rune"},
+		elem_string("name"),
+		elem_rune(':'),
+		elem_string("Bob"),
+		elem_rune(','),
+		elem_string("age"),
+		elem_rune(':'),
+		elem_rune('7'),
 	}
 	compare_receiveds_wanteds(elems_strings_detected, wanted, t)
 }
@@ -44,8 +45,8 @@ func Test_number_int_detection(t *testing.T) {
 	elems_num_detected := Json_collect_numbers_in_elems(elems_strings_detected)
 	elems_print(elems_num_detected, 0)
 	wanted := []elem{
-		elem{valString: []rune("price"), valType: "string"},
-		elem{valRune: ':', valType: "rune"},
+		elem_string("price"),
+		elem_rune(':'),
 		elem{valString: []rune("7.6"), valType: "number_float", valNumberFloat: 7.599999904632568},
 		elem{valRune: ',', valType: "rune"},
 		elem{valString: []rune("age"), valType: "string"},
@@ -59,7 +60,7 @@ func Test_scalar_detection(t *testing.T) {
 	elems := elems_from_str(`"True": true, "False": false, "age": null `)
 	elems = Json_collect_strings_in_elems__remove_spaces(elems)
 	elems = Json_collect_scalars_in_elems(elems)
-	elems_print(elems, 0)
+	// elems_print(elems, 0)
 	wanted := []elem{
 		elem{valString: []rune("True"), valType: "string"},
 		elem{valRune: ':', valType: "rune"},
@@ -77,15 +78,55 @@ func Test_scalar_detection(t *testing.T) {
 }
 
 func Test_array_detection(t *testing.T) {
-	elems := elems_from_str(`"name": "Bob", "scores": [4, 6], "friends": ["Eve", "Joe"]`)
+	elems := elems_from_str(`"name": "Bob", "scores": [4, 6], "friends": ["Eve", "Joe", 42], "key": "val"`)
 	elems = Json_collect_strings_in_elems__remove_spaces(elems)
 	elems = Json_collect_numbers_in_elems(elems)
 	array := Json_collect_arrays_in_elems(elems)
 	fmt.Println("arrays detected:")
 	elems_print(array, 0)
+	/*
+		wanted := []elem{
+			elem{valString: []rune("True"), valType: "string"},
+			elem{valRune: ':', valType: "rune"},
+			elem{valBool: true, valType: "bool"},
+			elem{valRune: ',', valType: "rune"},
+			elem{valString: []rune("False"), valType: "string"},
+			elem{valRune: ':', valType: "rune"},
+			elem{valBool: false, valType: "bool"},
+			elem{valRune: ',', valType: "rune"},
+			elem{valString: []rune("age"), valType: "string"},
+			elem{valRune: ':', valType: "rune"},
+			elem{valType: "null"},
+		}
+
+	*/
+	// compare_receiveds_wanteds(elems, wanted, t)
 }
 
 ////////////////////////////////////////////////////////////////////////
+
+func elem_number_int(value int) elem {
+	// return elem{valString: []rune("5"), valType: "number_int", valNumberInt: 5},
+	return elem{valString: []rune(strconv.Itoa(value)), valType: "number_int", valNumberInt: value}
+}
+
+func elem_number_float(value_more_or_less_precise float64, value_str_representation string) elem {
+	// elem{valString: []rune("7.6"), valType: "number_float", valNumberFloat: 7.599999904632568},
+	return elem{valString: []rune(value_str_representation), valType: "number_float", valNumberFloat: value_more_or_less_precise}
+
+}
+
+func elem_string(value string) elem {
+	// example:
+	// elem{valString: []rune("age"), valType: "string"},
+	return elem{valString: []rune(value), valType: "string"}
+}
+
+func elem_rune(value rune) elem {
+	// example:
+	// elem{valRune: ':', valType: "rune"},
+	return elem{valRune: value, valType: "rune"}
+}
 
 func compare_receiveds_wanteds(receiveds []elem, wanteds []elem, t *testing.T) {
 	if len(receiveds) != len(wanteds) {

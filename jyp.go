@@ -39,17 +39,17 @@ func Json_parse(src string) (elem, error) {
 func Json_collect_arrays_in_elems(src []elem) []elem {
 	src_pair_removed := src
 	for {
-		pos_last_opening_before_first_closing, pos_first_closing := character_position_first_closed_pair(src, '[', ']')
-		fmt.Println("num of array closing signs:", pos_last_opening_before_first_closing, pos_first_closing)
+		pos_last_opening_before_first_closing, pos_first_closing :=
+			character_position_first_closed_pair(src_pair_removed, '[', ']')
 		if pos_last_opening_before_first_closing < 0 || pos_first_closing < 0 {
-			// TODO: this is an error if the [] or {} chars are not in pairs
 			return src_pair_removed
 		} else {
-			elem_pair := elem{valType: "array", valArray: src[pos_last_opening_before_first_closing+1 : pos_first_closing]}
-			src_pair_removed := src[:pos_last_opening_before_first_closing]
-			src_pair_removed = append(src_pair_removed, elem_pair)
-			src_pair_removed = append(src_pair_removed, src[pos_first_closing+1:]...)
-			return Json_collect_arrays_in_elems(src_pair_removed)
+			elem_pair := elem{valType: "array",
+				valArray: src_pair_removed[pos_last_opening_before_first_closing+1 : pos_first_closing]}
+			src_new := elems_copy(src_pair_removed, 0, pos_last_opening_before_first_closing)
+			src_new = append(src_new, elem_pair)
+			src_new = append(src_new, elems_copy(src_pair_removed, pos_first_closing+1, len(src_pair_removed))...)
+			src_pair_removed = src_new
 		}
 	}
 }
@@ -148,7 +148,7 @@ func _elem_number_from_runes(runes []rune) elem {
 		intVal, _ := strconv.Atoi(stringVal)
 		return elem{valString: runes, valType: numType, valNumberInt: intVal}
 	}
-	floatVal, _ := strconv.ParseFloat(stringVal, floatBitsize)
+	floatVal := str_to_float(stringVal)
 	return elem{valString: runes, valType: numType, valNumberFloat: floatVal}
 }
 
@@ -193,6 +193,20 @@ func Json_collect_strings_in_elems__remove_spaces(src []elem) []elem {
 // ********************* end of string detection *************************************
 
 //////////////////////////////////////////////////////////////////////////////////////
+func elems_copy(elems []elem, from_included int, to_excluded int) []elem {
+	var collector = elems_new()
+	for i := from_included; i < to_excluded; i++ {
+		collector = append(collector, elems[i])
+	}
+	return collector
+}
+func float_to_string(value float64) string {
+	return strconv.FormatFloat(value, 'E', -1, floatBitsize)
+}
+func str_to_float(value string) float64 {
+	floatVal, _ := strconv.ParseFloat(value, floatBitsize)
+	return floatVal
+}
 func elems_print(elems []elem, indent int) {
 	prefix := indentation(indent)
 	for i, elem := range elems {
@@ -217,16 +231,14 @@ func elems_print(elems []elem, indent int) {
 			data = string(elem.valRune)
 		}
 		if elem.valType == "number_float" {
-			data = strconv.FormatFloat(elem.valNumberFloat, 'E', -1, floatBitsize)
+			data = float_to_string(elem.valNumberFloat)
 		}
 		if elem.valType == "number_int" {
 			data = strconv.Itoa(elem.valNumberInt)
 		}
 		fmt.Println(prefix, i, "--->", elem.valType, data)
 		if elem.valType == "array" {
-			fmt.Println(">>> ARRAY ", indent+1)
 			elems_print(elem.valArray, indent+1)
-			fmt.Println("<<< ARRAY ", indent+1)
 		}
 	}
 }
