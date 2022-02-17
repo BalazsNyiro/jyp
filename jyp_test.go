@@ -1,3 +1,4 @@
+// JYP - Json/Yaml Parser
 // author: Balazs Nyiro, balazs.nyiro.ca@gmail.com
 package jyp
 
@@ -77,6 +78,7 @@ func Test_scalar_detection(t *testing.T) {
 	compare_receiveds_wanteds(elems, wanted, t)
 }
 
+// here we don't use object detection, only scalars and array
 func Test_array_detection(t *testing.T) {
 	elems := elems_from_str(`"name": "Bob", "scores": [4, 6], "friends": [["Eve", 16], ["Joe", 42]], "key": "val"`)
 	elems = Json_collect_strings_in_elems__remove_spaces(elems)
@@ -121,6 +123,18 @@ func Test_array_detection(t *testing.T) {
 		elem_string("val"),
 	}
 	compare_receiveds_wanteds(array, wanted, t)
+}
+
+// {"name": "Bob", "friends": [{"name":Eve", "scores":[1,2]}, {"name":Bob", "scores":[3,4]}]}`)
+// FIXME: build up key-val bindings in objects instead of lists!
+func Test_object_detection(t *testing.T) {
+	elems := elems_from_str(`{"name": "Bob", {"city":"Paris", "Cell": 123}}`)
+	elems = Json_collect_strings_in_elems__remove_spaces(elems)
+	elems = Json_collect_numbers_in_elems(elems)
+	elems = Json_collect_arrays_in_elems(elems)
+	array := Json_collect_objects_in_elems(elems)
+	fmt.Println("arrays detected:", len(array))
+	elems_print(array, 0)
 }
 
 ////////////////////////////////////////////////////////////////////////

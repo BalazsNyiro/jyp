@@ -1,3 +1,4 @@
+// JYP - Json/Yaml Parser
 // author: Balazs Nyiro, balazs.nyiro.ca@gmail.com
 package jyp
 
@@ -30,6 +31,8 @@ func Json_parse(src string) (elem, error) {
 	elems = Json_collect_strings_in_elems__remove_spaces(elems) // string detection is the first,
 	elems = Json_collect_numbers_in_elems(elems)                // because strings can contain numbers
 	elems = Json_collect_scalars_in_elems(elems)                // or scalars, too
+	elems = Json_collect_arrays_in_elems(elems)
+	elems = Json_collect_objects_in_elems(elems)
 
 	elems_print(elems, 0)
 	return elems[0], nil
@@ -37,14 +40,14 @@ func Json_parse(src string) (elem, error) {
 
 // ******************** array/object detection: ********************************
 func Json_collect_arrays_in_elems(src []elem) []elem {
-	return Json_structure_ranges_and_hierarchies_in_elems(src, '[', ']')
+	return Json_structure_ranges_and_hierarchies_in_elems(src, '[', ']', "array")
 }
 
 func Json_collect_objects_in_elems(src []elem) []elem {
-	return Json_structure_ranges_and_hierarchies_in_elems(src, '{', '}')
+	return Json_structure_ranges_and_hierarchies_in_elems(src, '{', '}', "object")
 }
 
-func Json_structure_ranges_and_hierarchies_in_elems(src []elem, charOpen rune, charClose rune) []elem {
+func Json_structure_ranges_and_hierarchies_in_elems(src []elem, charOpen rune, charClose rune, valType string) []elem {
 	src_pair_removed := src
 	for {
 		pos_last_opening_before_first_closing, pos_first_closing :=
@@ -52,8 +55,26 @@ func Json_structure_ranges_and_hierarchies_in_elems(src []elem, charOpen rune, c
 		if pos_last_opening_before_first_closing < 0 || pos_first_closing < 0 {
 			return src_pair_removed
 		} else {
-			elem_pair := elem{valType: "array",
-				valArray: src_pair_removed[pos_last_opening_before_first_closing+1 : pos_first_closing]}
+			elem_pair := elem{valType: valType}
+			elems_embedded := src_pair_removed[pos_last_opening_before_first_closing+1 : pos_first_closing]
+			if valType == "array" {
+				elem_pair.valArray = elems_embedded
+			} else {
+				map_representation := map[string]elem{}
+				key := ""
+				for _, elemNow := range elems_embedded {
+					if key == "" && elemNow.valType == "string" {
+						// TODO: convert valString from []rune to real string???
+						key = string(elemNow.valString)
+						continue
+					}
+					// TODO: detect value
+					//if key != "" && {}
+
+				}
+
+				elem_pair.valObject = map_representation
+			}
 			src_new := elems_copy(src_pair_removed, 0, pos_last_opening_before_first_closing)
 			src_new = append(src_new, elem_pair)
 			src_new = append(src_new, elems_copy(src_pair_removed, pos_first_closing+1, len(src_pair_removed))...)
