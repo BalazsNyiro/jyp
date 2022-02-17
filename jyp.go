@@ -17,7 +17,7 @@ type elem struct {
 
 	valBool        bool // true, false
 	valRune        rune
-	valString      []rune
+	valString      string
 	valNumberInt   int
 	valNumberFloat float64
 	valObject      map[string]elem
@@ -64,8 +64,7 @@ func Json_structure_ranges_and_hierarchies_in_elems(src []elem, charOpen rune, c
 				key := ""
 				for _, elemNow := range elems_embedded {
 					if key == "" && elemNow.valType == "string" {
-						// TODO: convert valString from []rune to real string???
-						key = string(elemNow.valString)
+						key = elemNow.valString
 						continue
 					}
 					// TODO: detect value
@@ -175,10 +174,10 @@ func _elem_number_from_runes(runes []rune) elem {
 	stringVal := string(runes)
 	if numType == "number_int" {
 		intVal, _ := strconv.Atoi(stringVal)
-		return elem{valString: runes, valType: numType, valNumberInt: intVal}
+		return elem{valString: string(runes), valType: numType, valNumberInt: intVal}
 	}
 	floatVal := str_to_float(stringVal)
-	return elem{valString: runes, valType: numType, valNumberFloat: floatVal}
+	return elem{valString: string(runes), valType: numType, valNumberFloat: floatVal}
 }
 
 // ********************* end of JSON number detection *******************************
@@ -199,7 +198,7 @@ func Json_collect_strings_in_elems__remove_spaces(src []elem) []elem {
 			if !escaped {
 				inText = false
 				collector = append(collector,
-					elem{valString: runes, valType: "string"})
+					elem{valString: string(runes), valType: "string"})
 				runes = nil
 				continue
 			}
@@ -254,7 +253,7 @@ func elems_print(elems []elem, indent int) {
 			}
 		}
 		if elem.valType == "string" {
-			data = string(elem.valString)
+			data = elem.valString
 		}
 		if elem.valType == "rune" {
 			data = string(elem.valRune)

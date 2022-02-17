@@ -14,7 +14,7 @@ func Test_string_detection_simple(t *testing.T) {
 	// in the detected value, there is the content WITHOUT " signs
 	elems_with_runes := elems_from_str(`"name of king"`)
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
-	wanted := elem{valString: []rune("name of king"), valType: "string"}
+	wanted := elem{valString: "name of king", valType: "string"}
 	compare_one_pair_received_wanted(elems_strings_detected[0], wanted, t)
 }
 
@@ -143,19 +143,19 @@ func elem_array(values []elem) elem {
 }
 
 func elem_number_int(value int) elem {
-	// return elem{valString: []rune("5"), valType: "number_int", valNumberInt: 5},
-	return elem{valString: []rune(strconv.Itoa(value)), valType: "number_int", valNumberInt: value}
+	// return elem{valString: "5", valType: "number_int", valNumberInt: 5},
+	return elem{valString: strconv.Itoa(value), valType: "number_int", valNumberInt: value}
 }
 
 func elem_number_float(value_str_representation string, value_more_or_less_precise float64) elem {
-	// elem{valString: []rune("7.6"), valType: "number_float", valNumberFloat: 7.599999904632568},
-	return elem{valString: []rune(value_str_representation), valType: "number_float", valNumberFloat: value_more_or_less_precise}
+	// elem{valString: "7.6", valType: "number_float", valNumberFloat: 7.599999904632568},
+	return elem{valString: value_str_representation, valType: "number_float", valNumberFloat: value_more_or_less_precise}
 }
 
 func elem_string(value string) elem {
 	// example:
-	// elem{valString: []rune("age"), valType: "string"},
-	return elem{valString: []rune(value), valType: "string"}
+	// elem{valString: "age", valType: "string"},
+	return elem{valString: value, valType: "string"}
 }
 func elem_true() elem {
 	return elem{valBool: true, valType: "bool"}
@@ -186,7 +186,7 @@ func compare_receiveds_wanteds(receiveds []elem, wanteds []elem, t *testing.T) {
 }
 
 func compare_one_pair_received_wanted(received elem, wanted elem, t *testing.T) {
-	if !runes_are_similar(received.valString, wanted.valString) {
+	if received.valString != wanted.valString {
 		t.Fatalf("\nreceived: %v\n  wanted: %v, error",
 			received.valString, wanted.valString)
 	}
@@ -204,19 +204,4 @@ func compare_one_pair_received_wanted(received elem, wanted elem, t *testing.T) 
 	if received.valBool != wanted.valBool {
 		t.Fatalf(`received bool = %v, wanted %v, error`, received.valBool, wanted.valBool)
 	}
-}
-
-func runes_are_similar(runes1 []rune, runes2 []rune) bool {
-	if len(runes1) != len(runes2) {
-		return false
-	}
-	if len(runes1) == 0 {
-		return true
-	}
-	for i := 0; i < len(runes1); i++ {
-		if runes1[i] != runes2[i] {
-			return false
-		}
-	}
-	return true
 }
