@@ -82,7 +82,7 @@ func Test_array_detection(t *testing.T) {
 	elems = Json_collect_strings_in_elems__remove_spaces(elems)
 	elems = Json_collect_numbers_in_elems(elems)
 	array := Json_collect_arrays_in_elems(elems)
-	fmt.Println("arrays detected:")
+	fmt.Println("arrays detected:", len(array))
 	elems_print(array, 0)
 
 	array_1 := []elem{
@@ -115,8 +115,7 @@ func Test_array_detection(t *testing.T) {
 		elem_rune(':'),
 		elem_string("val"),
 	}
-
-	compare_receiveds_wanteds(elems, wanted, t)
+	compare_receiveds_wanteds(array, wanted, t)
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -159,7 +158,8 @@ func elem_rune(value rune) elem {
 
 func compare_receiveds_wanteds(receiveds []elem, wanteds []elem, t *testing.T) {
 	if len(receiveds) != len(wanteds) {
-		t.Fatalf(`len(received_elems) != len(wanted_elems)`)
+		t.Fatalf(`len(received_elems %v) != len(wanted_elems %v)`,
+			len(receiveds), len(wanteds))
 	}
 	for i := 0; i < len(receiveds); i++ {
 		compare_one_pair_received_wanted(receiveds[i], wanteds[i], t)
