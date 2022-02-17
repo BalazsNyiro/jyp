@@ -78,25 +78,12 @@ func Test_scalar_detection(t *testing.T) {
 }
 
 func Test_array_detection(t *testing.T) {
-	elems := elems_from_str(`"name": "Bob", "scores": [4, 6], "friends": ["Eve", "Joe", 42], "key": "val"`)
+	elems := elems_from_str(`"name": "Bob", "scores": [4, 6], "friends": [["Eve", 16], ["Joe", 42]], "key": "val"`)
 	elems = Json_collect_strings_in_elems__remove_spaces(elems)
 	elems = Json_collect_numbers_in_elems(elems)
 	array := Json_collect_arrays_in_elems(elems)
 	fmt.Println("arrays detected:", len(array))
 	elems_print(array, 0)
-
-	array_1 := []elem{
-		elem_number_int(4),
-		elem_rune(','),
-		elem_number_int(6),
-	}
-	array_2 := []elem{
-		elem_string("Eve"),
-		elem_rune(','),
-		elem_string("Joe"),
-		elem_rune(','),
-		elem_number_int(6),
-	}
 
 	wanted := []elem{
 		elem_string("name"),
@@ -105,11 +92,29 @@ func Test_array_detection(t *testing.T) {
 		elem_rune(','),
 		elem_string("scores"),
 		elem_rune(':'),
-		elem_array(array_1),
+		elem_array(
+			[]elem{
+				elem_number_int(4),
+				elem_rune(','),
+				elem_number_int(6),
+			},
+		),
 		elem_rune(','),
 		elem_string("friends"),
 		elem_rune(':'),
-		elem_array(array_2),
+		elem_array([]elem{
+			elem_array([]elem{
+				elem_string("Eve"),
+				elem_rune(','),
+				elem_number_int(16),
+			}),
+			elem_array([]elem{
+				elem_string("Joe"),
+				elem_rune(','),
+				elem_number_int(42),
+			}),
+		},
+		),
 		elem_rune(','),
 		elem_string("key"),
 		elem_rune(':'),
