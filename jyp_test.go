@@ -84,26 +84,45 @@ func Test_array_detection(t *testing.T) {
 	array := Json_collect_arrays_in_elems(elems)
 	fmt.Println("arrays detected:")
 	elems_print(array, 0)
-	/*
-		wanted := []elem{
-			elem{valString: []rune("True"), valType: "string"},
-			elem{valRune: ':', valType: "rune"},
-			elem{valBool: true, valType: "bool"},
-			elem{valRune: ',', valType: "rune"},
-			elem{valString: []rune("False"), valType: "string"},
-			elem{valRune: ':', valType: "rune"},
-			elem{valBool: false, valType: "bool"},
-			elem{valRune: ',', valType: "rune"},
-			elem{valString: []rune("age"), valType: "string"},
-			elem{valRune: ':', valType: "rune"},
-			elem{valType: "null"},
-		}
 
-	*/
-	// compare_receiveds_wanteds(elems, wanted, t)
+	array_1 := []elem{
+		elem_number_int(4),
+		elem_rune(','),
+		elem_number_int(6),
+	}
+	array_2 := []elem{
+		elem_string("Eve"),
+		elem_rune(','),
+		elem_string("Joe"),
+		elem_rune(','),
+		elem_number_int(6),
+	}
+
+	wanted := []elem{
+		elem_string("name"),
+		elem_rune(':'),
+		elem_string("Bob"),
+		elem_rune(','),
+		elem_string("scores"),
+		elem_rune(':'),
+		elem_array(array_1),
+		elem_rune(','),
+		elem_string("friends"),
+		elem_rune(':'),
+		elem_array(array_2),
+		elem_rune(','),
+		elem_string("key"),
+		elem_rune(':'),
+		elem_string("val"),
+	}
+
+	compare_receiveds_wanteds(elems, wanted, t)
 }
 
 ////////////////////////////////////////////////////////////////////////
+func elem_array(values []elem) elem {
+	return elem{valArray: elems_copy(values, 0, len(values)), valType: "array"}
+}
 
 func elem_number_int(value int) elem {
 	// return elem{valString: []rune("5"), valType: "number_int", valNumberInt: 5},
@@ -113,7 +132,6 @@ func elem_number_int(value int) elem {
 func elem_number_float(value_str_representation string, value_more_or_less_precise float64) elem {
 	// elem{valString: []rune("7.6"), valType: "number_float", valNumberFloat: 7.599999904632568},
 	return elem{valString: []rune(value_str_representation), valType: "number_float", valNumberFloat: value_more_or_less_precise}
-
 }
 
 func elem_string(value string) elem {
