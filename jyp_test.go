@@ -30,7 +30,7 @@ func Test_string_detection_double(t *testing.T) {
 		elem_rune(':'),
 		elem_rune('7'),
 	}
-	compare_receiveds_wanteds(elems_strings_detected, wanted, t)
+	compare_receivedElems_wantedElems(elems_strings_detected, wanted, t)
 }
 
 func Test_string_detection_escaped_char(t *testing.T) {
@@ -54,7 +54,7 @@ func Test_number_int_detection(t *testing.T) {
 		elem_rune(':'),
 		elem_number_int(5),
 	}
-	compare_receiveds_wanteds(elems_num_detected, wanted, t)
+	compare_receivedElems_wantedElems(elems_num_detected, wanted, t)
 }
 
 func Test_scalar_detection(t *testing.T) {
@@ -75,7 +75,7 @@ func Test_scalar_detection(t *testing.T) {
 		elem_rune(':'),
 		elem_null(),
 	}
-	compare_receiveds_wanteds(elems, wanted, t)
+	compare_receivedElems_wantedElems(elems, wanted, t)
 }
 
 /*
@@ -131,22 +131,36 @@ func Test_array_detection(t *testing.T) {
 		elem_rune(':'),
 		elem_string("val"),
 	}
-	compare_receiveds_wanteds(array, wanted, t)
+	compare_receivedElems_wantedElems(array, wanted, t)
 }
 
 // {"name": "Bob", "friends": [{"name":Eve", "scores":[1,2]}, {"name":Bob", "scores":[3,4]}]}`)
-// FIXME: build up key-val bindings in objects instead of lists!
+
 func Test_object_detection(t *testing.T) {
-	elems := elems_from_str(`{"name": "Bobek", "personal_info":{"city":"Paris", "cell": 123}}`)
+	elems := elems_from_str(`{"personal":{"city":"Paris", "cell": 123}}`)
 	elems = Json_collect_strings_in_elems__remove_spaces(elems)
 	elems = Json_collect_numbers_in_elems(elems)
 	elems = Json_collect_arrays_in_elems(elems)
 	elems = Json_collect_objects_in_elems(elems)
 	fmt.Println("object detected")
 	elems_print(elems, 0)
+
+	wanted := elem_object(map[string]elem{
+		"personal": elem_object(map[string]elem{
+			"city": elem_string("Paris"),
+			"cell": elem_number_int(123),
+		}),
+	})
+	// here I have a root object (one object) in wanted,
+	// and in elems, I have to compare it with the first elem, too
+	compare_one_pair_received_wanted(elems[0], wanted, t)
 }
 
 ////////////////////////////////////////////////////////////////////////
+func elem_object(values map[string]elem) elem {
+	return elem{valObject: values, valType: "object"}
+}
+
 func elem_array(values []elem) elem {
 	return elem{valArray: elems_copy(values, 0, len(values)), valType: "array"}
 }
@@ -184,7 +198,9 @@ func elem_rune(value rune) elem {
 	return elem{valRune: value, valType: "rune"}
 }
 
-func compare_receiveds_wanteds(receiveds []elem, wanteds []elem, t *testing.T) {
+/////////////////////////////////////////////////////////////////////////
+
+func compare_receivedElems_wantedElems(receiveds []elem, wanteds []elem, t *testing.T) {
 	// compare only the lenth of the top level!
 	if len(receiveds) != len(wanteds) {
 		fmt.Println(">>> === compare, len !=   ===========")
@@ -201,7 +217,7 @@ func compare_receiveds_wanteds(receiveds []elem, wanteds []elem, t *testing.T) {
 	}
 }
 
-func _compare_objects(objA elem, objB elem, t *testing.T) {
+func _compare_two_objects(objA elem, objB elem, t *testing.T) {
 	for keyReceived, _ := range objA.valObject {
 		if Obj_has_key(objB.valObject, keyReceived) == false {
 			t.Fatalf(`wanted object doesn't have key' %v error`, keyReceived)
@@ -231,11 +247,11 @@ func compare_one_pair_received_wanted(received elem, wanted elem, t *testing.T) 
 	}
 
 	if received.valType == "array" {
-		compare_receiveds_wanteds(received.valArray, wanted.valArray, t)
+		compare_receivedElems_wantedElems(received.valArray, wanted.valArray, t)
 	}
 
 	if received.valType == "object" {
-		_compare_objects(wanted, received, t) // check based on received object
-		_compare_objects(received, wanted, t) // check based on wanted object (from other direction)
+		_compare_two_objects(received, wanted, t) // check based on received object
+		_compare_two_objects(wanted, received, t) // check based on wanted object (from other direction)
 	}
 }
