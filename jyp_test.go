@@ -78,6 +78,14 @@ func Test_scalar_detection(t *testing.T) {
 	compare_receiveds_wanteds(elems, wanted, t)
 }
 
+/*
+ VERY IMPORTANT: in array detection I can't remove `,` runes, because
+ `{` and `}` runes can be there, too, and they have their own `,` runes, too
+ after object detection, I can return to the lists to remove the raw, unused runes
+
+So in these test, they are not completely correct jsons, they are in an evolutionary level,
+as the processing takes step by step, the result will be more better and better
+*/
 // here we don't use object detection, only scalars and array
 func Test_array_detection(t *testing.T) {
 	elems := elems_from_str(`"name": "Bob", "scores": [4, 6], "friends": [["Eve", 16], ["Joe", 42]], "key": "val"`)
@@ -110,6 +118,7 @@ func Test_array_detection(t *testing.T) {
 				elem_rune(','),
 				elem_number_int(16),
 			}),
+			elem_rune(','),
 			elem_array([]elem{
 				elem_string("Joe"),
 				elem_rune(','),
@@ -176,12 +185,28 @@ func elem_rune(value rune) elem {
 }
 
 func compare_receiveds_wanteds(receiveds []elem, wanteds []elem, t *testing.T) {
+	// compare only the lenth of the top level!
 	if len(receiveds) != len(wanteds) {
-		t.Fatalf(`len(received_elems %v) != len(wanted_elems %v)`,
+		fmt.Println(">>> === compare, len !=   ===========")
+		elems_print(receiveds, 0)
+		fmt.Println("    .......................    ")
+		elems_print(wanteds, 0)
+		fmt.Println("<<< === compare, len !=   ===========")
+		t.Fatalf(`len(received_elems %v) != len(wanted_elems %v) `,
 			len(receiveds), len(wanteds))
+
 	}
 	for i := 0; i < len(receiveds); i++ {
 		compare_one_pair_received_wanted(receiveds[i], wanteds[i], t)
+	}
+}
+
+func _compare_objects(objA elem, objB elem, t *testing.T) {
+	for keyReceived, _ := range objA.valObject {
+		if Obj_has_key(objB.valObject, keyReceived) == false {
+			t.Fatalf(`wanted object doesn't have key' %v error`, keyReceived)
+		}
+		compare_one_pair_received_wanted(objA.valObject[keyReceived], objB.valObject[keyReceived], t)
 	}
 }
 
@@ -203,5 +228,14 @@ func compare_one_pair_received_wanted(received elem, wanted elem, t *testing.T) 
 	}
 	if received.valBool != wanted.valBool {
 		t.Fatalf(`received bool = %v, wanted %v, error`, received.valBool, wanted.valBool)
+	}
+
+	if received.valType == "array" {
+		compare_receiveds_wanteds(received.valArray, wanted.valArray, t)
+	}
+
+	if received.valType == "object" {
+		_compare_objects(wanted, received, t) // check based on received object
+		_compare_objects(received, wanted, t) // check based on wanted object (from other direction)
 	}
 }

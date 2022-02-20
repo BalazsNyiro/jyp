@@ -58,13 +58,7 @@ func Json_structure_ranges_and_hierarchies_in_elems(src []elem, charOpen rune, c
 			elem_pair := elem{valType: valType}
 			elems_embedded := src_pair_removed[pos_last_opening_before_first_closing+1 : pos_first_closing]
 			if valType == "array" {
-				elems_in_array := elems_new()
-				for _, elemNow := range elems_embedded {
-					if elemNow.valType != "rune" {
-						elems_in_array = append(elems_in_array, elemNow)
-					}
-				}
-				elem_pair.valArray = elems_in_array
+				elem_pair.valArray = elems_embedded
 			} else {
 				map_data := map[string]elem{}
 				key := ""
@@ -360,4 +354,11 @@ func character_position_first_closed_pair(src []elem, charOpen rune, charClose r
 		}
 	}
 	return posOpen, -1
+}
+
+func Obj_has_key(dict map[string]elem, key string) bool {
+	if _, ok := dict[key]; ok {
+		return true
+	}
+	return false
 }
