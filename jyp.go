@@ -144,20 +144,20 @@ func Json_collect_numbers_in_elems(src []elem) []elem {
 			runes = append(runes, runeNow)
 			continue
 		}
-		collector, runes = collector_append_possible_runes(collector, runes)
+		collector = collector_append_possible_runes(collector, string(runes))
 		collector = append(collector, elemNow) // save anything else
+		runes = nil                            // clear the slice. if it had anything, the APPEND used it.
 	}
 	// save the info if digits are the last ones
-	collector, _ = collector_append_possible_runes(collector, runes)
+	collector = collector_append_possible_runes(collector, string(runes))
 	return collector
 }
 
-func collector_append_possible_runes(collector []elem, runes []rune) ([]elem, []rune) {
-	if len(runes) > 0 {
-		collector = append(collector, _elem_number_from_runes(runes))
-		runes = nil // clear the slice?
+func collector_append_possible_runes(collector []elem, numberTxt string) []elem {
+	if len(numberTxt) > 0 {
+		collector = append(collector, _elem_number_from_runes(numberTxt))
 	}
-	return collector, runes
+	return collector
 }
 
 func _rune_digit_info(elemNow elem) (rune, bool) {
@@ -169,15 +169,14 @@ func _rune_digit_info(elemNow elem) (rune, bool) {
 
 // it can work if runes has elems, because it returns with an elem
 // and to determine the elem minimum one rune is necessary
-func _elem_number_from_runes(runes []rune) elem {
-	numType := number_type(runes)
-	stringVal := string(runes)
+func _elem_number_from_runes(stringVal string) elem {
+	numType := number_type_detect_float_or_int(stringVal)
 	if numType == "number_int" {
 		intVal, _ := strconv.Atoi(stringVal)
-		return elem{valString: string(runes), valType: numType, valNumberInt: intVal}
+		return elem{valString: stringVal, valType: numType, valNumberInt: intVal}
 	}
 	floatVal := str_to_float(stringVal)
-	return elem{valString: string(runes), valType: numType, valNumberFloat: floatVal}
+	return elem{valString: stringVal, valType: numType, valNumberFloat: floatVal}
 }
 
 // ********************* end of JSON number detection *******************************
@@ -310,8 +309,8 @@ func elem_is_escaped_in_string(positionOfDoubleQuote int, elems []elem) bool {
 	}
 }
 
-func number_type(runes []rune) string {
-	for _, rune := range runes {
+func number_type_detect_float_or_int(number_txt string) string {
+	for _, rune := range number_txt {
 		if rune == '.' {
 			return "number_float"
 		}
