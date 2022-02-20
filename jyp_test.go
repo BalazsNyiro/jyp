@@ -84,7 +84,7 @@ func Test_array_detection(t *testing.T) {
 	elems = Json_collect_strings_in_elems__remove_spaces(elems)
 	elems = Json_collect_numbers_in_elems(elems)
 	array := Json_collect_arrays_in_elems(elems)
-	fmt.Println("arrays detected:", len(array))
+	fmt.Println("(1) arrays detected:", len(array))
 	elems_print(array, 0)
 
 	wanted := []elem{
@@ -128,13 +128,13 @@ func Test_array_detection(t *testing.T) {
 // {"name": "Bob", "friends": [{"name":Eve", "scores":[1,2]}, {"name":Bob", "scores":[3,4]}]}`)
 // FIXME: build up key-val bindings in objects instead of lists!
 func Test_object_detection(t *testing.T) {
-	elems := elems_from_str(`{"name": "Bob", {"city":"Paris", "Cell": 123}}`)
+	elems := elems_from_str(`{"name": "Bobek", "personal_info":{"city":"Paris", "cell": 123}}`)
 	elems = Json_collect_strings_in_elems__remove_spaces(elems)
 	elems = Json_collect_numbers_in_elems(elems)
 	elems = Json_collect_arrays_in_elems(elems)
-	array := Json_collect_objects_in_elems(elems)
-	fmt.Println("arrays detected:", len(array))
-	elems_print(array, 0)
+	elems = Json_collect_objects_in_elems(elems)
+	fmt.Println("object detected")
+	elems_print(elems, 0)
 }
 
 ////////////////////////////////////////////////////////////////////////

@@ -58,21 +58,28 @@ func Json_structure_ranges_and_hierarchies_in_elems(src []elem, charOpen rune, c
 			elem_pair := elem{valType: valType}
 			elems_embedded := src_pair_removed[pos_last_opening_before_first_closing+1 : pos_first_closing]
 			if valType == "array" {
-				elem_pair.valArray = elems_embedded
+				elems_in_array := elems_new()
+				for _, elemNow := range elems_embedded {
+					if elemNow.valType != "rune" {
+						elems_in_array = append(elems_in_array, elemNow)
+					}
+				}
+				elem_pair.valArray = elems_in_array
 			} else {
-				map_representation := map[string]elem{}
+				map_data := map[string]elem{}
 				key := ""
 				for _, elemNow := range elems_embedded {
 					if key == "" && elemNow.valType == "string" {
 						key = elemNow.valString
 						continue
 					}
-					// TODO: detect value
-					//if key != "" && {}
 
+					if key != "" && elemNow.valType != "rune" {
+						map_data[key] = elemNow
+						key = ""
+					}
 				}
-
-				elem_pair.valObject = map_representation
+				elem_pair.valObject = map_data
 			}
 			src_new := elems_copy(src_pair_removed, 0, pos_last_opening_before_first_closing)
 			src_new = append(src_new, elem_pair)
@@ -234,39 +241,56 @@ func str_to_float(value string) float64 {
 	floatVal, _ := strconv.ParseFloat(value, floatBitsize)
 	return floatVal
 }
-func elems_print(elems []elem, indent int) {
-	prefix := indentation(indent)
-	for i, elem := range elems {
-		data := ""
-		if elem.valType == "array" {
-			data = "[...]"
+
+// in array, id is int. 0->value, 1->v2, 2->v3
+// but in an object the id's are strings.
+// it's easier to manage string id's only
+func _elem_print(id string, elem elem, indent_level int) {
+	prefix := indentation(indent_level)
+	data := ""
+	if elem.valType == "array" {
+		data = "[...]"
+	}
+	if elem.valType == "null" {
+		data = "null"
+	}
+	if elem.valType == "bool" {
+		if elem.valBool {
+			data = "true"
+		} else {
+			data = "false"
 		}
-		if elem.valType == "null" {
-			data = "null"
+	}
+	if elem.valType == "string" {
+		data = elem.valString
+	}
+	if elem.valType == "rune" {
+		data = string(elem.valRune)
+	}
+	if elem.valType == "number_float" {
+		data = float_to_string(elem.valNumberFloat)
+	}
+	if elem.valType == "number_int" {
+		data = strconv.Itoa(elem.valNumberInt)
+	}
+
+	// print the current elem's type and value
+	fmt.Println(prefix, id, "--->", elem.valType, data)
+
+	if elem.valType == "array" {
+		elems_print(elem.valArray, indent_level+1)
+	}
+
+	if elem.valType == "object" {
+		for key, value_in_obj := range elem.valObject {
+			_elem_print(key, value_in_obj, indent_level+1) // print the value for the key
 		}
-		if elem.valType == "bool" {
-			if elem.valBool {
-				data = "true"
-			} else {
-				data = "false"
-			}
-		}
-		if elem.valType == "string" {
-			data = elem.valString
-		}
-		if elem.valType == "rune" {
-			data = string(elem.valRune)
-		}
-		if elem.valType == "number_float" {
-			data = float_to_string(elem.valNumberFloat)
-		}
-		if elem.valType == "number_int" {
-			data = strconv.Itoa(elem.valNumberInt)
-		}
-		fmt.Println(prefix, i, "--->", elem.valType, data)
-		if elem.valType == "array" {
-			elems_print(elem.valArray, indent+1)
-		}
+	}
+}
+
+func elems_print(elems []elem, indent_level int) {
+	for id, elem := range elems {
+		_elem_print(strconv.Itoa(id), elem, indent_level)
 	}
 }
 func indentation(level int) string {
