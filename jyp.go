@@ -25,13 +25,13 @@ type elem struct {
 	valArray       []elem
 }
 
-func Json_parse_src(src string) ([]elem, error) {
+func Json_parse_src(src string) (elem, error) {
 	fmt.Println("json_parse:" + src)
 
 	elems := elems_from_str(src)
 	// elems_print_with_title(elems, "src")
 	elems = Json_parse_elems(elems)
-	return elems, nil
+	return elems[0], nil // give back the first 'root' object
 }
 
 func Json_parse_elems(elems []elem) []elem {
@@ -372,6 +372,9 @@ func elems_print(elems []elem, indent_level int) {
 	for id, elem := range elems {
 		elem_print(strconv.Itoa(id), elem, indent_level)
 	}
+}
+func elem_print_one(elem elem) {
+	elem_print("0", elem, 0)
 }
 func indentation(level int) string {
 	indentation := ""

@@ -132,22 +132,22 @@ func Test_array_detection(t *testing.T) {
 //////////////// COMPLETE JSON TESTS ////////////////////////////////////
 
 func Test_object_detection(t *testing.T) {
-	elems, _ := Json_parse_src(`{"personal":{"city":"Paris", "cell": 123}}`)
+	elem_root, _ := Json_parse_src(`{"personal":{"city":"Paris", "cell": 123}}`)
 	fmt.Println("Test_object_detection")
-	elems_print(elems, 0)
+	elem_print_one(elem_root)
 	wanted := elem_object(map[string]elem{
 		"personal": elem_object(map[string]elem{
 			"city": elem_string("Paris"),
 			"cell": elem_number_int(123),
 		}),
 	})
-	compare_one_pair_received_wanted(elems[0], wanted, t)
+	compare_one_pair_received_wanted(elem_root, wanted, t)
 }
 
 func Test_json_1(t *testing.T) {
-	elems, _ := Json_parse_src(`{"name": "Bob", "friends": [ {"name":"Eve", "cell": 123, "age": 21} ]}`)
+	elem_root, _ := Json_parse_src(`{"name": "Bob", "friends": [ {"name":"Eve", "cell": 123, "age": 21} ]}`)
 	fmt.Println(" Test_json_1")
-	elems_print(elems, 0)
+	elem_print_one(elem_root)
 	wanted := elem_object(map[string]elem{
 		"name": elem_string("Bob"),
 		"friends": elem_array([]elem{
@@ -158,13 +158,13 @@ func Test_json_1(t *testing.T) {
 			}),
 		}),
 	})
-	compare_one_pair_received_wanted(elems[0], wanted, t)
+	compare_one_pair_received_wanted(elem_root, wanted, t)
 }
 
 func Test_complex_big(t *testing.T) {
-	elems, _ := Json_parse_src(`{"name": "Bob", "friends": [ {"name":"Eve", "scores":[1,2]}, {"name":"Joe", "scores":[3,4]} ]}`)
+	elem_root, _ := Json_parse_src(`{"name": "Bob", "friends": [ {"name":"Eve", "scores":[1,2]}, {"name":"Joe", "scores":[3,4]} ]}`)
 	fmt.Println("Test_complex_big")
-	elems_print(elems, 0)
+	elem_print_one(elem_root)
 	wanted := elem_object(map[string]elem{
 		"name": elem_string("Bob"),
 		"friends": elem_array([]elem{
@@ -184,7 +184,7 @@ func Test_complex_big(t *testing.T) {
 			}),
 		}),
 	})
-	compare_one_pair_received_wanted(elems[0], wanted, t)
+	compare_one_pair_received_wanted(elem_root, wanted, t)
 }
 
 /////////////////////////////////////////////////////////////////////////
