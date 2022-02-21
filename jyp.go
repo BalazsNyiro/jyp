@@ -17,19 +17,24 @@ type elem struct {
 
 	valBool        bool // true, false
 	valRune        rune
-	valString      string
+	valRuneString  string // the Rune's strin representation, ONE char
+	valString      string // if type==string, this value represents more characters
 	valNumberInt   int
 	valNumberFloat float64
 	valObject      map[string]elem
 	valArray       []elem
 }
 
-func Json_parse(src string) ([]elem, error) {
+func Json_parse_src(src string) ([]elem, error) {
 	fmt.Println("json_parse:" + src)
 
 	elems := elems_from_str(src)
 	// elems_print_with_title(elems, "src")
+	elems = Json_parse_elems(elems)
+	return elems, nil
+}
 
+func Json_parse_elems(elems []elem) []elem {
 	elems = Json_collect_strings_in_elems__remove_spaces(elems) // string detection is the first,
 	// elems_print_with_title(elems, "collect strings")
 
@@ -44,28 +49,27 @@ func Json_parse(src string) ([]elem, error) {
 
 	elems = Json_collect_objects_in_elems(elems)
 	// elems_print_with_title(elems, "collect objects")
-
-	return elems, nil
+	return elems
 }
 
 // ******************** array/object detection: ********************************
 func Json_collect_arrays_in_elems(src []elem) []elem {
 	return Json_structure_ranges_and_hierarchies_in_elems(src, '[', ']', "array")
 }
+func Json_collect_objects_recursive(src []elem) {
 
+}
 func Json_collect_objects_in_elems(src []elem) []elem {
-	elems := elems_new()
-
-	// object detection in the top level.
-	elems = Json_structure_ranges_and_hierarchies_in_elems(src, '{', '}', "object")
-
 	//But: embedded lists can have embedded objects, too
-	for _, elemNow := range elems {
+	// at the beginnin here I have arrays only.
+	for id, elemNow := range src {
 		if elemNow.valType == "array" {
-			elemNow.valArray = Json_collect_objects_in_elems(elemNow.valArray)
+			src[id].valArray = Json_collect_objects_in_elems(elemNow.valArray)
 		}
 	}
-	return elems
+
+	// object detection in the top level.
+	return Json_structure_ranges_and_hierarchies_in_elems(src, '{', '}', "object")
 }
 
 func Json_structure_ranges_and_hierarchies_in_elems(src []elem, charOpen rune, charClose rune, valType string) []elem {
@@ -215,8 +219,7 @@ func Json_collect_strings_in_elems__remove_spaces(src []elem) []elem {
 
 	for id, elemNow := range src {
 		runeNow := elemNow.valRune
-		fmt.Println(">>> runeNow", string(runeNow), "inText", inText)
-
+		// fmt.Println(">>> runeNow", string(runeNow), "inText", inText)
 		if _str_closing_quote(inText, runeNow) && !elem_is_escaped_in_string(id, src) {
 			inText = false
 			collector = append(collector, elem_string(string(runes)))
@@ -253,7 +256,7 @@ func elem_object(values map[string]elem) elem {
 }
 
 func elem_array(values []elem) elem {
-	return elem{valArray: elems_copy(values, 0, len(values)), valType: "array"}
+	return elem{valArray: elems_copy_all(values), valType: "array"}
 }
 
 func elem_number_int(value int) elem {
@@ -281,10 +284,14 @@ func elem_null() elem {
 func elem_rune(value rune) elem {
 	// example:
 	// elem{valRune: ':', valType: "rune"},
-	return elem{valRune: value, valType: "rune"}
+	return elem{valRune: value, valRuneString: string(value), valType: "rune"}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
+
+func elems_copy_all(elems []elem) []elem {
+	return elems_copy(elems, 0, len(elems))
+}
 
 func elems_copy(elems []elem, from_included int, to_excluded int) []elem {
 	var collector = elems_new()
@@ -375,7 +382,7 @@ func elems_from_str(src string) []elem {
 	var chars = make([]elem, len(src))
 	for i, rune := range src {
 		// fmt.Println(i, "->", string(rune))
-		chars[i] = elem{valRune: rune, valType: "rune"}
+		chars[i] = elem_rune(rune)
 	}
 	return chars
 }
@@ -431,3 +438,12 @@ func Obj_has_key(dict map[string]elem, key string) bool {
 	}
 	return false
 }
+
+/*
+	if elemNow.valType == "object" {
+		// for keyNow, valNow := range elemNow.valObject {
+		// // 	//elemNow.valObject[keyNow] = Json_collect_objects_in_elems(valNow)
+		// }
+	}
+
+*/
