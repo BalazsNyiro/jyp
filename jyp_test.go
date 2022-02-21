@@ -4,7 +4,6 @@ package jyp
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 )
 
@@ -174,43 +173,6 @@ func Test_complex_big(t *testing.T) {
 	// 	}),
 	// })
 	// compare_one_pair_received_wanted(elem_root, wanted, t)
-}
-
-////////////////////////////////////////////////////////////////////////
-func elem_object(values map[string]elem) elem {
-	return elem{valObject: values, valType: "object"}
-}
-
-func elem_array(values []elem) elem {
-	return elem{valArray: elems_copy(values, 0, len(values)), valType: "array"}
-}
-
-func elem_number_int(value int) elem {
-	// return elem{valString: "5", valType: "number_int", valNumberInt: 5},
-	return elem{valString: strconv.Itoa(value), valType: "number_int", valNumberInt: value}
-}
-
-func elem_number_float(value_str_representation string, value_more_or_less_precise float64) elem {
-	// elem{valString: "7.6", valType: "number_float", valNumberFloat: 7.599999904632568},
-	return elem{valString: value_str_representation, valType: "number_float", valNumberFloat: value_more_or_less_precise}
-}
-
-func elem_true() elem {
-	return elem{valBool: true, valType: "bool"}
-}
-
-func elem_false() elem {
-	return elem{valBool: false, valType: "bool"}
-}
-
-func elem_null() elem {
-	return elem{valType: "null"}
-}
-
-func elem_rune(value rune) elem {
-	// example:
-	// elem{valRune: ':', valType: "rune"},
-	return elem{valRune: value, valType: "rune"}
 }
 
 /////////////////////////////////////////////////////////////////////////

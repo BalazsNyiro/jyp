@@ -131,19 +131,19 @@ func Json_collect_scalars_in_elems(src []elem) []elem {
 			*/
 			idCut := idLast - 3 // remove the last elems from collector
 			collector = collector[:idCut]
-			elemTrue := elem{valType: "bool", valBool: true}
+			elemTrue := elem_true()
 			collector = append(collector, elemTrue)
 		}
 		if lastFourChar == "null" {
 			idCut := idLast - 3
 			collector = collector[:idCut]
-			elemNull := elem{valType: "null"}
+			elemNull := elem_null()
 			collector = append(collector, elemNull)
 		}
 		if lastFiveChar == "false" {
 			idCut := idLast - 4
 			collector = collector[:idCut]
-			elemFalse := elem{valType: "bool", valBool: false}
+			elemFalse := elem_false()
 			collector = append(collector, elemFalse)
 		}
 	}
@@ -195,10 +195,10 @@ func _elem_number_from_runes(stringVal string) elem {
 	numType := number_type_detect_float_or_int(stringVal)
 	if numType == "number_int" {
 		intVal, _ := strconv.Atoi(stringVal)
-		return elem{valString: stringVal, valType: numType, valNumberInt: intVal}
+		return elem_number_int(intVal)
 	}
 	floatVal := str_to_float(stringVal)
-	return elem{valString: stringVal, valType: numType, valNumberFloat: floatVal}
+	return elem_number_float(stringVal, floatVal)
 }
 
 // ********************* end of JSON number detection *******************************
@@ -247,6 +247,44 @@ func elem_string(value string) elem {
 	// elem{valString: "age", valType: "string"},
 	return elem{valString: value, valType: "string"}
 }
+
+func elem_object(values map[string]elem) elem {
+	return elem{valObject: values, valType: "object"}
+}
+
+func elem_array(values []elem) elem {
+	return elem{valArray: elems_copy(values, 0, len(values)), valType: "array"}
+}
+
+func elem_number_int(value int) elem {
+	// return elem{valString: "5", valType: "number_int", valNumberInt: 5},
+	return elem{valString: strconv.Itoa(value), valType: "number_int", valNumberInt: value}
+}
+
+func elem_number_float(value_str_representation string, value_more_or_less_precise float64) elem {
+	// elem{valString: "7.6", valType: "number_float", valNumberFloat: 7.599999904632568},
+	return elem{valString: value_str_representation, valType: "number_float", valNumberFloat: value_more_or_less_precise}
+}
+
+func elem_true() elem {
+	return elem{valBool: true, valType: "bool"}
+}
+
+func elem_false() elem {
+	return elem{valBool: false, valType: "bool"}
+}
+
+func elem_null() elem {
+	return elem{valType: "null"}
+}
+
+func elem_rune(value rune) elem {
+	// example:
+	// elem{valRune: ':', valType: "rune"},
+	return elem{valRune: value, valType: "rune"}
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
 
 func elems_copy(elems []elem, from_included int, to_excluded int) []elem {
 	var collector = elems_new()
