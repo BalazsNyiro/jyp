@@ -104,7 +104,6 @@ func Test_array_detection(t *testing.T) {
 		elem_array(
 			[]elem{
 				elem_number_int(4),
-				elem_rune(','),
 				elem_number_int(6),
 			},
 		),
@@ -114,13 +113,10 @@ func Test_array_detection(t *testing.T) {
 		elem_array([]elem{
 			elem_array([]elem{
 				elem_string("Eve"),
-				elem_rune(','),
 				elem_number_int(16),
 			}),
-			elem_rune(','),
 			elem_array([]elem{
 				elem_string("Joe"),
-				elem_rune(','),
 				elem_number_int(42),
 			}),
 		},
@@ -176,16 +172,13 @@ func Test_complex_big(t *testing.T) {
 				"name": elem_string("Eve"),
 				"scores": elem_array([]elem{
 					elem_number_int(1),
-					elem_rune(','),
 					elem_number_int(2),
 				}),
 			}),
-			elem_rune(','),
 			elem_object(map[string]elem{
 				"name": elem_string("Joe"),
 				"scores": elem_array([]elem{
 					elem_number_int(3),
-					elem_rune(','),
 					elem_number_int(4),
 				}),
 			}),

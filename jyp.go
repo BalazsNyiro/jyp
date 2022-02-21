@@ -72,6 +72,16 @@ func Json_collect_objects_in_elems(src []elem) []elem {
 	return Json_structure_ranges_and_hierarchies_in_elems(src, '{', '}', "object")
 }
 
+func comma_runes_removing(elems []elem) []elem {
+	filtered := elems_new()
+	for _, elemNow := range elems {
+		if !(elemNow.valType == "rune" && elemNow.valRune == ',') {
+			filtered = append(filtered, elemNow)
+		}
+	}
+	return filtered
+}
+
 func Json_structure_ranges_and_hierarchies_in_elems(src []elem, charOpen rune, charClose rune, valType string) []elem {
 	src_pair_removed := src
 	for {
@@ -83,7 +93,7 @@ func Json_structure_ranges_and_hierarchies_in_elems(src []elem, charOpen rune, c
 			elem_pair := elem{valType: valType}
 			elems_embedded := src_pair_removed[pos_last_opening_before_first_closing+1 : pos_first_closing]
 			if valType == "array" {
-				elem_pair.valArray = elems_embedded
+				elem_pair.valArray = comma_runes_removing(elems_embedded)
 			} else {
 				map_data := map[string]elem{}
 				key := ""
@@ -438,12 +448,3 @@ func Obj_has_key(dict map[string]elem, key string) bool {
 	}
 	return false
 }
-
-/*
-	if elemNow.valType == "object" {
-		// for keyNow, valNow := range elemNow.valObject {
-		// // 	//elemNow.valObject[keyNow] = Json_collect_objects_in_elems(valNow)
-		// }
-	}
-
-*/
