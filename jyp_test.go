@@ -134,26 +134,46 @@ func Test_array_detection(t *testing.T) {
 	compare_receivedElems_wantedElems(array, wanted, t)
 }
 
-// {"name": "Bob", "friends": [{"name":Eve", "scores":[1,2]}, {"name":Bob", "scores":[3,4]}]}`)
+//////////////// COMPLETE JSON TESTS ////////////////////////////////////
 
 func Test_object_detection(t *testing.T) {
-	elems := elems_from_str(`{"personal":{"city":"Paris", "cell": 123}}`)
-	elems = Json_collect_strings_in_elems__remove_spaces(elems)
-	elems = Json_collect_numbers_in_elems(elems)
-	elems = Json_collect_arrays_in_elems(elems)
-	elems = Json_collect_objects_in_elems(elems)
-	fmt.Println("object detected")
+	elems, _ := Json_parse(`{"personal":{"city":"Paris", "cell": 123}}`)
+	fmt.Println("Test_object_detection")
 	elems_print(elems, 0)
-
 	wanted := elem_object(map[string]elem{
 		"personal": elem_object(map[string]elem{
 			"city": elem_string("Paris"),
 			"cell": elem_number_int(123),
 		}),
 	})
-	// here I have a root object (one object) in wanted,
-	// and in elems, I have to compare it with the first elem, too
 	compare_one_pair_received_wanted(elems[0], wanted, t)
+}
+
+// elem_root, _ := Json_parse(`{"name": "Bob", "friends": [{"name":Eve", "scores":[1,2]}, {"name":Bob", "scores":[3,4]}]})`)
+func Test_json_1(t *testing.T) {
+	elems, _ := Json_parse(`{"name": "Bob", "friends": [ {"name":"Eve"} ]}`)
+	fmt.Println(" Test_json_1")
+	elems_print(elems, 0)
+	// wanted := elem_object(map[string]elem{
+	// 	"personal": elem_object(map[string]elem{
+	// 		"city": elem_string("Paris"),
+	// 		"cell": elem_number_int(123),
+	// 	}),
+	// })
+	// compare_one_pair_received_wanted(elem_root, wanted, t)
+}
+func Test_complex_big(t *testing.T) {
+	return
+	elems, _ := Json_parse(`{"name": "Bob", "friends": [ {"name":Eve", "scores":[1,2]}, {"name":Bob", "scores":[3,4]} ]})`)
+	fmt.Println("Test_complex_big")
+	elems_print(elems, 0)
+	// wanted := elem_object(map[string]elem{
+	// 	"personal": elem_object(map[string]elem{
+	// 		"city": elem_string("Paris"),
+	// 		"cell": elem_number_int(123),
+	// 	}),
+	// })
+	// compare_one_pair_received_wanted(elem_root, wanted, t)
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -175,11 +195,6 @@ func elem_number_float(value_str_representation string, value_more_or_less_preci
 	return elem{valString: value_str_representation, valType: "number_float", valNumberFloat: value_more_or_less_precise}
 }
 
-func elem_string(value string) elem {
-	// example:
-	// elem{valString: "age", valType: "string"},
-	return elem{valString: value, valType: "string"}
-}
 func elem_true() elem {
 	return elem{valBool: true, valType: "bool"}
 }

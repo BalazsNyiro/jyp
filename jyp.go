@@ -24,18 +24,28 @@ type elem struct {
 	valArray       []elem
 }
 
-func Json_parse(src string) (elem, error) {
+func Json_parse(src string) ([]elem, error) {
 	fmt.Println("json_parse:" + src)
+
 	elems := elems_from_str(src)
+	// elems_print_with_title(elems, "src")
 
 	elems = Json_collect_strings_in_elems__remove_spaces(elems) // string detection is the first,
-	elems = Json_collect_numbers_in_elems(elems)                // because strings can contain numbers
-	elems = Json_collect_scalars_in_elems(elems)                // or scalars, too
-	elems = Json_collect_arrays_in_elems(elems)
-	elems = Json_collect_objects_in_elems(elems)
+	// elems_print_with_title(elems, "collect strings")
 
-	elems_print(elems, 0)
-	return elems[0], nil
+	elems = Json_collect_numbers_in_elems(elems) // because strings can contain numbers
+	// elems_print_with_title(elems, "collect numbers")
+
+	elems = Json_collect_scalars_in_elems(elems) // or scalars, too
+	// elems_print_with_title(elems, "collect scalars")
+
+	elems = Json_collect_arrays_in_elems(elems)
+	// elems_print_with_title(elems, "collect arrays")
+
+	elems = Json_collect_objects_in_elems(elems)
+	// elems_print_with_title(elems, "collect objects")
+
+	return elems, nil
 }
 
 // ******************** array/object detection: ********************************
@@ -44,7 +54,18 @@ func Json_collect_arrays_in_elems(src []elem) []elem {
 }
 
 func Json_collect_objects_in_elems(src []elem) []elem {
-	return Json_structure_ranges_and_hierarchies_in_elems(src, '{', '}', "object")
+	elems := elems_new()
+
+	// object detection in the top level.
+	elems = Json_structure_ranges_and_hierarchies_in_elems(src, '{', '}', "object")
+
+	//But: embedded lists can have embedded objects, too
+	for _, elemNow := range elems {
+		if elemNow.valType == "array" {
+			elemNow.valArray = Json_collect_objects_in_elems(elemNow.valArray)
+		}
+	}
+	return elems
 }
 
 func Json_structure_ranges_and_hierarchies_in_elems(src []elem, charOpen rune, charClose rune, valType string) []elem {
@@ -181,6 +202,9 @@ func _elem_number_from_runes(stringVal string) elem {
 }
 
 // ********************* end of JSON number detection *******************************
+func _str_closing_quote(inText bool, runeNow rune) bool {
+	return inText && runeNow == '"'
+}
 
 // ********************* string detection *******************************************
 // from one or more rune it creates one elem with collected characters
@@ -191,17 +215,13 @@ func Json_collect_strings_in_elems__remove_spaces(src []elem) []elem {
 
 	for id, elemNow := range src {
 		runeNow := elemNow.valRune
+		fmt.Println(">>> runeNow", string(runeNow), "inText", inText)
 
-		if inText && runeNow == '"' {
-			escaped := elem_is_escaped_in_string(id, src)
-
-			if !escaped {
-				inText = false
-				collector = append(collector,
-					elem{valString: string(runes), valType: "string"})
-				runes = nil
-				continue
-			}
+		if _str_closing_quote(inText, runeNow) && !elem_is_escaped_in_string(id, src) {
+			inText = false
+			collector = append(collector, elem_string(string(runes)))
+			runes = nil
+			continue
 		}
 		if inText {
 			runes = append(runes, runeNow)
@@ -221,6 +241,13 @@ func Json_collect_strings_in_elems__remove_spaces(src []elem) []elem {
 // ********************* end of string detection *************************************
 
 //////////////////////////////////////////////////////////////////////////////////////
+
+func elem_string(value string) elem {
+	// example:
+	// elem{valString: "age", valType: "string"},
+	return elem{valString: value, valType: "string"}
+}
+
 func elems_copy(elems []elem, from_included int, to_excluded int) []elem {
 	var collector = elems_new()
 	for i := from_included; i < to_excluded; i++ {
@@ -239,7 +266,7 @@ func str_to_float(value string) float64 {
 // in array, id is int. 0->value, 1->v2, 2->v3
 // but in an object the id's are strings.
 // it's easier to manage string id's only
-func _elem_print(id string, elem elem, indent_level int) {
+func elem_print(id string, elem elem, indent_level int) {
 	prefix := indentation(indent_level)
 	data := ""
 	if elem.valType == "array" {
@@ -277,14 +304,18 @@ func _elem_print(id string, elem elem, indent_level int) {
 
 	if elem.valType == "object" {
 		for key, value_in_obj := range elem.valObject {
-			_elem_print(key, value_in_obj, indent_level+1) // print the value for the key
+			elem_print(key, value_in_obj, indent_level+1) // print the value for the key
 		}
 	}
 }
 
+func elems_print_with_title(elems []elem, title string) {
+	fmt.Println("===", title, "===")
+	elems_print(elems, 0)
+}
 func elems_print(elems []elem, indent_level int) {
 	for id, elem := range elems {
-		_elem_print(strconv.Itoa(id), elem, indent_level)
+		elem_print(strconv.Itoa(id), elem, indent_level)
 	}
 }
 func indentation(level int) string {
