@@ -11,6 +11,7 @@ import (
 var floatBitsize = 32
 
 type keys_elems map[string]elem
+type elem_list []elem
 
 type elem struct {
 	valType string
@@ -24,7 +25,7 @@ type elem struct {
 	valNumberInt   int
 	valNumberFloat float64
 	valObject      keys_elems
-	valArray       []elem
+	valArray       elem_list
 }
 
 func Json_parse_src(src string) (elem, error) {
@@ -36,7 +37,7 @@ func Json_parse_src(src string) (elem, error) {
 	return elems[0], nil // give back the first 'root' object
 }
 
-func Json_parse_elems(elems []elem) []elem {
+func Json_parse_elems(elems elem_list) elem_list {
 	elems = Json_collect_strings_in_elems__remove_spaces(elems) // string detection is the first,
 	// elems_print_with_title(elems, "collect strings")
 
@@ -55,13 +56,13 @@ func Json_parse_elems(elems []elem) []elem {
 }
 
 // ******************** array/object detection: ********************************
-func Json_collect_arrays_in_elems(src []elem) []elem {
+func Json_collect_arrays_in_elems(src elem_list) elem_list {
 	return Json_structure_ranges_and_hierarchies_in_elems(src, '[', ']', "array")
 }
-func Json_collect_objects_recursive(src []elem) {
+func Json_collect_objects_recursive(src elem_list) {
 
 }
-func Json_collect_objects_in_elems(src []elem) []elem {
+func Json_collect_objects_in_elems(src elem_list) elem_list {
 	//But: embedded lists can have embedded objects, too
 	// at the beginnin here I have arrays only.
 	for id, elemNow := range src {
@@ -74,7 +75,7 @@ func Json_collect_objects_in_elems(src []elem) []elem {
 	return Json_structure_ranges_and_hierarchies_in_elems(src, '{', '}', "object")
 }
 
-func comma_runes_removing(elems []elem) []elem {
+func comma_runes_removing(elems elem_list) elem_list {
 	filtered := elems_new()
 	for _, elemNow := range elems {
 		if !(elemNow.valType == "rune" && elemNow.valRune == ',') {
@@ -84,7 +85,7 @@ func comma_runes_removing(elems []elem) []elem {
 	return filtered
 }
 
-func Json_structure_ranges_and_hierarchies_in_elems(src []elem, charOpen rune, charClose rune, valType string) []elem {
+func Json_structure_ranges_and_hierarchies_in_elems(src elem_list, charOpen rune, charClose rune, valType string) elem_list {
 	src_pair_removed := src
 	for {
 		pos_last_opening_before_first_closing, pos_first_closing :=
@@ -125,7 +126,7 @@ func Json_structure_ranges_and_hierarchies_in_elems(src []elem, charOpen rune, c
 // ******************** scalar detection: true, false, null *************
 // from more fixed runes it creates one elem
 // src can't contain strings! (strings can contain scalar words, too)
-func Json_collect_scalars_in_elems(src []elem) []elem {
+func Json_collect_scalars_in_elems(src elem_list) elem_list {
 	collector := elems_new()
 	runes := runes_new()
 
@@ -171,7 +172,7 @@ func Json_collect_scalars_in_elems(src []elem) []elem {
 // ********************* number detection *******************************
 // from one or more rune it creates one elem with collected digits
 // src can't contain strings! (strings can contain numbers, too)
-func Json_collect_numbers_in_elems(src []elem) []elem {
+func Json_collect_numbers_in_elems(src elem_list) elem_list {
 	collector := elems_new()
 	runes := runes_new()
 
@@ -191,7 +192,7 @@ func Json_collect_numbers_in_elems(src []elem) []elem {
 	return collector
 }
 
-func collector_append_possible_runes(collector []elem, numberTxt string) []elem {
+func collector_append_possible_runes(collector elem_list, numberTxt string) elem_list {
 	if len(numberTxt) > 0 {
 		collector = append(collector, _elem_number_from_runes(numberTxt))
 	}
@@ -224,7 +225,7 @@ func _str_closing_quote(inText bool, runeNow rune) bool {
 
 // ********************* string detection *******************************************
 // from one or more rune it creates one elem with collected characters
-func Json_collect_strings_in_elems__remove_spaces(src []elem) []elem {
+func Json_collect_strings_in_elems__remove_spaces(src elem_list) elem_list {
 	var collector = elems_new()
 	var inText = false
 	var runes = runes_new()
@@ -267,7 +268,7 @@ func elem_object(values keys_elems) elem {
 	return elem{valObject: values, valType: "object"}
 }
 
-func elem_array(values []elem) elem {
+func elem_array(values elem_list) elem {
 	return elem{valArray: elems_copy_all(values), valType: "array"}
 }
 
@@ -301,11 +302,11 @@ func elem_rune(value rune) elem {
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-func elems_copy_all(elems []elem) []elem {
+func elems_copy_all(elems elem_list) elem_list {
 	return elems_copy(elems, 0, len(elems))
 }
 
-func elems_copy(elems []elem, from_included int, to_excluded int) []elem {
+func elems_copy(elems elem_list, from_included int, to_excluded int) elem_list {
 	var collector = elems_new()
 	for i := from_included; i < to_excluded; i++ {
 		collector = append(collector, elems[i])
@@ -366,11 +367,11 @@ func elem_print(id string, elem elem, indent_level int) {
 	}
 }
 
-func elems_print_with_title(elems []elem, title string) {
+func elems_print_with_title(elems elem_list, title string) {
 	fmt.Println("===", title, "===")
 	elems_print(elems, 0)
 }
-func elems_print(elems []elem, indent_level int) {
+func elems_print(elems elem_list, indent_level int) {
 	for id, elem := range elems {
 		elem_print(strconv.Itoa(id), elem, indent_level)
 	}
@@ -389,12 +390,12 @@ func indentation(level int) string {
 func runes_new() []rune {
 	return make([]rune, 0)
 }
-func elems_new() []elem {
-	return make([]elem, 0)
+func elems_new() elem_list {
+	return make(elem_list, 0)
 }
 
-func elems_from_str(src string) []elem {
-	var chars = make([]elem, len(src))
+func elems_from_str(src string) elem_list {
+	var chars = make(elem_list, len(src))
 	for i, rune := range src {
 		// fmt.Println(i, "->", string(rune))
 		chars[i] = elem_rune(rune)
@@ -402,7 +403,7 @@ func elems_from_str(src string) []elem {
 	return chars
 }
 
-func elem_is_escaped_in_string(positionOfDoubleQuote int, elems []elem) bool {
+func elem_is_escaped_in_string(positionOfDoubleQuote int, elems elem_list) bool {
 	posChecked := positionOfDoubleQuote
 	escaped := false
 	for {
@@ -434,7 +435,7 @@ func elem_unprocessed(elem elem) bool {
 // Goal: find [ ]  { } pairs ....
 // if 0 or positive num: the position of first ] elem
 // -1 means: src doesn't have the char
-func character_position_first_closed_pair(src []elem, charOpen rune, charClose rune) (int, int) {
+func character_position_first_closed_pair(src elem_list, charOpen rune, charClose rune) (int, int) {
 	posOpen := -1
 	for id, elemNow := range src {
 		if elemNow.valRune == charOpen {
