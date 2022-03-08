@@ -10,6 +10,8 @@ import (
 
 var floatBitsize = 32
 
+type keys_elems map[string]elem
+
 type elem struct {
 	valType string
 	// rune, string, number_int, number_float,
@@ -21,7 +23,7 @@ type elem struct {
 	valString      string // if type==string, this value represents more characters
 	valNumberInt   int
 	valNumberFloat float64
-	valObject      map[string]elem
+	valObject      keys_elems
 	valArray       []elem
 }
 
@@ -95,7 +97,7 @@ func Json_structure_ranges_and_hierarchies_in_elems(src []elem, charOpen rune, c
 			if valType == "array" {
 				elem_pair.valArray = comma_runes_removing(elems_embedded)
 			} else {
-				map_data := map[string]elem{}
+				map_data := keys_elems{}
 				key := ""
 				for _, elemNow := range elems_embedded {
 					if key == "" && elemNow.valType == "string" {
@@ -261,7 +263,7 @@ func elem_string(value string) elem {
 	return elem{valString: value, valType: "string"}
 }
 
-func elem_object(values map[string]elem) elem {
+func elem_object(values keys_elems) elem {
 	return elem{valObject: values, valType: "object"}
 }
 
@@ -445,7 +447,7 @@ func character_position_first_closed_pair(src []elem, charOpen rune, charClose r
 	return posOpen, -1
 }
 
-func Obj_has_key(dict map[string]elem, key string) bool {
+func Obj_has_key(dict keys_elems, key string) bool {
 	if _, ok := dict[key]; ok {
 		return true
 	}

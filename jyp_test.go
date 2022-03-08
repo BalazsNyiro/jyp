@@ -135,8 +135,8 @@ func Test_object_detection(t *testing.T) {
 	elem_root, _ := Json_parse_src(`{"personal":{"city":"Paris", "cell": 123}}`)
 	fmt.Println("Test_object_detection")
 	elem_print_one(elem_root)
-	wanted := elem_object(map[string]elem{
-		"personal": elem_object(map[string]elem{
+	wanted := elem_object(keys_elems{
+		"personal": elem_object(keys_elems{
 			"city": elem_string("Paris"),
 			"cell": elem_number_int(123),
 		}),
@@ -148,10 +148,10 @@ func Test_json_1(t *testing.T) {
 	elem_root, _ := Json_parse_src(`{"name": "Bob", "friends": [ {"name":"Eve", "cell": 123, "age": 21} ]}`)
 	fmt.Println(" Test_json_1")
 	elem_print_one(elem_root)
-	wanted := elem_object(map[string]elem{
+	wanted := elem_object(keys_elems{
 		"name": elem_string("Bob"),
 		"friends": elem_array([]elem{
-			elem_object(map[string]elem{
+			elem_object(keys_elems{
 				"name": elem_string("Eve"),
 				"cell": elem_number_int(123),
 				"age":  elem_number_int(21),
@@ -165,17 +165,17 @@ func Test_complex_big(t *testing.T) {
 	elem_root, _ := Json_parse_src(`{"name": "Bob", "friends": [ {"name":"Eve", "scores":[1,2]}, {"name":"Joe", "scores":[3,4]} ]}`)
 	fmt.Println("Test_complex_big")
 	elem_print_one(elem_root)
-	wanted := elem_object(map[string]elem{
+	wanted := elem_object(keys_elems{
 		"name": elem_string("Bob"),
 		"friends": elem_array([]elem{
-			elem_object(map[string]elem{
+			elem_object(keys_elems{
 				"name": elem_string("Eve"),
 				"scores": elem_array([]elem{
 					elem_number_int(1),
 					elem_number_int(2),
 				}),
 			}),
-			elem_object(map[string]elem{
+			elem_object(keys_elems{
 				"name": elem_string("Joe"),
 				"scores": elem_array([]elem{
 					elem_number_int(3),
