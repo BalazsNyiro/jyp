@@ -11,14 +11,14 @@ func Test_string_detection_simple(t *testing.T) {
 	// this is a source code representation, so " is in the string:
 	//                                     `"............"`
 	// in the detected value, there is the content WITHOUT " signs
-	elems_with_runes := elems_from_str(`"name of king"`)
+	elems_with_runes := elem_runes_from_str(`"name of king"`)
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
 	wanted := elem{valString: "name of king", valType: "string"}
 	compare_one_pair_received_wanted(elems_strings_detected[0], wanted, t)
 }
 
 func Test_string_detection_double(t *testing.T) {
-	elems_with_runes := elems_from_str(`"name": "Bob", "age": 7`)
+	elems_with_runes := elem_runes_from_str(`"name": "Bob", "age": 7`)
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
 	wanted := elem_list{
 		elem_string("name"),
@@ -33,14 +33,14 @@ func Test_string_detection_double(t *testing.T) {
 }
 
 func Test_string_detection_escaped_char(t *testing.T) {
-	elems_with_runes := elems_from_str(`"he is \"Eduard\""`)
+	elems_with_runes := elem_runes_from_str(`"he is \"Eduard\""`)
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
 	wanted := elem_string("he is \\\"Eduard\\\"")
 	compare_one_pair_received_wanted(elems_strings_detected[0], wanted, t)
 }
 
 func Test_number_int_detection(t *testing.T) {
-	elems_with_runes := elems_from_str(`"price": 7.6, "age": 5`)
+	elems_with_runes := elem_runes_from_str(`"price": 7.6, "age": 5`)
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
 	elems_num_detected := Json_collect_numbers_in_elems(elems_strings_detected)
 	elems_print(elems_num_detected, 0)
@@ -57,7 +57,7 @@ func Test_number_int_detection(t *testing.T) {
 }
 
 func Test_scalar_detection(t *testing.T) {
-	elems := elems_from_str(`"True": true, "False": false, "age": null `)
+	elems := elem_runes_from_str(`"True": true, "False": false, "age": null `)
 	elems = Json_collect_strings_in_elems__remove_spaces(elems)
 	elems = Json_collect_scalars_in_elems(elems)
 	// elems_print(elems, 0)
@@ -87,7 +87,7 @@ as the processing takes step by step, the result will be more better and better
 */
 // here we don't use object detection, only scalars and array
 func Test_array_detection(t *testing.T) {
-	elems := elems_from_str(`"name": "Bob", "scores": [4, 6], "friends": [["Eve", 16], ["Joe", 42]], "key": "val"`)
+	elems := elem_runes_from_str(`"name": "Bob", "scores": [4, 6], "friends": [["Eve", 16], ["Joe", 42]], "key": "val"`)
 	elems = Json_collect_strings_in_elems__remove_spaces(elems)
 	elems = Json_collect_numbers_in_elems(elems)
 	array := Json_collect_arrays_in_elems(elems)

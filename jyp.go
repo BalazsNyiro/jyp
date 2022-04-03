@@ -31,10 +31,10 @@ type elem struct {
 func Json_parse_src(src string) (elem, error) {
 	fmt.Println("json_parse:" + src)
 
-	elems := elems_from_str(src)
+	elems_runes := elem_runes_from_str(src)
 	// elems_print_with_title(elems, "src")
-	elems = Json_parse_elems(elems)
-	return elems[0], nil // give back the first 'root' object
+	elems_structured := Json_parse_elems(elems_runes)
+	return elems_structured[0], nil // give back the first 'root' object
 }
 
 func Json_parse_elems(elems elem_list) elem_list {
@@ -59,9 +59,7 @@ func Json_parse_elems(elems elem_list) elem_list {
 func Json_collect_arrays_in_elems(src elem_list) elem_list {
 	return Json_structure_ranges_and_hierarchies_in_elems(src, '[', ']', "array")
 }
-func Json_collect_objects_recursive(src elem_list) {
 
-}
 func Json_collect_objects_in_elems(src elem_list) elem_list {
 	//But: embedded lists can have embedded objects, too
 	// at the beginnin here I have arrays only.
@@ -394,13 +392,13 @@ func elems_new() elem_list {
 	return make(elem_list, 0)
 }
 
-func elems_from_str(src string) elem_list {
-	var chars = make(elem_list, len(src))
+func elem_runes_from_str(src string) elem_list {
+	var elems = make(elem_list, len(src))
 	for i, rune := range src {
 		// fmt.Println(i, "->", string(rune))
-		chars[i] = elem_rune(rune)
+		elems[i] = elem_rune(rune)
 	}
-	return chars
+	return elems
 }
 
 func elem_is_escaped_in_string(positionOfDoubleQuote int, elems elem_list) bool {
