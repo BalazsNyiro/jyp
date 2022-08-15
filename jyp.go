@@ -32,26 +32,26 @@ func Json_parse_src(src string) (elem, error) {
 	fmt.Println("json_parse:" + src)
 
 	elems_runes := elem_runes_from_str(src)
-	// elems_print_with_title(elems, "src")
+	// Elems_print_with_title(elems, "src")
 	elems_structured := Json_parse_elems(elems_runes)
 	return elems_structured[0], nil // give back the first 'root' object
 }
 
 func Json_parse_elems(elems elem_list) elem_list {
 	elems = Json_collect_strings_in_elems__remove_spaces(elems) // string detection is the first,
-	// elems_print_with_title(elems, "collect strings")
+	// Elems_print_with_title(elems, "collect strings")
 
 	elems = Json_collect_numbers_in_elems(elems) // because strings can contain numbers
-	// elems_print_with_title(elems, "collect numbers")
+	// Elems_print_with_title(elems, "collect numbers")
 
 	elems = Json_collect_scalars_in_elems(elems) // or scalars, too
-	// elems_print_with_title(elems, "collect scalars")
+	// Elems_print_with_title(elems, "collect scalars")
 
 	elems = Json_collect_arrays_in_elems(elems)
-	// elems_print_with_title(elems, "collect arrays")
+	// Elems_print_with_title(elems, "collect arrays")
 
 	elems = Json_collect_objects_in_elems(elems)
-	// elems_print_with_title(elems, "collect objects")
+	// Elems_print_with_title(elems, "collect objects")
 	return elems
 }
 
@@ -322,7 +322,7 @@ func str_to_float(value string) float64 {
 // in array, id is int. 0->value, 1->v2, 2->v3
 // but in an object the id's are strings.
 // it's easier to manage string id's only
-func elem_print(id string, elem elem, indent_level int) {
+func Elem_print(id string, elem elem, indent_level int) {
 	prefix := indentation(indent_level)
 	data := ""
 	if elem.valType == "array" {
@@ -355,27 +355,27 @@ func elem_print(id string, elem elem, indent_level int) {
 	fmt.Println(prefix, id, "--->", elem.valType, data)
 
 	if elem.valType == "array" {
-		elems_print(elem.valArray, indent_level+1)
+		Elems_print(elem.valArray, indent_level+1)
 	}
 
 	if elem.valType == "object" {
 		for key, value_in_obj := range elem.valObject {
-			elem_print(key, value_in_obj, indent_level+1) // print the value for the key
+			Elem_print(key, value_in_obj, indent_level+1) // print the value for the key
 		}
 	}
 }
 
-func elems_print_with_title(elems elem_list, title string) {
+func Elems_print_with_title(elems elem_list, title string) {
 	fmt.Println("===", title, "===")
-	elems_print(elems, 0)
+	Elems_print(elems, 0)
 }
-func elems_print(elems elem_list, indent_level int) {
+func Elems_print(elems elem_list, indent_level int) {
 	for id, elem := range elems {
-		elem_print(strconv.Itoa(id), elem, indent_level)
+		Elem_print(strconv.Itoa(id), elem, indent_level)
 	}
 }
-func elem_print_one(elem elem) {
-	elem_print("0", elem, 0)
+func Elem_print_one(elem elem) {
+	Elem_print("0", elem, 0)
 }
 func indentation(level int) string {
 	indentation := ""

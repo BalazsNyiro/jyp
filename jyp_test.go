@@ -43,7 +43,7 @@ func Test_number_int_detection(t *testing.T) {
 	elems_with_runes := elem_runes_from_str(`"price": 7.6, "age": 5`)
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
 	elems_num_detected := Json_collect_numbers_in_elems(elems_strings_detected)
-	elems_print(elems_num_detected, 0)
+	Elems_print(elems_num_detected, 0)
 	wanted := elem_list{
 		elem_string("price"),
 		elem_rune(':'),
@@ -60,7 +60,7 @@ func Test_scalar_detection(t *testing.T) {
 	elems := elem_runes_from_str(`"True": true, "False": false, "age": null `)
 	elems = Json_collect_strings_in_elems__remove_spaces(elems)
 	elems = Json_collect_scalars_in_elems(elems)
-	// elems_print(elems, 0)
+	// Elems_print(elems, 0)
 	wanted := elem_list{
 		elem_string("True"),
 		elem_rune(':'),
@@ -92,7 +92,7 @@ func Test_array_detection(t *testing.T) {
 	elems = Json_collect_numbers_in_elems(elems)
 	array := Json_collect_arrays_in_elems(elems)
 	fmt.Println("(1) arrays detected:", len(array))
-	elems_print(array, 0)
+	Elems_print(array, 0)
 
 	wanted := elem_list{
 		elem_string("name"),
@@ -134,7 +134,7 @@ func Test_array_detection(t *testing.T) {
 func Test_object_detection(t *testing.T) {
 	elem_root, _ := Json_parse_src(`{"personal":{"city":"Paris", "cell": 123}}`)
 	fmt.Println("Test_object_detection")
-	elem_print_one(elem_root)
+	Elem_print_one(elem_root)
 	wanted := elem_object(keys_elems{
 		"personal": elem_object(keys_elems{
 			"city": elem_string("Paris"),
@@ -147,7 +147,7 @@ func Test_object_detection(t *testing.T) {
 func Test_json_1(t *testing.T) {
 	elem_root, _ := Json_parse_src(`{"name": "Bob", "friends": [ {"name":"Eve", "cell": 123, "age": 21} ]}`)
 	fmt.Println(" Test_json_1")
-	elem_print_one(elem_root)
+	Elem_print_one(elem_root)
 	wanted := elem_object(keys_elems{
 		"name": elem_string("Bob"),
 		"friends": elem_array(elem_list{
@@ -164,7 +164,7 @@ func Test_json_1(t *testing.T) {
 func Test_complex_big(t *testing.T) {
 	elem_root, _ := Json_parse_src(`{"name": "Bob", "friends": [ {"name":"Eve", "scores":[1,2]}, {"name":"Joe", "scores":[3,4]} ]}`)
 	fmt.Println("Test_complex_big")
-	elem_print_one(elem_root)
+	Elem_print_one(elem_root)
 	wanted := elem_object(keys_elems{
 		"name": elem_string("Bob"),
 		"friends": elem_array(elem_list{
@@ -193,9 +193,9 @@ func compare_receivedElems_wantedElems(receiveds elem_list, wanteds elem_list, t
 	// compare only the lenth of the top level!
 	if len(receiveds) != len(wanteds) {
 		fmt.Println(">>> === compare, len !=   ===========")
-		elems_print(receiveds, 0)
+		Elems_print(receiveds, 0)
 		fmt.Println("    .......................    ")
-		elems_print(wanteds, 0)
+		Elems_print(wanteds, 0)
 		fmt.Println("<<< === compare, len !=   ===========")
 		t.Fatalf(`len(received_elems %v) != len(wanted_elems %v) `,
 			len(receiveds), len(wanteds))
