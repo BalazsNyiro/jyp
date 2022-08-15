@@ -13,7 +13,7 @@ func Test_string_detection_simple(t *testing.T) {
 	// in the detected value, there is the content WITHOUT " signs
 	elems_with_runes := elem_runes_from_str(`"name of king"`)
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
-	wanted := elem{valString: "name of king", valType: "string"}
+	wanted := Elem{valString: "name of king", valType: "string"}
 	compare_one_pair_received_wanted(elems_strings_detected[0], wanted, t)
 }
 
@@ -206,7 +206,7 @@ func compare_receivedElems_wantedElems(receiveds elem_list, wanteds elem_list, t
 	}
 }
 
-func _compare_two_objects(objA elem, objB elem, t *testing.T) {
+func _compare_two_objects(objA Elem, objB Elem, t *testing.T) {
 	for keyReceived, _ := range objA.valObject {
 		if Obj_has_key(objB.valObject, keyReceived) == false {
 			t.Fatalf(`wanted object doesn't have key' %v error`, keyReceived)
@@ -215,7 +215,7 @@ func _compare_two_objects(objA elem, objB elem, t *testing.T) {
 	}
 }
 
-func compare_one_pair_received_wanted(received elem, wanted elem, t *testing.T) {
+func compare_one_pair_received_wanted(received Elem, wanted Elem, t *testing.T) {
 	if received.valString != wanted.valString {
 		t.Fatalf("\nreceived: %v\n  wanted: %v, error",
 			received.valString, wanted.valString)

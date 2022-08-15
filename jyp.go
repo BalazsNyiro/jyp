@@ -10,10 +10,10 @@ import (
 
 var floatBitsize = 32
 
-type keys_elems map[string]elem
-type elem_list []elem
+type keys_elems map[string]Elem
+type elem_list []Elem
 
-type elem struct {
+type Elem struct {
 	valType string
 	// rune, string, number_int, number_float,
 	// object, array, bool, null
@@ -28,7 +28,7 @@ type elem struct {
 	valArray       elem_list
 }
 
-func Json_parse_src(src string) (elem, error) {
+func Json_parse_src(src string) (Elem, error) {
 	fmt.Println("json_parse:" + src)
 
 	elems_runes := elem_runes_from_str(src)
@@ -91,7 +91,7 @@ func Json_structure_ranges_and_hierarchies_in_elems(src elem_list, charOpen rune
 		if pos_last_opening_before_first_closing < 0 || pos_first_closing < 0 {
 			return src_pair_removed
 		} else {
-			elem_pair := elem{valType: valType}
+			elem_pair := Elem{valType: valType}
 			elems_embedded := src_pair_removed[pos_last_opening_before_first_closing+1 : pos_first_closing]
 			if valType == "array" {
 				elem_pair.valArray = comma_runes_removing(elems_embedded)
@@ -122,7 +122,7 @@ func Json_structure_ranges_and_hierarchies_in_elems(src elem_list, charOpen rune
 // ******************** array/object detection: ********************************
 
 // ******************** scalar detection: true, false, null *************
-// from more fixed runes it creates one elem
+// from more fixed runes it creates one Elem
 // src can't contain strings! (strings can contain scalar words, too)
 func Json_collect_scalars_in_elems(src elem_list) elem_list {
 	collector := elems_new()
@@ -168,7 +168,7 @@ func Json_collect_scalars_in_elems(src elem_list) elem_list {
 // ******************** end of scalar detection: ************************
 
 // ********************* number detection *******************************
-// from one or more rune it creates one elem with collected digits
+// from one or more rune it creates one Elem with collected digits
 // src can't contain strings! (strings can contain numbers, too)
 func Json_collect_numbers_in_elems(src elem_list) elem_list {
 	collector := elems_new()
@@ -197,16 +197,16 @@ func collector_append_possible_runes(collector elem_list, numberTxt string) elem
 	return collector
 }
 
-func _rune_digit_info(elemNow elem) (rune, bool) {
+func _rune_digit_info(elemNow Elem) (rune, bool) {
 	digitSigns := "+-.0123456789"
 	runeNow := elemNow.valRune
 	isDigit := strings.ContainsRune(digitSigns, runeNow)
 	return runeNow, isDigit
 }
 
-// it can work if runes has elems, because it returns with an elem
-// and to determine the elem minimum one rune is necessary
-func _elem_number_from_runes(stringVal string) elem {
+// it can work if runes has elems, because it returns with an Elem
+// and to determine the Elem minimum one rune is necessary
+func _elem_number_from_runes(stringVal string) Elem {
 	numType := number_type_detect_float_or_int(stringVal)
 	if numType == "number_int" {
 		intVal, _ := strconv.Atoi(stringVal)
@@ -222,7 +222,7 @@ func _str_closing_quote(inText bool, runeNow rune) bool {
 }
 
 // ********************* string detection *******************************************
-// from one or more rune it creates one elem with collected characters
+// from one or more rune it creates one Elem with collected characters
 func Json_collect_strings_in_elems__remove_spaces(src elem_list) elem_list {
 	var collector = elems_new()
 	var inText = false
@@ -256,46 +256,46 @@ func Json_collect_strings_in_elems__remove_spaces(src elem_list) elem_list {
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-func elem_string(value string) elem {
+func elem_string(value string) Elem {
 	// example:
-	// elem{valString: "age", valType: "string"},
-	return elem{valString: value, valType: "string"}
+	// Elem{valString: "age", valType: "string"},
+	return Elem{valString: value, valType: "string"}
 }
 
-func elem_object(values keys_elems) elem {
-	return elem{valObject: values, valType: "object"}
+func elem_object(values keys_elems) Elem {
+	return Elem{valObject: values, valType: "object"}
 }
 
-func elem_array(values elem_list) elem {
-	return elem{valArray: elems_copy_all(values), valType: "array"}
+func elem_array(values elem_list) Elem {
+	return Elem{valArray: elems_copy_all(values), valType: "array"}
 }
 
-func elem_number_int(value int) elem {
-	// return elem{valString: "5", valType: "number_int", valNumberInt: 5},
-	return elem{valString: strconv.Itoa(value), valType: "number_int", valNumberInt: value}
+func elem_number_int(value int) Elem {
+	// return Elem{valString: "5", valType: "number_int", valNumberInt: 5},
+	return Elem{valString: strconv.Itoa(value), valType: "number_int", valNumberInt: value}
 }
 
-func elem_number_float(value_str_representation string, value_more_or_less_precise float64) elem {
-	// elem{valString: "7.6", valType: "number_float", valNumberFloat: 7.599999904632568},
-	return elem{valString: value_str_representation, valType: "number_float", valNumberFloat: value_more_or_less_precise}
+func elem_number_float(value_str_representation string, value_more_or_less_precise float64) Elem {
+	// Elem{valString: "7.6", valType: "number_float", valNumberFloat: 7.599999904632568},
+	return Elem{valString: value_str_representation, valType: "number_float", valNumberFloat: value_more_or_less_precise}
 }
 
-func elem_true() elem {
-	return elem{valBool: true, valType: "bool"}
+func elem_true() Elem {
+	return Elem{valBool: true, valType: "bool"}
 }
 
-func elem_false() elem {
-	return elem{valBool: false, valType: "bool"}
+func elem_false() Elem {
+	return Elem{valBool: false, valType: "bool"}
 }
 
-func elem_null() elem {
-	return elem{valType: "null"}
+func elem_null() Elem {
+	return Elem{valType: "null"}
 }
 
-func elem_rune(value rune) elem {
+func elem_rune(value rune) Elem {
 	// example:
-	// elem{valRune: ':', valType: "rune"},
-	return elem{valRune: value, valRuneString: string(value), valType: "rune"}
+	// Elem{valRune: ':', valType: "rune"},
+	return Elem{valRune: value, valRuneString: string(value), valType: "rune"}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -322,7 +322,7 @@ func str_to_float(value string) float64 {
 // in array, id is int. 0->value, 1->v2, 2->v3
 // but in an object the id's are strings.
 // it's easier to manage string id's only
-func Elem_print(id string, elem elem, indent_level int) {
+func Elem_print(id string, elem Elem, indent_level int) {
 	prefix := indentation(indent_level)
 	data := ""
 	if elem.valType == "array" {
@@ -351,7 +351,7 @@ func Elem_print(id string, elem elem, indent_level int) {
 		data = strconv.Itoa(elem.valNumberInt)
 	}
 
-	// print the current elem's type and value
+	// print the current Elem's type and value
 	fmt.Println(prefix, id, "--->", elem.valType, data)
 
 	if elem.valType == "array" {
@@ -374,7 +374,7 @@ func Elems_print(elems elem_list, indent_level int) {
 		Elem_print(strconv.Itoa(id), elem, indent_level)
 	}
 }
-func Elem_print_one(elem elem) {
+func Elem_print_one(elem Elem) {
 	Elem_print("0", elem, 0)
 }
 func indentation(level int) string {
@@ -405,7 +405,7 @@ func elem_is_escaped_in_string(positionOfDoubleQuote int, elems elem_list) bool 
 	posChecked := positionOfDoubleQuote
 	escaped := false
 	for {
-		posChecked-- // move to the previous elem
+		posChecked-- // move to the previous Elem
 		if posChecked < 0 {
 			return escaped
 		}
@@ -426,12 +426,12 @@ func number_type_detect_float_or_int(number_txt string) string {
 	return "number_int"
 }
 
-func elem_unprocessed(elem elem) bool {
+func elem_unprocessed(elem Elem) bool {
 	return elem.valType == "rune"
 }
 
 // Goal: find [ ]  { } pairs ....
-// if 0 or positive num: the position of first ] elem
+// if 0 or positive num: the position of first ] Elem
 // -1 means: src doesn't have the char
 func character_position_first_closed_pair(src elem_list, charOpen rune, charClose rune) (int, int) {
 	posOpen := -1
