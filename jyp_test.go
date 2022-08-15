@@ -20,7 +20,7 @@ func Test_string_detection_simple(t *testing.T) {
 func Test_string_detection_double(t *testing.T) {
 	elems_with_runes := elem_runes_from_str(`"name": "Bob", "age": 7`)
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
-	wanted := elem_list{
+	wanted := Elem_list{
 		elem_string("name"),
 		elem_rune(':'),
 		elem_string("Bob"),
@@ -44,7 +44,7 @@ func Test_number_int_detection(t *testing.T) {
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
 	elems_num_detected := Json_collect_numbers_in_elems(elems_strings_detected)
 	Elems_print(elems_num_detected, 0)
-	wanted := elem_list{
+	wanted := Elem_list{
 		elem_string("price"),
 		elem_rune(':'),
 		elem_number_float("7.6", 7.599999904632568),
@@ -61,7 +61,7 @@ func Test_scalar_detection(t *testing.T) {
 	elems = Json_collect_strings_in_elems__remove_spaces(elems)
 	elems = Json_collect_scalars_in_elems(elems)
 	// Elems_print(elems, 0)
-	wanted := elem_list{
+	wanted := Elem_list{
 		elem_string("True"),
 		elem_rune(':'),
 		elem_true(),
@@ -94,7 +94,7 @@ func Test_array_detection(t *testing.T) {
 	fmt.Println("(1) arrays detected:", len(array))
 	Elems_print(array, 0)
 
-	wanted := elem_list{
+	wanted := Elem_list{
 		elem_string("name"),
 		elem_rune(':'),
 		elem_string("Bob"),
@@ -102,7 +102,7 @@ func Test_array_detection(t *testing.T) {
 		elem_string("scores"),
 		elem_rune(':'),
 		elem_array(
-			elem_list{
+			Elem_list{
 				elem_number_int(4),
 				elem_number_int(6),
 			},
@@ -110,12 +110,12 @@ func Test_array_detection(t *testing.T) {
 		elem_rune(','),
 		elem_string("friends"),
 		elem_rune(':'),
-		elem_array(elem_list{
-			elem_array(elem_list{
+		elem_array(Elem_list{
+			elem_array(Elem_list{
 				elem_string("Eve"),
 				elem_number_int(16),
 			}),
-			elem_array(elem_list{
+			elem_array(Elem_list{
 				elem_string("Joe"),
 				elem_number_int(42),
 			}),
@@ -150,7 +150,7 @@ func Test_json_1(t *testing.T) {
 	Elem_print_one(elem_root)
 	wanted := elem_object(keys_elems{
 		"name": elem_string("Bob"),
-		"friends": elem_array(elem_list{
+		"friends": elem_array(Elem_list{
 			elem_object(keys_elems{
 				"name": elem_string("Eve"),
 				"cell": elem_number_int(123),
@@ -167,17 +167,17 @@ func Test_complex_big(t *testing.T) {
 	Elem_print_one(elem_root)
 	wanted := elem_object(keys_elems{
 		"name": elem_string("Bob"),
-		"friends": elem_array(elem_list{
+		"friends": elem_array(Elem_list{
 			elem_object(keys_elems{
 				"name": elem_string("Eve"),
-				"scores": elem_array(elem_list{
+				"scores": elem_array(Elem_list{
 					elem_number_int(1),
 					elem_number_int(2),
 				}),
 			}),
 			elem_object(keys_elems{
 				"name": elem_string("Joe"),
-				"scores": elem_array(elem_list{
+				"scores": elem_array(Elem_list{
 					elem_number_int(3),
 					elem_number_int(4),
 				}),
@@ -189,7 +189,7 @@ func Test_complex_big(t *testing.T) {
 
 /////////////////////////////////////////////////////////////////////////
 
-func compare_receivedElems_wantedElems(receiveds elem_list, wanteds elem_list, t *testing.T) {
+func compare_receivedElems_wantedElems(receiveds Elem_list, wanteds Elem_list, t *testing.T) {
 	// compare only the lenth of the top level!
 	if len(receiveds) != len(wanteds) {
 		fmt.Println(">>> === compare, len !=   ===========")
