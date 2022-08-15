@@ -14,18 +14,18 @@ type keys_elems map[string]Elem
 type elem_list []Elem
 
 type Elem struct {
-	valType string
+	ValType string
 	// rune, string, number_int, number_float,
 	// object, array, bool, null
 
-	valBool        bool // true, false
-	valRune        rune
-	valRuneString  string // the Rune's strin representation, ONE char
-	valString      string // if type==string, this value represents more characters
-	valNumberInt   int
-	valNumberFloat float64
-	valObject      keys_elems
-	valArray       elem_list
+	ValBool        bool // true, false
+	ValRune        rune
+	ValRuneString  string // the Rune's string representation, ONE char
+	ValString      string // if type==string, this value represents more characters
+	ValNumberInt   int
+	ValNumberFloat float64
+	ValObject      keys_elems
+	ValArray       elem_list
 }
 
 func Json_parse_src(src string) (Elem, error) {
@@ -64,8 +64,8 @@ func Json_collect_objects_in_elems(src elem_list) elem_list {
 	//But: embedded lists can have embedded objects, too
 	// at the beginnin here I have arrays only.
 	for id, elemNow := range src {
-		if elemNow.valType == "array" {
-			src[id].valArray = Json_collect_objects_in_elems(elemNow.valArray)
+		if elemNow.ValType == "array" {
+			src[id].ValArray = Json_collect_objects_in_elems(elemNow.ValArray)
 		}
 	}
 
@@ -76,7 +76,7 @@ func Json_collect_objects_in_elems(src elem_list) elem_list {
 func comma_runes_removing(elems elem_list) elem_list {
 	filtered := elems_new()
 	for _, elemNow := range elems {
-		if !(elemNow.valType == "rune" && elemNow.valRune == ',') {
+		if !(elemNow.ValType == "rune" && elemNow.ValRune == ',') {
 			filtered = append(filtered, elemNow)
 		}
 	}
@@ -91,25 +91,25 @@ func Json_structure_ranges_and_hierarchies_in_elems(src elem_list, charOpen rune
 		if pos_last_opening_before_first_closing < 0 || pos_first_closing < 0 {
 			return src_pair_removed
 		} else {
-			elem_pair := Elem{valType: valType}
+			elem_pair := Elem{ValType: valType}
 			elems_embedded := src_pair_removed[pos_last_opening_before_first_closing+1 : pos_first_closing]
 			if valType == "array" {
-				elem_pair.valArray = comma_runes_removing(elems_embedded)
+				elem_pair.ValArray = comma_runes_removing(elems_embedded)
 			} else {
 				map_data := keys_elems{}
 				key := ""
 				for _, elemNow := range elems_embedded {
-					if key == "" && elemNow.valType == "string" {
-						key = elemNow.valString
+					if key == "" && elemNow.ValType == "string" {
+						key = elemNow.ValString
 						continue
 					}
 
-					if key != "" && elemNow.valType != "rune" {
+					if key != "" && elemNow.ValType != "rune" {
 						map_data[key] = elemNow
 						key = ""
 					}
 				}
-				elem_pair.valObject = map_data
+				elem_pair.ValObject = map_data
 			}
 			src_new := elems_copy(src_pair_removed, 0, pos_last_opening_before_first_closing)
 			src_new = append(src_new, elem_pair)
@@ -129,7 +129,7 @@ func Json_collect_scalars_in_elems(src elem_list) elem_list {
 	runes := runes_new()
 
 	for id, elemNow := range src {
-		runes = append(runes, elemNow.valRune) // collect all runes
+		runes = append(runes, elemNow.ValRune) // collect all runes
 		collector = append(collector, elemNow) // a shortest JSON code that can contain a scalar is this: {"a":null}
 		if id < 5 {
 			continue
@@ -199,7 +199,7 @@ func collector_append_possible_runes(collector elem_list, numberTxt string) elem
 
 func _rune_digit_info(elemNow Elem) (rune, bool) {
 	digitSigns := "+-.0123456789"
-	runeNow := elemNow.valRune
+	runeNow := elemNow.ValRune
 	isDigit := strings.ContainsRune(digitSigns, runeNow)
 	return runeNow, isDigit
 }
@@ -229,7 +229,7 @@ func Json_collect_strings_in_elems__remove_spaces(src elem_list) elem_list {
 	var runes = runes_new()
 
 	for id, elemNow := range src {
-		runeNow := elemNow.valRune
+		runeNow := elemNow.ValRune
 		// fmt.Println(">>> runeNow", string(runeNow), "inText", inText)
 		if _str_closing_quote(inText, runeNow) && !elem_is_escaped_in_string(id, src) {
 			inText = false
@@ -258,44 +258,44 @@ func Json_collect_strings_in_elems__remove_spaces(src elem_list) elem_list {
 
 func elem_string(value string) Elem {
 	// example:
-	// Elem{valString: "age", valType: "string"},
-	return Elem{valString: value, valType: "string"}
+	// Elem{ValString: "age", ValType: "string"},
+	return Elem{ValString: value, ValType: "string"}
 }
 
 func elem_object(values keys_elems) Elem {
-	return Elem{valObject: values, valType: "object"}
+	return Elem{ValObject: values, ValType: "object"}
 }
 
 func elem_array(values elem_list) Elem {
-	return Elem{valArray: elems_copy_all(values), valType: "array"}
+	return Elem{ValArray: elems_copy_all(values), ValType: "array"}
 }
 
 func elem_number_int(value int) Elem {
-	// return Elem{valString: "5", valType: "number_int", valNumberInt: 5},
-	return Elem{valString: strconv.Itoa(value), valType: "number_int", valNumberInt: value}
+	// return Elem{ValString: "5", ValType: "number_int", ValNumberInt: 5},
+	return Elem{ValString: strconv.Itoa(value), ValType: "number_int", ValNumberInt: value}
 }
 
 func elem_number_float(value_str_representation string, value_more_or_less_precise float64) Elem {
-	// Elem{valString: "7.6", valType: "number_float", valNumberFloat: 7.599999904632568},
-	return Elem{valString: value_str_representation, valType: "number_float", valNumberFloat: value_more_or_less_precise}
+	// Elem{ValString: "7.6", ValType: "number_float", ValNumberFloat: 7.599999904632568},
+	return Elem{ValString: value_str_representation, ValType: "number_float", ValNumberFloat: value_more_or_less_precise}
 }
 
 func elem_true() Elem {
-	return Elem{valBool: true, valType: "bool"}
+	return Elem{ValBool: true, ValType: "bool"}
 }
 
 func elem_false() Elem {
-	return Elem{valBool: false, valType: "bool"}
+	return Elem{ValBool: false, ValType: "bool"}
 }
 
 func elem_null() Elem {
-	return Elem{valType: "null"}
+	return Elem{ValType: "null"}
 }
 
 func elem_rune(value rune) Elem {
 	// example:
-	// Elem{valRune: ':', valType: "rune"},
-	return Elem{valRune: value, valRuneString: string(value), valType: "rune"}
+	// Elem{ValRune: ':', ValType: "rune"},
+	return Elem{ValRune: value, ValRuneString: string(value), ValType: "rune"}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -325,41 +325,41 @@ func str_to_float(value string) float64 {
 func Elem_print(id string, elem Elem, indent_level int) {
 	prefix := indentation(indent_level)
 	data := ""
-	if elem.valType == "array" {
+	if elem.ValType == "array" {
 		data = "[...]"
 	}
-	if elem.valType == "null" {
+	if elem.ValType == "null" {
 		data = "null"
 	}
-	if elem.valType == "bool" {
-		if elem.valBool {
+	if elem.ValType == "bool" {
+		if elem.ValBool {
 			data = "true"
 		} else {
 			data = "false"
 		}
 	}
-	if elem.valType == "string" {
-		data = elem.valString
+	if elem.ValType == "string" {
+		data = elem.ValString
 	}
-	if elem.valType == "rune" {
-		data = string(elem.valRune)
+	if elem.ValType == "rune" {
+		data = string(elem.ValRune)
 	}
-	if elem.valType == "number_float" {
-		data = float_to_string(elem.valNumberFloat)
+	if elem.ValType == "number_float" {
+		data = float_to_string(elem.ValNumberFloat)
 	}
-	if elem.valType == "number_int" {
-		data = strconv.Itoa(elem.valNumberInt)
+	if elem.ValType == "number_int" {
+		data = strconv.Itoa(elem.ValNumberInt)
 	}
 
 	// print the current Elem's type and value
-	fmt.Println(prefix, id, "--->", elem.valType, data)
+	fmt.Println(prefix, id, "--->", elem.ValType, data)
 
-	if elem.valType == "array" {
-		Elems_print(elem.valArray, indent_level+1)
+	if elem.ValType == "array" {
+		Elems_print(elem.ValArray, indent_level+1)
 	}
 
-	if elem.valType == "object" {
-		for key, value_in_obj := range elem.valObject {
+	if elem.ValType == "object" {
+		for key, value_in_obj := range elem.ValObject {
 			Elem_print(key, value_in_obj, indent_level+1) // print the value for the key
 		}
 	}
@@ -409,7 +409,7 @@ func elem_is_escaped_in_string(positionOfDoubleQuote int, elems elem_list) bool 
 		if posChecked < 0 {
 			return escaped
 		}
-		if elems[posChecked].valRune != '\\' {
+		if elems[posChecked].ValRune != '\\' {
 			return escaped
 		}
 		// val_rune == \  so flip escaped...
@@ -427,7 +427,7 @@ func number_type_detect_float_or_int(number_txt string) string {
 }
 
 func elem_unprocessed(elem Elem) bool {
-	return elem.valType == "rune"
+	return elem.ValType == "rune"
 }
 
 // Goal: find [ ]  { } pairs ....
@@ -436,10 +436,10 @@ func elem_unprocessed(elem Elem) bool {
 func character_position_first_closed_pair(src elem_list, charOpen rune, charClose rune) (int, int) {
 	posOpen := -1
 	for id, elemNow := range src {
-		if elemNow.valRune == charOpen {
+		if elemNow.ValRune == charOpen {
 			posOpen = id
 		}
-		if elemNow.valRune == charClose {
+		if elemNow.ValRune == charClose {
 			return posOpen, id
 		}
 	}

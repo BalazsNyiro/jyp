@@ -13,7 +13,7 @@ func Test_string_detection_simple(t *testing.T) {
 	// in the detected value, there is the content WITHOUT " signs
 	elems_with_runes := elem_runes_from_str(`"name of king"`)
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
-	wanted := Elem{valString: "name of king", valType: "string"}
+	wanted := Elem{ValString: "name of king", ValType: "string"}
 	compare_one_pair_received_wanted(elems_strings_detected[0], wanted, t)
 }
 
@@ -207,39 +207,39 @@ func compare_receivedElems_wantedElems(receiveds elem_list, wanteds elem_list, t
 }
 
 func _compare_two_objects(objA Elem, objB Elem, t *testing.T) {
-	for keyReceived, _ := range objA.valObject {
-		if Obj_has_key(objB.valObject, keyReceived) == false {
+	for keyReceived, _ := range objA.ValObject {
+		if Obj_has_key(objB.ValObject, keyReceived) == false {
 			t.Fatalf(`wanted object doesn't have key' %v error`, keyReceived)
 		}
-		compare_one_pair_received_wanted(objA.valObject[keyReceived], objB.valObject[keyReceived], t)
+		compare_one_pair_received_wanted(objA.ValObject[keyReceived], objB.ValObject[keyReceived], t)
 	}
 }
 
 func compare_one_pair_received_wanted(received Elem, wanted Elem, t *testing.T) {
-	if received.valString != wanted.valString {
+	if received.ValString != wanted.ValString {
 		t.Fatalf("\nreceived: %v\n  wanted: %v, error",
-			received.valString, wanted.valString)
+			received.ValString, wanted.ValString)
 	}
-	if received.valRune != wanted.valRune {
+	if received.ValRune != wanted.ValRune {
 		t.Fatalf(`received rune = %v, wanted %v, error`,
-			received.valRune,
-			wanted.valRune)
+			received.ValRune,
+			wanted.ValRune)
 	}
-	if received.valNumberInt != wanted.valNumberInt {
-		t.Fatalf(`received int = %v, wanted %v, error`, received.valNumberInt, wanted.valNumberInt)
+	if received.ValNumberInt != wanted.ValNumberInt {
+		t.Fatalf(`received int = %v, wanted %v, error`, received.ValNumberInt, wanted.ValNumberInt)
 	}
-	if received.valNumberFloat != wanted.valNumberFloat {
-		t.Fatalf(`received float= %v, wanted %v, error`, received.valNumberFloat, wanted.valNumberFloat)
+	if received.ValNumberFloat != wanted.ValNumberFloat {
+		t.Fatalf(`received float= %v, wanted %v, error`, received.ValNumberFloat, wanted.ValNumberFloat)
 	}
-	if received.valBool != wanted.valBool {
-		t.Fatalf(`received bool = %v, wanted %v, error`, received.valBool, wanted.valBool)
-	}
-
-	if received.valType == "array" {
-		compare_receivedElems_wantedElems(received.valArray, wanted.valArray, t)
+	if received.ValBool != wanted.ValBool {
+		t.Fatalf(`received bool = %v, wanted %v, error`, received.ValBool, wanted.ValBool)
 	}
 
-	if received.valType == "object" {
+	if received.ValType == "array" {
+		compare_receivedElems_wantedElems(received.ValArray, wanted.ValArray, t)
+	}
+
+	if received.ValType == "object" {
 		_compare_two_objects(received, wanted, t) // check based on received object
 		_compare_two_objects(wanted, received, t) // check based on wanted object (from other direction)
 	}
