@@ -3,6 +3,8 @@ package main
 import "github.com/BalazsNyiro/jyp"
 import "fmt"
 
+// run: go run import_github.go
+
 func main() {
 	elem_root, _ := jyp.Json_parse_src(`{"personal":{"city":"Paris", "cell": 123, "money": 2.34, "list": [1,2,"third"]}}`)
 	jyp.Elem_print_one(elem_root)
