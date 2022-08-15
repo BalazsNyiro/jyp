@@ -35,6 +35,7 @@ type Elem struct {
 // because in json an object can have string keys only and a list can have integer keys only,
 // there is a wrapper solution to simplify reading:
 
+// GETTER FUNCS
 func (elem Elem) Key(key string) Elem {
 	return elem.ValObject[key]
 }
