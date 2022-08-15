@@ -9,6 +9,9 @@ func main() {
 
 	jyp.Elem_print("0", elem_root, 0)
 
+	// if the JSON structure is unknown for you, maybe you have to check ValType of elements.
+	// if you read a known structure, the GETTERS are easier to read.
+
 	// native structure reading:
 	fmt.Println(elem_root.ValObject["personal"].ValObject["list"].ValArray[2].ValString)
 
