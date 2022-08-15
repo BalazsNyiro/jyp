@@ -35,31 +35,31 @@ type Elem struct {
 // because in json an object can have string keys only and a list can have integer keys only,
 // there is a wrapper solution to simplify reading:
 
-func (elem Elem) Get(key string) Elem {
+func (elem Elem) Key(key string) Elem {
 	return elem.ValObject[key]
 }
 
-func (elem Elem) GetIdx(index int) Elem {
-	return elem.ValArray[index]
-}
-
-func (elem Elem) GetStr() string {
-	return elem.ValString
-}
-
-func (elem Elem) GetInt() int {
-	return elem.ValNumberInt
-}
-
-func (elem Elem) GetFloat() float64 {
-	return elem.ValNumberFloat
-}
-
-func (elem Elem) GetArray() Elem_list {
+func (elem Elem) Array() Elem_list {
 	return elem.ValArray
 }
 
-func (elem Elem) GetBool() bool {
+func (elem Elem) ArrayId(index int) Elem {
+	return elem.ValArray[index]
+}
+
+func (elem Elem) Str() string {
+	return elem.ValString
+}
+
+func (elem Elem) Int() int {
+	return elem.ValNumberInt
+}
+
+func (elem Elem) Float() float64 {
+	return elem.ValNumberFloat
+}
+
+func (elem Elem) Bool() bool {
 	return elem.ValBool
 }
 
