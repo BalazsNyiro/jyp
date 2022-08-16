@@ -21,13 +21,12 @@ func main() {
 	fmt.Println(elem_root.Key("personal").Key("money").Float())
 
 	// add new elems into the structure - native solutions:
-	elem_root.ValObject["new_string_in_root"] = jyp.Elem_string("New York")
-	elem_root.ValObject["new_int_in_root"] = jyp.Elem_number_int(42)
-	elem_root.ValObject["new_float_in_root"] = jyp.Elem_number_float("56.78", 56.78)
-	elem_root.ValObject["new_object_in_root"] = jyp.Elem_object(jyp.Keys_elems{
-		"name": jyp.Elem_string("Eve"),
-		"cell": jyp.Elem_number_int(123),
-		"age":  jyp.Elem_number_int(21),
+	elem_root.ValObject["new_string_in_root"] = jyp.ElemStr("New York")
+	elem_root.ValObject["new_int_in_root"] = jyp.ElemInt(42)
+	elem_root.ValObject["new_float_in_root"] = jyp.ElemFloat("56.78", 56.78)
+	elem_root.ValObject["new_object_in_root"] = jyp.ElemObject(jyp.Keys_elems{
+		"name": jyp.ElemStr("Eve"),
+		"cell": jyp.ElemInt(123),
 	})
 	jyp.Elem_print_one(elem_root)
 
