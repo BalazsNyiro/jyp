@@ -21,13 +21,13 @@ func Test_string_detection_double(t *testing.T) {
 	elems_with_runes := elem_runes_from_str(`"name": "Bob", "age": 7`)
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
 	wanted := Elem_list{
-		Elem_string("name"),
-		elem_rune(':'),
-		Elem_string("Bob"),
-		elem_rune(','),
-		Elem_string("age"),
-		elem_rune(':'),
-		elem_rune('7'),
+		ElemStr("name"),
+		elemRune(':'),
+		ElemStr("Bob"),
+		elemRune(','),
+		ElemStr("age"),
+		elemRune(':'),
+		elemRune('7'),
 	}
 	compare_receivedElems_wantedElems(elems_strings_detected, wanted, t)
 }
@@ -35,7 +35,7 @@ func Test_string_detection_double(t *testing.T) {
 func Test_string_detection_escaped_char(t *testing.T) {
 	elems_with_runes := elem_runes_from_str(`"he is \"Eduard\""`)
 	elems_strings_detected := Json_collect_strings_in_elems__remove_spaces(elems_with_runes)
-	wanted := Elem_string("he is \\\"Eduard\\\"")
+	wanted := ElemStr("he is \\\"Eduard\\\"")
 	compare_one_pair_received_wanted(elems_strings_detected[0], wanted, t)
 }
 
@@ -45,13 +45,13 @@ func Test_number_int_detection(t *testing.T) {
 	elems_num_detected := Json_collect_numbers_in_elems(elems_strings_detected)
 	Elems_print(elems_num_detected, 0)
 	wanted := Elem_list{
-		Elem_string("price"),
-		elem_rune(':'),
-		Elem_number_float("7.6", 7.599999904632568),
-		elem_rune(','),
-		Elem_string("age"),
-		elem_rune(':'),
-		Elem_number_int(5),
+		ElemStr("price"),
+		elemRune(':'),
+		ElemFloat("7.6", 7.599999904632568),
+		elemRune(','),
+		ElemStr("age"),
+		elemRune(':'),
+		ElemInt(5),
 	}
 	compare_receivedElems_wantedElems(elems_num_detected, wanted, t)
 }
@@ -62,17 +62,17 @@ func Test_scalar_detection(t *testing.T) {
 	elems = Json_collect_scalars_in_elems(elems)
 	// Elems_print(elems, 0)
 	wanted := Elem_list{
-		Elem_string("True"),
-		elem_rune(':'),
-		Elem_true(),
-		elem_rune(','),
-		Elem_string("False"),
-		elem_rune(':'),
-		Elem_false(),
-		elem_rune(','),
-		Elem_string("age"),
-		elem_rune(':'),
-		Elem_null(),
+		ElemStr("True"),
+		elemRune(':'),
+		ElemTrue(),
+		elemRune(','),
+		ElemStr("False"),
+		elemRune(':'),
+		ElemFalse(),
+		elemRune(','),
+		ElemStr("age"),
+		elemRune(':'),
+		ElemNull(),
 	}
 	compare_receivedElems_wantedElems(elems, wanted, t)
 }
@@ -95,36 +95,36 @@ func Test_array_detection(t *testing.T) {
 	Elems_print(array, 0)
 
 	wanted := Elem_list{
-		Elem_string("name"),
-		elem_rune(':'),
-		Elem_string("Bob"),
-		elem_rune(','),
-		Elem_string("scores"),
-		elem_rune(':'),
-		Elem_array(
+		ElemStr("name"),
+		elemRune(':'),
+		ElemStr("Bob"),
+		elemRune(','),
+		ElemStr("scores"),
+		elemRune(':'),
+		ElemArray(
 			Elem_list{
-				Elem_number_int(4),
-				Elem_number_int(6),
+				ElemInt(4),
+				ElemInt(6),
 			},
 		),
-		elem_rune(','),
-		Elem_string("friends"),
-		elem_rune(':'),
-		Elem_array(Elem_list{
-			Elem_array(Elem_list{
-				Elem_string("Eve"),
-				Elem_number_int(16),
+		elemRune(','),
+		ElemStr("friends"),
+		elemRune(':'),
+		ElemArray(Elem_list{
+			ElemArray(Elem_list{
+				ElemStr("Eve"),
+				ElemInt(16),
 			}),
-			Elem_array(Elem_list{
-				Elem_string("Joe"),
-				Elem_number_int(42),
+			ElemArray(Elem_list{
+				ElemStr("Joe"),
+				ElemInt(42),
 			}),
 		},
 		),
-		elem_rune(','),
-		Elem_string("key"),
-		elem_rune(':'),
-		Elem_string("val"),
+		elemRune(','),
+		ElemStr("key"),
+		elemRune(':'),
+		ElemStr("val"),
 	}
 	compare_receivedElems_wantedElems(array, wanted, t)
 }
@@ -135,10 +135,10 @@ func Test_object_detection(t *testing.T) {
 	elem_root, _ := Json_parse_src(`{"personal":{"city":"Paris", "cell": 123}}`)
 	fmt.Println("Test_object_detection")
 	Elem_print_one(elem_root)
-	wanted := Elem_object(Keys_elems{
-		"personal": Elem_object(Keys_elems{
-			"city": Elem_string("Paris"),
-			"cell": Elem_number_int(123),
+	wanted := ElemObject(Keys_elems{
+		"personal": ElemObject(Keys_elems{
+			"city": ElemStr("Paris"),
+			"cell": ElemInt(123),
 		}),
 	})
 	compare_one_pair_received_wanted(elem_root, wanted, t)
@@ -148,13 +148,13 @@ func Test_json_1(t *testing.T) {
 	elem_root, _ := Json_parse_src(`{"name": "Bob", "friends": [ {"name":"Eve", "cell": 123, "age": 21} ]}`)
 	fmt.Println(" Test_json_1")
 	Elem_print_one(elem_root)
-	wanted := Elem_object(Keys_elems{
-		"name": Elem_string("Bob"),
-		"friends": Elem_array(Elem_list{
-			Elem_object(Keys_elems{
-				"name": Elem_string("Eve"),
-				"cell": Elem_number_int(123),
-				"age":  Elem_number_int(21),
+	wanted := ElemObject(Keys_elems{
+		"name": ElemStr("Bob"),
+		"friends": ElemArray(Elem_list{
+			ElemObject(Keys_elems{
+				"name": ElemStr("Eve"),
+				"cell": ElemInt(123),
+				"age":  ElemInt(21),
 			}),
 		}),
 	})
@@ -165,21 +165,21 @@ func Test_complex_big(t *testing.T) {
 	elem_root, _ := Json_parse_src(`{"name": "Bob", "friends": [ {"name":"Eve", "scores":[1,2]}, {"name":"Joe", "scores":[3,4]} ]}`)
 	fmt.Println("Test_complex_big")
 	Elem_print_one(elem_root)
-	wanted := Elem_object(Keys_elems{
-		"name": Elem_string("Bob"),
-		"friends": Elem_array(Elem_list{
-			Elem_object(Keys_elems{
-				"name": Elem_string("Eve"),
-				"scores": Elem_array(Elem_list{
-					Elem_number_int(1),
-					Elem_number_int(2),
+	wanted := ElemObject(Keys_elems{
+		"name": ElemStr("Bob"),
+		"friends": ElemArray(Elem_list{
+			ElemObject(Keys_elems{
+				"name": ElemStr("Eve"),
+				"scores": ElemArray(Elem_list{
+					ElemInt(1),
+					ElemInt(2),
 				}),
 			}),
-			Elem_object(Keys_elems{
-				"name": Elem_string("Joe"),
-				"scores": Elem_array(Elem_list{
-					Elem_number_int(3),
-					Elem_number_int(4),
+			ElemObject(Keys_elems{
+				"name": ElemStr("Joe"),
+				"scores": ElemArray(Elem_list{
+					ElemInt(3),
+					ElemInt(4),
 				}),
 			}),
 		}),
