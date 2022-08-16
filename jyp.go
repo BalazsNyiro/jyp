@@ -184,19 +184,19 @@ func Json_collect_scalars_in_elems(src Elem_list) Elem_list {
 			*/
 			idCut := idLast - 3 // remove the last elems from collector
 			collector = collector[:idCut]
-			elemTrue := elem_true()
+			elemTrue := Elem_true()
 			collector = append(collector, elemTrue)
 		}
 		if lastFourChar == "null" {
 			idCut := idLast - 3
 			collector = collector[:idCut]
-			elemNull := elem_null()
+			elemNull := Elem_null()
 			collector = append(collector, elemNull)
 		}
 		if lastFiveChar == "false" {
 			idCut := idLast - 4
 			collector = collector[:idCut]
-			elemFalse := elem_false()
+			elemFalse := Elem_false()
 			collector = append(collector, elemFalse)
 		}
 	}
@@ -248,10 +248,10 @@ func _elem_number_from_runes(stringVal string) Elem {
 	numType := number_type_detect_float_or_int(stringVal)
 	if numType == "number_int" {
 		intVal, _ := strconv.Atoi(stringVal)
-		return elem_number_int(intVal)
+		return Elem_number_int(intVal)
 	}
 	floatVal := str_to_float(stringVal)
-	return elem_number_float(stringVal, floatVal)
+	return Elem_number_float(stringVal, floatVal)
 }
 
 // ********************* end of JSON number detection *******************************
@@ -271,7 +271,7 @@ func Json_collect_strings_in_elems__remove_spaces(src Elem_list) Elem_list {
 		// fmt.Println(">>> runeNow", string(runeNow), "inText", inText)
 		if _str_closing_quote(inText, runeNow) && !elem_is_escaped_in_string(id, src) {
 			inText = false
-			collector = append(collector, elem_string(string(runes)))
+			collector = append(collector, Elem_string(string(runes)))
 			runes = nil
 			continue
 		}
@@ -294,39 +294,39 @@ func Json_collect_strings_in_elems__remove_spaces(src Elem_list) Elem_list {
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-func elem_string(value string) Elem {
+func Elem_string(value string) Elem {
 	// example:
 	// Elem{ValString: "age", ValType: "string"},
 	return Elem{ValString: value, ValType: "string"}
 }
 
-func elem_object(values keys_elems) Elem {
+func Elem_object(values keys_elems) Elem {
 	return Elem{ValObject: values, ValType: "object"}
 }
 
-func elem_array(values Elem_list) Elem {
+func Elem_array(values Elem_list) Elem {
 	return Elem{ValArray: elems_copy_all(values), ValType: "array"}
 }
 
-func elem_number_int(value int) Elem {
+func Elem_number_int(value int) Elem {
 	// return Elem{ValString: "5", ValType: "number_int", ValNumberInt: 5},
 	return Elem{ValString: strconv.Itoa(value), ValType: "number_int", ValNumberInt: value}
 }
 
-func elem_number_float(value_str_representation string, value_more_or_less_precise float64) Elem {
+func Elem_number_float(value_str_representation string, value_more_or_less_precise float64) Elem {
 	// Elem{ValString: "7.6", ValType: "number_float", ValNumberFloat: 7.599999904632568},
 	return Elem{ValString: value_str_representation, ValType: "number_float", ValNumberFloat: value_more_or_less_precise}
 }
 
-func elem_true() Elem {
+func Elem_true() Elem {
 	return Elem{ValBool: true, ValType: "bool"}
 }
 
-func elem_false() Elem {
+func Elem_false() Elem {
 	return Elem{ValBool: false, ValType: "bool"}
 }
 
-func elem_null() Elem {
+func Elem_null() Elem {
 	return Elem{ValType: "null"}
 }
 
