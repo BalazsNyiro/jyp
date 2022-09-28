@@ -286,7 +286,9 @@ func Json_collect_strings_in_elems__remove_spaces(src Elem_list) Elem_list {
 
 		// remove whitespaces if we are not in text:
 		// TEST IT
-		if runeNow != ' ' && runeNow != '\n' && runeNow != '\t' {
+		// if there is a real (non-whitespace) character
+		if len(strings.TrimSpace(string(runeNow))) > 0 {
+			// if runeNow != ' ' && runeNow != '\n' && runeNow != '\t' {
 			collector = append(collector, elemNow)
 		}
 	}
