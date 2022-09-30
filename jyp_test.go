@@ -145,7 +145,14 @@ func Test_object_detection(t *testing.T) {
 }
 
 func Test_json_1(t *testing.T) {
-	elem_root, _ := Json_parse_src(`{"name": "Bob", "friends": [ {"name":"Eve", "cell": 123, "age": 21} ]}`)
+	// there are tabs, newlines, spaces in the json to test the whitespace removing
+	elem_root, _ := Json_parse_src(`{"name": "Bob", 
+									 	"friends": [ 
+                                     		{	"name":"Eve", 
+												"cell": 123, 
+												"age": 21
+											} 
+										]}`)
 	fmt.Println(" Test_json_1")
 	Elem_print_one(elem_root)
 	wanted := ElemObject(Keys_elems{
