@@ -196,7 +196,7 @@ func Test_json_render_object(t *testing.T) {
 		}),
 	})
 
-	wanted := "{\"human\":{\"name\":\"Bob\",\"age\":42}}"
+	wanted := "{\"human\":{\"age\":42,\"name\":\"Bob\"}}"
 	rendered := root.json_render()
 	if rendered != wanted {
 		t.Fatalf(`data structure to string render error: %s %s`, rendered, wanted)

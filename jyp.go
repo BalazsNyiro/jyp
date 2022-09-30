@@ -4,6 +4,7 @@ package jyp
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -98,8 +99,10 @@ func (elem Elem) json_render() string {
 	if elem.ValType == "object" {
 		accumulator := ""
 		separator := ""
-		for key, value := range elem.ValObject {
-			accumulator = accumulator + separator + quote + key + quote + ":" + value.json_render()
+
+		// the output will be sorted in json output
+		for _, key := range keys_sorted_from_object(elem.ValObject) {
+			accumulator = accumulator + separator + quote + key + quote + ":" + elem.ValObject[key].json_render()
 			separator = ","
 		}
 		return "{" + accumulator + "}"
@@ -535,4 +538,13 @@ func Obj_has_key(dict Keys_elems, key string) bool {
 		return true
 	}
 	return false
+}
+
+func keys_sorted_from_object(keyElemPairs Keys_elems) []string {
+	keysSorted := []string{}
+	for key := range keyElemPairs {
+		keysSorted = append(keysSorted, key)
+	}
+	sort.Strings(keysSorted)
+	return keysSorted
 }
