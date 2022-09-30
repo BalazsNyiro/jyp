@@ -68,6 +68,16 @@ func (elem Elem) Bool() bool {
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 func (elem Elem) json_render() string {
+	return json_render_pretty_recursive(elem, 0, "") // no prefix/pretty print param, simple rendering
+}
+
+func (elem Elem) json_render_pretty() string {
+	return json_render_pretty_recursive(elem, 0, "  ")
+}
+
+// not callable as object's method. Hidden/private fun
+// private because I don't want to make mess in the callable functions
+func json_render_pretty_recursive(elem Elem, level int, pretty_print_prefix_block string) string {
 	quote := "\""
 	if elem.ValType == "bool" {
 		if elem.ValBool {
@@ -86,11 +96,12 @@ func (elem Elem) json_render() string {
 		return elem.ValString // when the float is created, string representation is given as param
 	} // at the elem initialization
 
+	// in a list, the order can be important so in the display you can't sort it.
 	if elem.ValType == "array" {
 		accumulator := ""
 		separator := ""
 		for _, list_member := range elem.ValArray {
-			accumulator = accumulator + separator + list_member.json_render()
+			accumulator = accumulator + separator + json_render_pretty_recursive(list_member, level+1, pretty_print_prefix_block)
 			separator = ","
 		}
 		return "[" + accumulator + "]"

@@ -203,6 +203,21 @@ func Test_json_render_object(t *testing.T) {
 	}
 }
 
+func Test_json_render_object_pretty_print(t *testing.T) {
+	root := ElemObject(Keys_elems{
+		"human": ElemObject(Keys_elems{
+			"name": ElemStr("Bob"),
+			"age":  ElemInt(42),
+		}),
+	})
+
+	wanted := "{\"human\":{\"age\":42,\"name\":\"Bob\"}}"
+	rendered := root.json_render_pretty()
+	if rendered != wanted {
+		t.Fatalf(`data structure to string (pretty print) render error: %s %s`, rendered, wanted)
+	}
+}
+
 //////////////// COMPLETE JSON TESTS ////////////////////////////////////
 func Test_object_detection(t *testing.T) {
 	elem_root, _ := Json_parse_src(`{"personal":{"city":"Paris", "cell": 123}}`)
