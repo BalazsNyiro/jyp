@@ -66,6 +66,49 @@ func (elem Elem) Bool() bool {
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 
+func (elem Elem) json_render() string {
+	quote := "\""
+	if elem.ValType == "bool" {
+		if elem.ValBool {
+			return "true"
+		} else {
+			return "false"
+		}
+	}
+	if elem.ValType == "string" {
+		return quote + elem.ValString + quote
+	}
+	if elem.ValType == "number_int" {
+		return fmt.Sprintf("%d", elem.ValNumberInt)
+	}
+	if elem.ValType == "number_float" {
+		return elem.ValString // when the float is created, string representation is given as param
+	} // at the elem initialization
+
+	if elem.ValType == "array" {
+		accumulator := ""
+		separator := ""
+		for _, list_member := range elem.ValArray {
+			accumulator = accumulator + separator + list_member.json_render()
+			separator = ","
+		}
+		return "[" + accumulator + "]"
+	}
+
+	if elem.ValType == "object" {
+		accumulator := ""
+		separator := ""
+		for key, value := range elem.ValObject {
+			accumulator = accumulator + separator + quote + key + quote + ":" + value.json_render()
+			separator = ","
+		}
+		return "{" + accumulator + "}"
+	}
+	return "json render error"
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
 func Json_parse_src(src string) (Elem, error) {
 	// fmt.Println("json_parse:" + src)
 

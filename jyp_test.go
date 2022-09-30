@@ -129,8 +129,81 @@ func Test_array_detection(t *testing.T) {
 	compare_receivedElems_wantedElems(array, wanted, t)
 }
 
-//////////////// COMPLETE JSON TESTS ////////////////////////////////////
+///////////////// json render tests ///////////////////////////////
+func Test_json_render_bool_true(t *testing.T) {
+	elem := ElemTrue()
+	wanted := "true"
+	rendered := elem.json_render()
+	if rendered != wanted {
+		t.Fatalf(`bool true render error: %s %s`, rendered, wanted)
+	}
+}
 
+func Test_json_render_bool_false(t *testing.T) {
+	elem := ElemFalse()
+	wanted := "false"
+	rendered := elem.json_render()
+	if rendered != wanted {
+		t.Fatalf(`bool true render error: %s %s`, rendered, wanted)
+	}
+}
+
+func Test_json_render_string(t *testing.T) {
+	elem := ElemStr("Bob")
+	wanted := "\"Bob\""
+	rendered := elem.json_render()
+	if rendered != wanted {
+		t.Fatalf(`string render error: %s %s`, rendered, wanted)
+	}
+}
+
+func Test_json_render_int(t *testing.T) {
+	elem := ElemInt(42)
+	wanted := "42"
+	rendered := elem.json_render()
+	if rendered != wanted {
+		t.Fatalf(`int render error: %s %s`, rendered, wanted)
+	}
+}
+
+func Test_json_render_float(t *testing.T) {
+	elem := ElemFloat("3.21", 3.21)
+	wanted := "3.21"
+	rendered := elem.json_render()
+	if rendered != wanted {
+		t.Fatalf(`int render error: %s %s`, rendered, wanted)
+	}
+}
+
+func Test_json_render_array(t *testing.T) {
+	root := ElemArray(Elem_list{
+		ElemStr("Eve"),
+		ElemInt(21),
+	})
+
+	wanted := "[\"Eve\",21]"
+	rendered := root.json_render()
+	if rendered != wanted {
+		t.Fatalf(`list render error: %s %s`, rendered, wanted)
+	}
+}
+
+func Test_json_render_object(t *testing.T) {
+	root := ElemObject(Keys_elems{
+		"human": ElemObject(Keys_elems{
+			"name": ElemStr("Bob"),
+			"age":  ElemInt(42),
+		}),
+	})
+
+	wanted := "{\"human\":{\"name\":\"Bob\",\"age\":42}}"
+	rendered := root.json_render()
+	if rendered != wanted {
+		t.Fatalf(`data structure to string render error: %s %s`, rendered, wanted)
+	}
+}
+
+//////////////// COMPLETE JSON TESTS ////////////////////////////////////
 func Test_object_detection(t *testing.T) {
 	elem_root, _ := Json_parse_src(`{"personal":{"city":"Paris", "cell": 123}}`)
 	fmt.Println("Test_object_detection")
