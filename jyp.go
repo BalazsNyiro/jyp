@@ -68,16 +68,25 @@ func (elem Elem) Bool() bool {
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 func (elem Elem) json_render() string {
-	return json_render_pretty_recursive(elem, 0, "") // no prefix/pretty print param, simple rendering
+	return json_render_pretty_recursive(elem, 1, "") // no prefix/pretty print param, simple rendering
 }
 
 func (elem Elem) json_render_pretty() string {
-	return json_render_pretty_recursive(elem, 0, "  ")
+	return json_render_pretty_recursive(elem, 1, "  ")
 }
+
+// the first level is 1 because the root object is 0.
+// and everything in root is in level 1.
 
 // not callable as object's method. Hidden/private fun
 // private because I don't want to make mess in the callable functions
 func json_render_pretty_recursive(elem Elem, level int, pretty_print_prefix_block string) string {
+	prefixInternalElems := ""
+	if len(pretty_print_prefix_block) > 0 {
+		prefixInternalElems = "\n" + strings.Repeat(pretty_print_prefix_block, level)
+	}
+	fmt.Println("DEBUG: ", level, elem.ValString, ">"+prefixInternalElems+"<")
+
 	quote := "\""
 	if elem.ValType == "bool" {
 		if elem.ValBool {
@@ -113,10 +122,25 @@ func json_render_pretty_recursive(elem Elem, level int, pretty_print_prefix_bloc
 
 		// the output will be sorted in json output
 		for _, key := range keys_sorted_from_object(elem.ValObject) {
-			accumulator = accumulator + separator + quote + key + quote + ":" + elem.ValObject[key].json_render()
+			fmt.Println("DEBUG KEY:", key, "level:", level)
+			accumulator = accumulator + separator + prefixInternalElems + quote + key + quote + ": " + json_render_pretty_recursive(elem.ValObject[key], level+1, pretty_print_prefix_block)
 			separator = ","
 		}
-		return "{" + accumulator + "}"
+
+		prefixParentOpen := ""
+		prefixParentClose := ""
+
+		if len(pretty_print_prefix_block) > 0 {
+			if level > 1 { // in this case the root parent don't have a newline
+				prefixParentOpen = "\n"
+			}
+			prefixParentClose = "\n"
+			indentParent := strings.Repeat(pretty_print_prefix_block, max(level-1, 0))
+			prefixParentOpen += indentParent
+			prefixParentClose += indentParent
+		}
+
+		return prefixParentOpen + "{" + accumulator + prefixParentClose + "}"
 	}
 	return "json render error"
 }
@@ -558,4 +582,10 @@ func keys_sorted_from_object(keyElemPairs Keys_elems) []string {
 	}
 	sort.Strings(keysSorted)
 	return keysSorted
+}
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }

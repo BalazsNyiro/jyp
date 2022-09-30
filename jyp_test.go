@@ -214,7 +214,7 @@ func Test_json_render_object_pretty_print(t *testing.T) {
 	wanted := "{\"human\":{\"age\":42,\"name\":\"Bob\"}}"
 	rendered := root.json_render_pretty()
 	if rendered != wanted {
-		t.Fatalf(`data structure to string (pretty print) render error: %s %s`, rendered, wanted)
+		t.Fatalf("data structure to string (pretty print) render error:\n%s\n\nwanted:\n%s", rendered, wanted)
 	}
 }
 
