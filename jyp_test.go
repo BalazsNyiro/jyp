@@ -196,7 +196,7 @@ func Test_json_render_object(t *testing.T) {
 		}),
 	})
 
-	wanted := "{\"human\":{\"age\":42,\"name\":\"Bob\"}}"
+	wanted := "{\"human\": {\"age\": 42,\"name\": \"Bob\"}}"
 	rendered := root.json_render()
 	if rendered != wanted {
 		t.Fatalf(`data structure to string render error: %s %s`, rendered, wanted)
@@ -211,7 +211,7 @@ func Test_json_render_object_pretty_print(t *testing.T) {
 		}),
 	})
 
-	wanted := "{\"human\":{\"age\":42,\"name\":\"Bob\"}}"
+	wanted := "{\n  \"human\": {\n    \"age\": 42,\n    \"name\": \"Bob\"\n  }\n}"
 	rendered := root.json_render_pretty()
 	if rendered != wanted {
 		t.Fatalf("data structure to string (pretty print) render error:\n%s\n\nwanted:\n%s", rendered, wanted)

@@ -85,7 +85,6 @@ func json_render_pretty_recursive(elem Elem, level int, pretty_print_prefix_bloc
 	if len(pretty_print_prefix_block) > 0 {
 		prefixInternalElems = "\n" + strings.Repeat(pretty_print_prefix_block, level)
 	}
-	fmt.Println("DEBUG: ", level, elem.ValString, ">"+prefixInternalElems+"<")
 
 	quote := "\""
 	if elem.ValType == "bool" {
@@ -122,7 +121,6 @@ func json_render_pretty_recursive(elem Elem, level int, pretty_print_prefix_bloc
 
 		// the output will be sorted in json output
 		for _, key := range keys_sorted_from_object(elem.ValObject) {
-			fmt.Println("DEBUG KEY:", key, "level:", level)
 			accumulator = accumulator + separator + prefixInternalElems + quote + key + quote + ": " + json_render_pretty_recursive(elem.ValObject[key], level+1, pretty_print_prefix_block)
 			separator = ","
 		}
