@@ -127,20 +127,15 @@ func json_render_pretty_recursive(elem Elem, level int, pretty_print_prefix_bloc
 			separator = ","
 		}
 
-		prefixParentOpen := ""
 		prefixParentClose := ""
 
 		if len(pretty_print_prefix_block) > 0 {
-			if level > 1 { // in this case the root parent don't have a newline
-				prefixParentOpen = "\n"
-			}
 			prefixParentClose = "\n"
 			indentParent := strings.Repeat(pretty_print_prefix_block, max(level-1, 0))
-			prefixParentOpen += indentParent
 			prefixParentClose += indentParent
 		}
 
-		return prefixParentOpen + "{" + accumulator + prefixParentClose + "}"
+		return "{" + accumulator + prefixParentClose + "}"
 	}
 	return "json render error"
 }
