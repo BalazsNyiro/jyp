@@ -105,6 +105,7 @@ func json_render_pretty_recursive(elem Elem, level int, pretty_print_prefix_bloc
 	} // at the elem initialization
 
 	// in a list, the order can be important so in the display you can't sort it.
+	// TODO: pretty print of ARRAYS :-)
 	if elem.ValType == "array" {
 		accumulator := ""
 		separator := ""
