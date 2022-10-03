@@ -30,4 +30,12 @@ func main() {
 	})
 	jyp.Elem_print_one(elem_root)
 
+	elemList := elem_root.Key("personal").Key("list")
+	fmt.Println("type of elemList:", elemList.ValType) // type: array
+
+	// loop over list elems:
+	for _, elem := range elem_root.Key("personal").Key("list").ValArray {
+		fmt.Println(elem.ValType, elem.ValString)
+	}
+
 }

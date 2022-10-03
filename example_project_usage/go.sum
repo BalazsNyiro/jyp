@@ -12,3 +12,5 @@ github.com/BalazsNyiro/jyp v0.0.0-20220816015344-11aa6406348f h1:TmQc/VaZg7hhqgQ
 github.com/BalazsNyiro/jyp v0.0.0-20220816015344-11aa6406348f/go.mod h1:7ALiObne8iWegB3vXgh0B9fdJOJ+5wD7+MNo0dJq62s=
 github.com/BalazsNyiro/jyp v0.0.0-20220816021645-d41b94abb943 h1:8cIv864eGIZAcMpgGnOotA9sAc+v5d0jAsy+AjzDd6Q=
 github.com/BalazsNyiro/jyp v0.0.0-20220816021645-d41b94abb943/go.mod h1:7ALiObne8iWegB3vXgh0B9fdJOJ+5wD7+MNo0dJq62s=
+github.com/BalazsNyiro/jyp v0.0.0-20220930233140-16bfadae2021 h1:gPJgVI+nn6X5rOLbOdS0u7ab+sivISQtONjrDw/fe0c=
+github.com/BalazsNyiro/jyp v0.0.0-20220930233140-16bfadae2021/go.mod h1:7ALiObne8iWegB3vXgh0B9fdJOJ+5wD7+MNo0dJq62s=
