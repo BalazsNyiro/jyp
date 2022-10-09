@@ -1,6 +1,6 @@
 package main
 
-import "github.com/BalazsNyiro/jyp"
+import "github.com/BalazsNyiro/jyp/jyp"
 import "fmt"
 
 // run: go run jyp_example_usage.go
