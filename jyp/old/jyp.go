@@ -1,6 +1,6 @@
-// JYP - Json/Yaml Parser
+// JP - Json parser
 // author: Balazs Nyiro, balazs.nyiro.ca@gmail.com
-package jyp
+package jp
 
 import (
 	"fmt"
