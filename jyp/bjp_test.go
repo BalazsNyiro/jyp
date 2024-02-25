@@ -9,7 +9,7 @@ import (
 func Test_detect_next_opener(t *testing.T) {
 	funName := "Test_detect_next_opener-closer_"
 
-	src := "\n\t\r { }"
+	src := "\n\t\r { }\r\n\t "
 
 	testName := funName + "object"
 	nextOpenerDetectedType, posOpener := detectNextOpenerTypeFromBeginning(src)
@@ -19,6 +19,30 @@ func Test_detect_next_opener(t *testing.T) {
 	compare_string_string(testName, nextCloserDetectedType, "object", t)
 	compare_int_int(testName, posOpener, 4, t)
 	compare_int_int(testName, posCloser, 6, t)
+
+
+	src = " 123 \r\n\t "
+	testName = funName + "number"
+	nextOpenerDetectedType, posOpener = detectNextOpenerTypeFromBeginning(src)
+	nextCloserDetectedType, posCloser = detectNextCloserTypeFromEnd(src)
+
+	compare_string_string(testName, nextOpenerDetectedType, "number", t)
+	compare_string_string(testName, nextCloserDetectedType, "number", t)
+	compare_int_int(testName, posOpener, 1, t)
+	compare_int_int(testName, posCloser, 3, t)
+
+
+	src = " \"text\" \r\n\t "
+	testName = funName + "text"
+	nextOpenerDetectedType, posOpener = detectNextOpenerTypeFromBeginning(src)
+	nextCloserDetectedType, posCloser = detectNextCloserTypeFromEnd(src)
+
+	compare_string_string(testName, nextOpenerDetectedType, "string", t)
+	compare_string_string(testName, nextCloserDetectedType, "string", t)
+	compare_int_int(testName, posOpener, 1, t)
+	compare_int_int(testName, posCloser, 6, t)
+
+
 }
 
 //////////////////////////// TEST BASE FUNCS ///////////////////
