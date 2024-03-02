@@ -1,10 +1,10 @@
-// jyp - Balazs' Json parser
+// jsonB - Balazs' Json parser
 // author: Balazs Nyiro, balazs.nyiro.ca@gmail.com
 
 // this file is the implementation of the _standard_ json data format:
 // https://www.json.org/json-en.html
 
-package jyp
+package jsonB
 
 import "errors"
 
