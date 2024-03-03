@@ -7,6 +7,19 @@ import (
 	"testing"
 )
 
+func Test_true_false_null(t *testing.T) {
+	funName := "Test_true_false_null"
+
+	src := `{"name":"Bob","boy":true,"girl":false,"age":null}`
+	tokens := tokenTable_startPositionIndexed{}
+	errorsCollected := []error{}
+
+	src, tokens, errorsCollected = json_detect_strings________(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_separators_____(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
+
+	_ = funName
+}
 
 func Test_separators_detect(t *testing.T) {
 	funName := "Test_separators_detect"
@@ -16,7 +29,7 @@ func Test_separators_detect(t *testing.T) {
 	tokensStartPositions := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 
-	srcSep, tokensSep, errorsCollectedSep := json_detect_separators(src, tokensStartPositions, errorsCollected)
+	srcSep, tokensSep, errorsCollectedSep := json_detect_separators_____(src, tokensStartPositions, errorsCollected)
 	//                                       `{"students":[{"name":"Bob", "age":12}{"name": "Eve", "age":34.56}]}`
 	compare_string_string(testName, ` "students"   "name" "Bob"  "age" 12  "name"  "Eve"  "age" 34.56   `, srcSep, t)
 	compare_int_int(testName, 15, len(tokensSep), t)
@@ -61,7 +74,7 @@ func Test_detect_strings(t *testing.T) {
 	errorsCollected := []error{}
 
 
-	srcEmpty, tokensEmpty, errorsCollectedEmpty := json_detect_strings(src, tokensStartPositions, errorsCollected)
+	srcEmpty, tokensEmpty, errorsCollectedEmpty := json_detect_strings________(src, tokensStartPositions, errorsCollected)
 	// after token detection, the parsed section is removed;
 	//                                       `{"empty":""}`, t)
 	compare_string_string(testName, `{       :  }`, srcEmpty, t)
@@ -84,7 +97,7 @@ func Test_detect_strings(t *testing.T) {
 	errorsCollected = []error{}
 
 	// tokens are indexed by the first char where they were detected
-	src2, tokens2, errorsCollected2 := json_detect_strings(src, tokensStartPositions, errorsCollected)
+	src2, tokens2, errorsCollected2 := json_detect_strings________(src, tokensStartPositions, errorsCollected)
 	//                                       `{"name":"Bob", "age": 42}`
 	// after token detection, the parsed section is removed;
 	compare_string_string(testName, `{      :     ,      : 42}`, src2, t)
@@ -104,7 +117,7 @@ func Test_detect_strings(t *testing.T) {
 	errorsCollected = []error{}
 
 	// tokens are indexed by the first char where they were detected
-	srcEsc, tokensEsc, errorsCollectedEsc := json_detect_strings(srcEsc, tokensStartPositions, errorsCollected)
+	srcEsc, tokensEsc, errorsCollectedEsc := json_detect_strings________(srcEsc, tokensStartPositions, errorsCollected)
 	_ = tokensEsc
 	_ = errorsCollectedEsc
 

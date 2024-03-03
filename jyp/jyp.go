@@ -76,14 +76,15 @@ func JsonParse(src string) (Elem, error) {
 	// the src is always less and less, as tokens are detected
 	// the tokens table has more and more elems, as the src sections are parsed
 	// at the end, src is total empty (if everything goes well) - and we don't have errors, too
-	src, tokens, errorsCollected = json_detect_strings(src, tokens, errorsCollected)
-	src, tokens, errorsCollected = json_detect_separators(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_strings________(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_separators_____(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
 	return elemRoot, nil
 }
 
 
 ////////////////////// BASE FUNCTIONS ///////////////////////////////////////////////
-func json_detect_strings(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) {
+func json_detect_strings________(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) {
 
 	srcDetectedTokensRemoved := []rune{}
 	// to find escaped \" \\\" sections in strings
@@ -146,7 +147,7 @@ func json_detect_strings(src string, tokensStartPositions tokenTable_startPositi
 }
 
 
-func json_detect_separators(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) {
+func json_detect_separators_____(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) {
 	srcDetectedTokensRemoved := []rune{}
 	var tokenNow Elem
 
