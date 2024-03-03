@@ -132,7 +132,7 @@ func token_string_value_validate_and_set(token tokenElem, errorsCollected []erro
 			valueFromRawSrcParsing = append(valueFromRawSrcParsing, runeActual)
 			continue
 		} else {
-			// runeActual is \\ here!
+			// runeActual is \\ here, so ESCAPING started
 
 			if runeNext1 == 'u' {
 				// this is \u.... unicode code point - special situation,

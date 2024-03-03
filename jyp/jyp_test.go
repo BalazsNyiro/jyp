@@ -113,7 +113,7 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	testName = funName + "_all"
-	src = `{"quotation:       "\" text\"", 
+	src = `{"quotation":      "\" text\"", 
             "reverseSolidus": "\\ reverseSolidus", 
             "solidus":        "\/ solidus", 
             "backspace":      "\b backspace", 
@@ -132,6 +132,14 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 
 	tokens, errorsCollected = tokens_validations_value_settings(tokens, errorsCollected)
 	TokensDisplay_startingCoords(tokens)
+	compare_string_string(testName, `" text"`,            tokens[19].ValString, t)
+	compare_string_string(testName, "\\ reverseSolidus",  tokens[63].ValString, t)
+	compare_string_string(testName, "/ solidus",          tokens[115].ValString, t)
+	compare_string_string(testName, "\b backspace",       tokens[160].ValString, t)
+	compare_string_string(testName, "\f formFeed",        tokens[207].ValString, t)
+	compare_string_string(testName, "\n lineFeed",        tokens[253].ValString, t)
+	// compare_string_string(testName, "\r carriageReturn",  tokens[281].ValString, t)
+	// compare_string_string(testName, "\t horizontalTab",   tokens[333].ValString, t)
 }
 
 
