@@ -10,6 +10,7 @@ package jyp
 
 import (
 	"errors"
+	"strings"
 )
 
 const ABC_lower string = "abcdefghijklmnopqrstuvwxyz"
@@ -265,11 +266,67 @@ func json_detect_true_false_null(src string, tokensStartPositions tokenTable_sta
 	return string(srcDetectedTokensRemoved), tokensStartPositions, errorsCollected
 }
 
+
+////////////////////////////////////
+type word struct {
+	word string
+	posFirst int
+	posLast int
+}
+
+func src_get_whitespace_separated_words_posFirst_posLast(src string) []word {
+	words := []word{}
+
+	wordChars := []rune{}
+	posFirst  := -1
+	posLast   := -1
+
+	// posActual := -1, len(src) + 1: overindexing!
+	// with this, I can be sure that minimum one space is detected first,
+	// and minimum one space detected after the source code's normal chars!
+	// with this solution, the last word detection can be closed with the last boundary space, in one
+	// case, and I don't have to handle that later, in a second if/else condition
+
+	// src_get_char() handles the overindexing
+	for posActual := -1; posActual < len(src)+1; posActual++ {
+		runeActual := src_get_char(src, posActual)
+
+		// the first and last chars, because of overindexing, are spaces, this is guaranteed!
+		if is_whitespace_rune(runeActual) {
+			if len(wordChars) > 0 {
+				word := word{
+					word    : string(wordChars),
+					posFirst: posFirst,
+					posLast : posLast,
+				}
+				words = append(words, word)
+			}
+			wordChars = []rune{}
+			posFirst  = -1
+			posLast   = -1
+
+		} else {
+			// save posFirst, posLast, and word-builder chars ///
+			if len(wordChars) == 0 {
+				posFirst = posActual
+			}
+			posLast = posActual
+			wordChars = append(wordChars, runeActual)
+		}
+
+	}
+
+
+	return words
+}
+////////////////////////////////////
+
 // get the rune IF the index is really in the range of the src.
 // return with ' ' space, IF the index is NOT in the range.
 // reason: avoid never ending index checking, so do it only once
 // the space can be answered because this func is used when a real char wanted to be detected,
 // and if a space is returned, this has NO MEANING in that parse section
+// this fun is NOT used in string detection - and other places whitespaces can be neglected, too
 func src_get_char(src string, pos int) rune {
 	posPossibleMax := len(src)-1
 	posPossibleMin := 0
@@ -277,10 +334,24 @@ func src_get_char(src string, pos int) rune {
 		posPossibleMin = -1
 	}
 	if (pos >= posPossibleMin) && (pos <= posPossibleMax) {
-		return ([]rune(src))[pos]
+		charSelected := ([]rune(src))[pos]
+		if is_whitespace_rune(charSelected) {
+			charSelected = ' '
+			// simplify everything. if the char is a whitespace, return with SPACE
+		}
+		return charSelected
 	}
 	return ' '
 }
 
+// the string has whitespace chars only
+func is_whitespace_string(src string) bool {
+	return strings.TrimSpace(src) == ""
+}
+
+// the rune is a whitespace char
+func is_whitespace_rune(oneRune rune) bool {
+	return is_whitespace_string(string([]rune{oneRune}))
+}
 
 /////////////////////// base functions /////////////////
