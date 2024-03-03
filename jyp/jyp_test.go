@@ -28,32 +28,29 @@ func Test_separators_detect(t *testing.T) {
 	   are ALWAYS same, and the length of runes are 1, too.
 
 	*/
-	testOneElem := func (srcWanted string, positionInSrc int, tokensOneTest tokenTable_startPositionIndexed) {
-		tokenNow := tokensOneTest[positionInSrc]
+	testOneElem := func (srcWanted string, positionInSrc int) {
+		tokenNow := tokensSep[positionInSrc]
 		compare_int_int(    testName, positionInSrc,         tokenNow.charPositionFirstInSourceCode,  t)
 		compare_int_int(    testName, positionInSrc,         tokenNow.charPositionLastInSourceCode,   t)
 		compare_int_int(    testName, 1,      len(tokenNow.runes), t)
 		compare_runes_runes(testName, []rune(srcWanted),     tokenNow.runes,  t)
-
 	}
 
-	// testOneElem("{", 0, tokensSep)
-	_ = testOneElem
-
-	compare_int_int(testName, 0, tokensSep[0].charPositionFirstInSourceCode,  t)
-	compare_int_int(testName, 0, tokensSep[0].charPositionLastInSourceCode,   t)
-	compare_int_int(testName, 1, len(tokensSep[0].runes),   t)
-	compare_runes_runes(testName, []rune("{"), tokensSep[0].runes, t)
-
-	compare_int_int(testName, 11, tokensSep[11].charPositionFirstInSourceCode,  t)
-	compare_int_int(testName, 11, tokensSep[11].charPositionLastInSourceCode,   t)
-	compare_int_int(testName, 1, len(tokensSep[11].runes),   t)
-	compare_runes_runes(testName, []rune(":"), tokensSep[11].runes, t)
-
-	compare_int_int(testName, 12, tokensSep[12].charPositionFirstInSourceCode,  t)
-	compare_int_int(testName, 12, tokensSep[12].charPositionLastInSourceCode,   t)
-	compare_int_int(testName, 1, len(tokensSep[0].runes),   t)
-	compare_runes_runes(testName, []rune("{"), tokensSep[0].runes, t)
+	testOneElem("{", 0  )
+	testOneElem(":", 11 )
+	testOneElem("[", 12 )
+	testOneElem("{", 13 )
+	testOneElem(":", 20 )
+	testOneElem(",", 26 )
+	testOneElem(":", 33 )
+	testOneElem("}", 36 )
+	testOneElem("{", 37 )
+	testOneElem(":", 44 )
+	testOneElem(",", 51 )
+	testOneElem(":", 58 )
+	testOneElem("}", 64 )
+	testOneElem("]", 65 )
+	testOneElem("}", 66 )
 
 	compare_int_int(testName, len(errorsCollectedSep), 0, t)
 }
@@ -159,6 +156,6 @@ func tokensDisplay(tokens tokenTable_startPositionIndexed) {
 
 	fmt.Println("== Tokens Table display ==")
 	for _, key := range keys{
-		fmt.Println(key, tokens[key])
+		fmt.Println(string(tokens[key].runes), key, tokens[key])
 	}
 }
