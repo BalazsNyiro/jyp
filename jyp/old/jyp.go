@@ -374,7 +374,7 @@ func JsonCollectStringsInElems__removeSpaces(src Elem_list) Elem_list {
 
 func ElemStr(value string) Elem {
 	// example:
-	// Elem{ValString: "age", ValType: "string"},
+	// Elem{ValString: "age", Type: "string"},
 	return Elem{ValString: value, ValType: "string"}
 }
 
@@ -387,12 +387,12 @@ func ElemArray(values Elem_list) Elem {
 }
 
 func ElemInt(value int) Elem {
-	// return Elem{ValString: "5", ValType: "number_int", ValNumberInt: 5},
+	// return Elem{ValString: "5", Type: "number_int", ValNumberInt: 5},
 	return Elem{ValString: strconv.Itoa(value), ValType: "number_int", ValNumberInt: value}
 }
 
 func ElemFloat(value_str_representation string, value_more_or_less_precise float64) Elem {
-	// Elem{ValString: "7.6", ValType: "number_float", ValNumberFloat: 7.599999904632568},
+	// Elem{ValString: "7.6", Type: "number_float", ValNumberFloat: 7.599999904632568},
 	return Elem{ValString: value_str_representation, ValType: "number_float", ValNumberFloat: value_more_or_less_precise}
 }
 
@@ -410,7 +410,7 @@ func ElemNull() Elem {
 
 func elemRune(value rune) Elem {
 	// example:
-	// Elem{ValRune: ':', ValType: "rune"},
+	// Elem{ValRune: ':', Type: "rune"},
 	return Elem{ValRune: value, ValRuneString: string(value), ValType: "rune"}
 }
 

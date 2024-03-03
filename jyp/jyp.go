@@ -4,7 +4,7 @@
 // this file is the implementation of the _standard_ json data format:
 // https://www.json.org/json-en.html
 
-package jsonB
+package jyp
 
 import "errors"
 
@@ -36,7 +36,7 @@ type Elems []Elem
 type ElemMap map[string]Elem
 
 type Elem struct {
-	ValType string
+	Type string
 	// possible types:
 	// array, object,
 	// bool, null, string, number_int, number_float,
@@ -72,7 +72,7 @@ func JsonParse(src string) (Elem, error) {
 	// the tokens table has more and more elems, as the src sections are parsed
 	// at the end, src is total empty (if everything goes well) - and we don't have errors, too
 	src, tokens, errorsCollected = json_string_detect(src, tokens, errorsCollected)
-
+	src, tokens, errorsCollected = json_separators_detect(src, tokens, errorsCollected)
 	return elemRoot, nil
 }
 
@@ -96,7 +96,7 @@ func json_string_detect(src string, tokensStartPositions tokenTable_startPositio
 
 		if r == '"' {
 			if !inStringDetection {
-					tokenNow = Elem{}
+					tokenNow = Elem{Type: "string"}
 					inStringDetection = true
 					tokenNow.charPositionFirstInSourceCode = posInSrc
 					tokenNow.runes = append(tokenNow.runes, r)
@@ -140,6 +140,34 @@ func json_string_detect(src string, tokensStartPositions tokenTable_startPositio
 	return string(srcDetectedTokensRemoved), tokensStartPositions, errorsCollected
 }
 
+
+func json_separators_detect(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) {
+	srcDetectedTokensRemoved := []rune{}
+	var tokenNow Elem
+
+	for posInSrc, r := range src {
+		detectedType := ""
+
+		if r == '{' { detectedType = "objectOpen"  }
+		if r == '}' { detectedType = "objectClose" }
+		if r == '[' { detectedType = "arrayOpen"   }
+		if r == ']' { detectedType = "arrayClose"  }
+		if r == ',' { detectedType = "comma"       }
+		if r == ':' { detectedType = "colon"       }
+
+		if detectedType == "" {
+			// save the original rune, if it was not a detected char
+			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, r)
+		} else { // save Elem, if something important is detected
+			tokenNow = Elem{Type: detectedType}
+			tokenNow.charPositionFirstInSourceCode = posInSrc
+			tokenNow.runes = append(tokenNow.runes, r)
+			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
+			continue
+		}
+	} // for r
+	return string(srcDetectedTokensRemoved), tokensStartPositions, errorsCollected
+}
 
 
 

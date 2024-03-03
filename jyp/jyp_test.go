@@ -1,5 +1,5 @@
 
-package jsonB
+package jyp
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ func Test_detect_strings(t *testing.T) {
 	funName := "Test_detect_strings"
 
 
+	////////////////////////////////////////////////////////////////////////////////////////////
 	testName := funName + "_emptyString"
 	src := `{"empty":""}`
 	tokensStartPositions := tokenTable_startPositionIndexed{}
@@ -32,6 +33,7 @@ func Test_detect_strings(t *testing.T) {
 
 
 
+	////////////////////////////////////////////////////////////////////////////////////////////
 	testName = funName + "_simpleStringDetect"
 	src = `{"name":"Bob", "age": 42}`
 	tokensStartPositions = tokenTable_startPositionIndexed{}
@@ -50,7 +52,7 @@ func Test_detect_strings(t *testing.T) {
 	compare_int_int(testName, len(errorsCollected2), 0, t)
 
 
-
+	////////////////////////////////////////////////////////////////////////////////////////////
 	testName = funName + "_escape"
 	srcEsc := `{"name \"of\" the \t\\\"rose\n\"":"red"}`
 	print("escaped src:", srcEsc, "\n")
@@ -65,7 +67,7 @@ func Test_detect_strings(t *testing.T) {
 	//                                       `{"name \"of\" the \t\\\"rose\n\"":"red"}`
 	compare_string_string(testName, `{                                :     }`, srcEsc, t)
 	compare_int_int(testName, 1, tokensEsc[1].charPositionFirstInSourceCode,  t)
-	compare_int_int(testName, 6, tokensEsc[1].charPositionLastInSourceCode, t)
+	compare_int_int(testName, 32, tokensEsc[1].charPositionLastInSourceCode, t)
 }
 
 //////////////////////////// TEST BASE FUNCS ///////////////////
