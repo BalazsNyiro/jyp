@@ -161,8 +161,10 @@ func json_separators_detect(src string, tokensStartPositions tokenTable_startPos
 		} else { // save Elem, if something important is detected
 			tokenNow = Elem{Type: detectedType}
 			tokenNow.charPositionFirstInSourceCode = posInSrc
+			tokenNow.charPositionLastInSourceCode  = posInSrc
 			tokenNow.runes = append(tokenNow.runes, r)
 			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
+			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
 			continue
 		}
 	} // for r

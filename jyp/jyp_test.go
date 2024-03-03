@@ -3,8 +3,60 @@ package jyp
 
 import (
 	"fmt"
+	"sort"
 	"testing"
 )
+
+
+func Test_separators_detect(t *testing.T) {
+	funName := "Test_separators_detect"
+
+	testName := funName + "_basic"
+	src := `{"students":[{"name":"Bob", "age":12}{"name": "Eve", "age":34.56}]}`
+	tokensStartPositions := tokenTable_startPositionIndexed{}
+	errorsCollected := []error{}
+
+	srcSep, tokensSep, errorsCollectedSep := json_separators_detect(src, tokensStartPositions, errorsCollected)
+	//                                       `{"students":[{"name":"Bob", "age":12}{"name": "Eve", "age":34.56}]}`
+	compare_string_string(testName, ` "students"   "name" "Bob"  "age" 12  "name"  "Eve"  "age" 34.56   `, srcSep, t)
+
+	tokensDisplay(tokensSep)
+
+	compare_int_int(testName, 15, len(tokensSep), t)
+
+	/* because the separators are one char long elems, the start position and end position
+	   are ALWAYS same, and the length of runes are 1, too.
+
+	*/
+	testOneElem := func (srcWanted string, positionInSrc int, tokensOneTest tokenTable_startPositionIndexed) {
+		tokenNow := tokensOneTest[positionInSrc]
+		compare_int_int(    testName, positionInSrc,         tokenNow.charPositionFirstInSourceCode,  t)
+		compare_int_int(    testName, positionInSrc,         tokenNow.charPositionLastInSourceCode,   t)
+		compare_int_int(    testName, 1,      len(tokenNow.runes), t)
+		compare_runes_runes(testName, []rune(srcWanted),     tokenNow.runes,  t)
+
+	}
+
+	// testOneElem("{", 0, tokensSep)
+	_ = testOneElem
+
+	compare_int_int(testName, 0, tokensSep[0].charPositionFirstInSourceCode,  t)
+	compare_int_int(testName, 0, tokensSep[0].charPositionLastInSourceCode,   t)
+	compare_int_int(testName, 1, len(tokensSep[0].runes),   t)
+	compare_runes_runes(testName, []rune("{"), tokensSep[0].runes, t)
+
+	compare_int_int(testName, 11, tokensSep[11].charPositionFirstInSourceCode,  t)
+	compare_int_int(testName, 11, tokensSep[11].charPositionLastInSourceCode,   t)
+	compare_int_int(testName, 1, len(tokensSep[11].runes),   t)
+	compare_runes_runes(testName, []rune(":"), tokensSep[11].runes, t)
+
+	compare_int_int(testName, 12, tokensSep[12].charPositionFirstInSourceCode,  t)
+	compare_int_int(testName, 12, tokensSep[12].charPositionLastInSourceCode,   t)
+	compare_int_int(testName, 1, len(tokensSep[0].runes),   t)
+	compare_runes_runes(testName, []rune("{"), tokensSep[0].runes, t)
+
+	compare_int_int(testName, len(errorsCollectedSep), 0, t)
+}
 
 func Test_detect_strings(t *testing.T) {
 	funName := "Test_detect_strings"
@@ -77,12 +129,6 @@ func compare_int_int(testName string, wantedNum int, received int, t *testing.T)
 	}
 }
 
-func compare_bool_bool(testName string, wanted bool, received bool, t *testing.T) {
-	if wanted != received {
-		t.Fatalf("\nError, different bool comparison %s wanted: %t, received: %t", testName, wanted, received)
-	}
-}
-
 func compare_string_string(callerInfo, strWanted, strReceived string, t *testing.T) {
 	if strWanted != strReceived {
 		t.Fatalf("\nErr String difference (%s):\n  wanted -->>%s<<-- ??\nreceived -->>%s<<--\n\n", callerInfo, strWanted, strReceived)
@@ -104,9 +150,15 @@ func compare_runes_runes(callerInfo string, runesWanted, runesReceived []rune, t
 	}
 }
 
-func compare_rune_rune(callerInfo string, runeWanted, runeReceived rune, t *testing.T) {
-	if runeWanted != runeReceived {
-		errMsg := fmt.Sprintf("\nErr (%s) rune <>rune:\n  wanted -->>%s<<-- ??\nreceived -->>%s<<--\n\n", callerInfo, string(runeWanted), string(runeReceived))
-		t.Fatalf(errMsg)
+func tokensDisplay(tokens tokenTable_startPositionIndexed) {
+	keys := make([]int, 0, len(tokens))
+	for k := range tokens {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
+
+	fmt.Println("== Tokens Table display ==")
+	for _, key := range keys{
+		fmt.Println(key, tokens[key])
 	}
 }
