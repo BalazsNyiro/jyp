@@ -8,6 +8,31 @@ import (
 )
 
 
+func Test_detect_numbers(t *testing.T) {
+	funName := "Test_detect_numbers"
+	testName := funName + "_basic"
+
+
+	src := `{"age":123, "balance": -456.78, "problems": 0, "loan": -1.2E+3, "otherNum": 0.1e-4}`
+	tokens := tokenTable_startPositionIndexed{}
+	errorsCollected := []error{}
+
+	src, tokens, errorsCollected = json_detect_strings________(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_separators_____(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_numbers(src, tokens, errorsCollected)
+	tokensDisplay(tokens)
+	compare_int_int(testName, 21, len(tokens), t)
+
+	compare_string_string(testName, "123",     string(tokens[7].runes ), t)
+	compare_string_string(testName, "-456.78", string(tokens[23].runes), t)
+	compare_string_string(testName, "0",       string(tokens[44].runes), t)
+	compare_string_string(testName, "-1.2E+3", string(tokens[55].runes), t)
+	compare_string_string(testName, "0.1e-4",  string(tokens[76].runes), t)
+}
+
+
+
 func Test_src_get_words(t *testing.T) {
 	funName := "Test_src_get_words"
 	testName := funName + "_basic"

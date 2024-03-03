@@ -13,29 +13,6 @@ import (
 	"strings"
 )
 
-const ABC_lower string = "abcdefghijklmnopqrstuvwxyz"
-const ABC_upper string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-const digitZero string = "0"
-const digits_19 string = "123456789"
-const digits_09 string = "0123456789"
-
-const whitespaces string = "\r\n\t "
-
-const objOpen  string = "{"
-const arrClose string = "}"
-const arrOpen  string = "["
-const objClose string = "]"
-
-const separatorComma string = ","
-const separatorColon string = ":"
-const separatorDot   string = "."
-const separatorExponent string = "eE"
-
-const separatorMinus     string = "-"
-const separatorPlusMinus string = "+-"
-
-
 
 type Elems []Elem
 type ElemMap map[string]Elem
@@ -79,12 +56,14 @@ func JsonParse(src string) (Elem, error) {
 	src, tokens, errorsCollected = json_detect_strings________(src, tokens, errorsCollected)
 	src, tokens, errorsCollected = json_detect_separators_____(src, tokens, errorsCollected)
 	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_numbers(src, tokens, errorsCollected)
+	// at this
 	return elemRoot, nil
 }
 
 
 ////////////////////// BASE FUNCTIONS ///////////////////////////////////////////////
-func json_detect_strings________(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) {
+func json_detect_strings________(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) { // TESTED
 
 	srcDetectedTokensRemoved := []rune{}
 	// to find escaped \" \\\" sections in strings
@@ -147,7 +126,7 @@ func json_detect_strings________(src string, tokensStartPositions tokenTable_sta
 }
 
 
-func json_detect_separators_____(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) {
+func json_detect_separators_____(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) { // TESTED
 	srcDetectedTokensRemoved := []rune{}
 	var tokenNow Elem
 
@@ -183,7 +162,7 @@ func json_detect_separators_____(src string, tokensStartPositions tokenTable_sta
 	because the strings/separators are removed and replaced with space in the src, as placeholders,
     the true/false/null words are surrounded with spaces, as separators.
 */
-func json_detect_true_false_null(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) {
+func json_detect_true_false_null(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) { // TESTED
 	srcDetectedTokensRemoved := []rune(src)
 
 	for _, wordOne := range src_get_whitespace_separated_words_posFirst_posLast(src) {
@@ -211,6 +190,30 @@ func json_detect_true_false_null(src string, tokensStartPositions tokenTable_sta
 }
 
 
+// words are detected here, and I can hope only that they are numbers - later they will be validated
+func json_detect_numbers(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) { // TESTED
+	srcDetectedTokensRemoved := []rune(src)
+
+	for _, wordOne := range src_get_whitespace_separated_words_posFirst_posLast(src) {
+
+		tokenNow := Elem{Type: "number"} // only numbers can be in the src now.
+		tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
+		tokenNow.charPositionLastInSourceCode  = wordOne.posLast
+
+		for posDetected := wordOne.posFirst; posDetected <= wordOne.posLast; posDetected++ {
+			// save all detected positions:
+			tokenNow.runes = append(tokenNow.runes, ([]rune(src))[posDetected])
+			// clear detected positions from the src:
+			srcDetectedTokensRemoved[posDetected] = ' '
+		}
+		tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
+	}
+	return string(srcDetectedTokensRemoved), tokensStartPositions, errorsCollected
+}
+
+
+
+
 ////////////////////////////////////
 type word struct {
 	word string
@@ -218,7 +221,7 @@ type word struct {
 	posLast int
 }
 
-func src_get_whitespace_separated_words_posFirst_posLast(src string) []word {
+func src_get_whitespace_separated_words_posFirst_posLast(src string) []word { // TESTED
 	words := []word{}
 
 	wordChars := []rune{}
