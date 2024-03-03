@@ -1,12 +1,17 @@
-// jsonB - Balazs' Json parser
 // author: Balazs Nyiro, balazs.nyiro.ca@gmail.com
 
 // this file is the implementation of the _standard_ json data format:
 // https://www.json.org/json-en.html
 
+// this song helped a lot to write this parser - respect:
+// https://open.spotify.com/track/7znjTquY8gek1bKni5yzLG?si=3ae71af19f684d67
+
 package jyp
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 const ABC_lower string = "abcdefghijklmnopqrstuvwxyz"
 const ABC_upper string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -71,14 +76,14 @@ func JsonParse(src string) (Elem, error) {
 	// the src is always less and less, as tokens are detected
 	// the tokens table has more and more elems, as the src sections are parsed
 	// at the end, src is total empty (if everything goes well) - and we don't have errors, too
-	src, tokens, errorsCollected = json_string_detect(src, tokens, errorsCollected)
-	src, tokens, errorsCollected = json_separators_detect(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_strings(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_separators(src, tokens, errorsCollected)
 	return elemRoot, nil
 }
 
 
 ////////////////////// BASE FUNCTIONS ///////////////////////////////////////////////
-func json_string_detect(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) {
+func json_detect_strings(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) {
 
 	srcDetectedTokensRemoved := []rune{}
 	// to find escaped \" \\\" sections in strings
@@ -92,21 +97,21 @@ func json_string_detect(src string, tokensStartPositions tokenTable_startPositio
 
 	var tokenNow Elem
 
-	for posInSrc, r := range src {
+	for posInSrc, runeActual := range src {
 
-		if r == '"' {
+		if runeActual == '"' {
 			if !inStringDetection {
 					tokenNow = Elem{Type: "string"}
 					inStringDetection = true
 					tokenNow.charPositionFirstInSourceCode = posInSrc
-					tokenNow.runes = append(tokenNow.runes, r)
+					tokenNow.runes = append(tokenNow.runes, runeActual)
 					srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
 					continue
 			} else { // in string detection
 				if ! isEscaped() {
 					inStringDetection = false
 					tokenNow.charPositionLastInSourceCode = posInSrc
-					tokenNow.runes = append(tokenNow.runes, r)
+					tokenNow.runes = append(tokenNow.runes, runeActual)
 					tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
 					srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
 					continue
@@ -116,9 +121,9 @@ func json_string_detect(src string, tokensStartPositions tokenTable_startPositio
 
 
 		if inStringDetection {
-			tokenNow.runes = append(tokenNow.runes, r)
+			tokenNow.runes = append(tokenNow.runes, runeActual)
 
-			if r == '\\' {
+			if runeActual == '\\' {
 				escapeBackSlashCounterBeforeCurrentChar++
 			} else { // the escape series ended :-)
 				escapeBackSlashCounterBeforeCurrentChar = 0
@@ -128,7 +133,7 @@ func json_string_detect(src string, tokensStartPositions tokenTable_startPositio
 			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
 		} else {
 			// save the original rune, if it was not in a string
-			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, r)
+			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, runeActual)
 		}
 
 	} // for
@@ -141,36 +146,123 @@ func json_string_detect(src string, tokensStartPositions tokenTable_startPositio
 }
 
 
-func json_separators_detect(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) {
+func json_detect_separators(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) {
 	srcDetectedTokensRemoved := []rune{}
 	var tokenNow Elem
 
-	for posInSrc, r := range src {
+	for posInSrc, runeActual := range src {
 		detectedType := ""
 
-		if r == '{' { detectedType = "objectOpen"  }
-		if r == '}' { detectedType = "objectClose" }
-		if r == '[' { detectedType = "arrayOpen"   }
-		if r == ']' { detectedType = "arrayClose"  }
-		if r == ',' { detectedType = "comma"       }
-		if r == ':' { detectedType = "colon"       }
+		if runeActual == '{' { detectedType = "objectOpen"  }
+		if runeActual == '}' { detectedType = "objectClose" }
+		if runeActual == '[' { detectedType = "arrayOpen"   }
+		if runeActual == ']' { detectedType = "arrayClose"  }
+		if runeActual == ',' { detectedType = "comma"       }
+		if runeActual == ':' { detectedType = "colon"       }
 
 		if detectedType == "" {
 			// save the original rune, if it was not a detected char
-			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, r)
+			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, runeActual)
 		} else { // save Elem, if something important is detected
 			tokenNow = Elem{Type: detectedType}
 			tokenNow.charPositionFirstInSourceCode = posInSrc
 			tokenNow.charPositionLastInSourceCode  = posInSrc
-			tokenNow.runes = append(tokenNow.runes, r)
+			tokenNow.runes = append(tokenNow.runes, runeActual)
 			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
 			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
-			continue
 		}
-	} // for r
+	} // for runeActual
 	return string(srcDetectedTokensRemoved), tokensStartPositions, errorsCollected
 }
 
+
+/* this detection is AFTER string+separator detection.
+   	in other words: only numbers and true/false/null values are left in the src.
+
+	because the strings/separators are removed and replaced with space in the src, as placeholders,
+    the true/false/null words are surrounded with spaces, as separators.
+*/
+func json_detect_true_false_null(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) {
+	srcDetectedTokensRemoved := []rune{}
+	var tokenNow Elem
+
+	for posActual := 0; posActual < len(src); posActual++ {
+
+		runeActual := src_get_char(src, posActual    )
+		runeNext1  := src_get_char(src, posActual + 1)   // the real rune value IF the pos in the valid range of the src
+		runeNext2  := src_get_char(src, posActual + 2)   // or space, if the index is bigger/lower than the valid range
+		runeNext3  := src_get_char(src, posActual + 3)
+		runeNext4  := src_get_char(src, posActual + 4)
+		runeNext5  := src_get_char(src, posActual + 5)
+		runeNext6  := src_get_char(src, posActual + 6)
+
+		//                                               ' '            n             u           l        l         ' '         ' '  (closing space after the word)
+		//                                               ' '            f             a           l        s          e          ' '  (closing space)
+		word_ActualChar_plus_few_chars := string([]rune{runeActual, runeNext1, runeNext2, runeNext3, runeNext4, runeNext5, runeNext6})
+		// A good question: why don't I use a simple string indexing? ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+		// because maybe I over index the src, so the wanted index is NOT in the valid range
+		// because of this, runes are collected one by one, and if the index is NOT in the range, substituted with a meaningless SPACE
+
+		detectedType := ""
+		posFirst := 0
+		posLast := 0
+
+		// the word has to be detected WITH SPACE boundaries
+		if strings.HasPrefix(word_ActualChar_plus_few_chars, " true ") {
+			detectedType = "true"
+			posFirst = posActual + 1
+			posLast = posActual + 4
+		}
+
+		if strings.HasPrefix(word_ActualChar_plus_few_chars, " false ") {
+			detectedType = "true"
+			posFirst = posActual + 1
+			posLast = posActual + 5
+		}
+
+		if strings.HasPrefix(word_ActualChar_plus_few_chars, " null ") {
+			detectedType = "null"
+			posFirst = posActual + 1
+			posLast = posActual + 4
+		}
+
+		if detectedType == "" {
+			// save the original rune, if it was not a detected char
+			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, runeActual)
+		} else { // save Elem, if something important is detected
+			tokenNow = Elem{Type: detectedType}
+			tokenNow.charPositionFirstInSourceCode = posFirst
+			tokenNow.charPositionLastInSourceCode  = posLast
+
+			for posDetected := posFirst; posDetected <=posLast; posDetected++ {
+				// save all detected positions:
+				tokenNow.runes = append(tokenNow.runes, ([]rune(src))[posDetected])
+
+				// clear all detected positions from the src:
+				srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
+			}
+			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
+		}
+	} // for runeActual
+	return string(srcDetectedTokensRemoved), tokensStartPositions, errorsCollected
+}
+
+// get the rune IF the index is really in the range of the src.
+// return with ' ' space, IF the index is NOT in the range.
+// reason: avoid never ending index checking, so do it only once
+// the space can be answered because this func is used when a real char wanted to be detected,
+// and if a space is returned, this has NO MEANING in that parse section
+func src_get_char(src string, pos int) rune {
+	posPossibleMax := len(src)-1
+	posPossibleMin := 0
+	if len(src)	== 0 { // if the src is empty, posPossibleMax == -1, min cannot be bigger than max
+		posPossibleMin = -1
+	}
+	if (pos >= posPossibleMin) && (pos <= posPossibleMax) {
+		return ([]rune(src))[pos]
+	}
+	return ' '
+}
 
 
 /////////////////////// base functions /////////////////
