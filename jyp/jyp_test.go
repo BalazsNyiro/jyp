@@ -89,7 +89,7 @@ var srcEverything string = `{
 func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 	funName := "Test_detect_numbers"
 
-	testName := funName + "_escaped__quotes__solidus__reverseSolidus"
+	testName := funName + "_escaped__quotes__reverseSolidus"
 
 	src := `{"quote":"\"Assume a virtue, if you have it not.\"\nShakespeare", "source": "http:\/\/www.quotationspage.com\/quotes\/William_Shakespeare\/"}`
 	tokens := tokenTable_startPositionIndexed{}
@@ -102,12 +102,36 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 
 	tokens, errorsCollected = tokens_validations_value_settings(tokens, errorsCollected)
 	// at this point, string tokens' real value is parsed - but there are no embedded structures yet
-	TokensDisplay_startingCoords(tokens)
+	// TokensDisplay_startingCoords(tokens)
 
 	compare_int_int(testName, 9, len(tokens), t)
 	compare_string_string(testName, "quote",  tokens[1].ValString, t)
 	compare_string_string(testName, `"Assume a virtue, if you have it not."`+"\nShakespeare",    tokens[9].ValString,  t)
 	compare_string_string(testName, "http://www.quotationspage.com/quotes/William_Shakespeare/", tokens[76].ValString, t)
+
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////
+	testName = funName + "_all"
+	src = `{"quotation:       "\" text\"", 
+            "reverseSolidus": "\\ reverseSolidus", 
+            "solidus":        "\/ solidus", 
+            "backspace":      "\b backspace", 
+            "formFeed":       "\f formFeed", 
+            "lineFeed":       "\n lineFeed", 
+            "carriageReturn": "\r carriageReturn", 
+            "horizontalTab":  "\t horizontalTab"}`
+
+	tokens = tokenTable_startPositionIndexed{}
+	errorsCollected = []error{}
+
+	src, tokens, errorsCollected = json_detect_strings________(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_separators_____(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_numbers________(src, tokens, errorsCollected)
+
+	tokens, errorsCollected = tokens_validations_value_settings(tokens, errorsCollected)
+	TokensDisplay_startingCoords(tokens)
 }
 
 
