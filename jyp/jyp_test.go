@@ -9,8 +9,11 @@ import (
 
 func Test_true_false_null(t *testing.T) {
 	funName := "Test_true_false_null"
+	testName := funName + "_basic"
 
-	src := `{"name":"Bob","boy":true,"girl":false,"age":null}`
+	src := `{"name":"Bob","money":123,"boy":true,"girl":false,"age":null}`
+	srcLenOrig := len(src)
+
 	tokens := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 
@@ -18,7 +21,14 @@ func Test_true_false_null(t *testing.T) {
 	src, tokens, errorsCollected = json_detect_separators_____(src, tokens, errorsCollected)
 	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
 
+	// the orig src len has to be equal with the cleaned/received one's length:
+	// compare_int_int(testName, srcLenOrig, len(src), t)
+
+	// compare_string_string(testName, `                      123                                    `, src, t)
+	// compare_int_int(testName, 20 , len(tokens), t)
 	_ = funName
+	_ = testName
+	_ = srcLenOrig
 }
 
 func Test_separators_detect(t *testing.T) {
@@ -30,7 +40,7 @@ func Test_separators_detect(t *testing.T) {
 	errorsCollected := []error{}
 
 	srcSep, tokensSep, errorsCollectedSep := json_detect_separators_____(src, tokensStartPositions, errorsCollected)
-	//                                       `{"students":[{"name":"Bob", "age":12}{"name": "Eve", "age":34.56}]}`
+	//                              `{"students":[{"name":"Bob", "age":12}{"name": "Eve", "age":34.56}]}`
 	compare_string_string(testName, ` "students"   "name" "Bob"  "age" 12  "name"  "Eve"  "age" 34.56   `, srcSep, t)
 	compare_int_int(testName, 15, len(tokensSep), t)
 
@@ -70,6 +80,8 @@ func Test_detect_strings(t *testing.T) {
 	////////////////////////////////////////////////////////////////////////////////////////////
 	testName := funName + "_emptyString"
 	src := `{"empty":""}`
+	srcLenOrig := len(src)
+
 	tokensStartPositions := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 
@@ -78,6 +90,7 @@ func Test_detect_strings(t *testing.T) {
 	// after token detection, the parsed section is removed;
 	//                                       `{"empty":""}`, t)
 	compare_string_string(testName, `{       :  }`, srcEmpty, t)
+	compare_int_int(testName, srcLenOrig, len(srcEmpty), t)
 
 	compare_int_int(testName, len(tokensEmpty), 2, t) // 3 strings were detected
 	compare_int_int(testName, 1, tokensEmpty[1].charPositionFirstInSourceCode,  t)
@@ -93,14 +106,16 @@ func Test_detect_strings(t *testing.T) {
 	////////////////////////////////////////////////////////////////////////////////////////////
 	testName = funName + "_simpleStringDetect"
 	src = `{"name":"Bob", "age": 42}`
+	srcLenOrig = len(src)
 	tokensStartPositions = tokenTable_startPositionIndexed{}
 	errorsCollected = []error{}
 
 	// tokens are indexed by the first char where they were detected
 	src2, tokens2, errorsCollected2 := json_detect_strings________(src, tokensStartPositions, errorsCollected)
-	//                                       `{"name":"Bob", "age": 42}`
+	//                              `{"name":"Bob", "age": 42}`
 	// after token detection, the parsed section is removed;
 	compare_string_string(testName, `{      :     ,      : 42}`, src2, t)
+	compare_int_int(testName, srcLenOrig, len(src2), t)
 
 	compare_int_int(testName, 3, len(tokens2), t)  // 3 strings were detected
 	compare_int_int(testName, 1, tokens2[1].charPositionFirstInSourceCode,  t)
@@ -112,6 +127,7 @@ func Test_detect_strings(t *testing.T) {
 	////////////////////////////////////////////////////////////////////////////////////////////
 	testName = funName + "_escape"
 	srcEsc := `{"name \"of\" the \t\\\"rose\n\"":"red"}`
+	srcLenOrig = len(srcEsc)
 	print("escaped src:", srcEsc, "\n")
 	tokensStartPositions = tokenTable_startPositionIndexed{}
 	errorsCollected = []error{}
@@ -121,8 +137,9 @@ func Test_detect_strings(t *testing.T) {
 	_ = tokensEsc
 	_ = errorsCollectedEsc
 
-	//                                       `{"name \"of\" the \t\\\"rose\n\"":"red"}`
+	//                              `{"name \"of\" the \t\\\"rose\n\"":"red"}`
 	compare_string_string(testName, `{                                :     }`, srcEsc, t)
+	compare_int_int(testName, srcLenOrig, len(srcEsc), t)
 	compare_int_int(testName, 1, tokensEsc[1].charPositionFirstInSourceCode,  t)
 	compare_int_int(testName, 32, tokensEsc[1].charPositionLastInSourceCode, t)
 }

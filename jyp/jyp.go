@@ -10,6 +10,7 @@ package jyp
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -211,22 +212,22 @@ func json_detect_true_false_null(src string, tokensStartPositions tokenTable_sta
 		// the word has to be detected WITH SPACE boundaries
 		if strings.HasPrefix(word_ActualChar_plus_few_chars, " true ") {
 			detectedType = "true"
-			posFirst = posActual + 1
-			posLast = posActual + 4
+			posFirst = posActual
+			posLast = posActual + 5
 		}
 
 		if strings.HasPrefix(word_ActualChar_plus_few_chars, " false ") {
-			detectedType = "true"
-			posFirst = posActual + 1
-			posLast = posActual + 5
+			detectedType = "false"
+			posFirst = posActual
+			posLast = posActual + 6
 		}
 
 		if strings.HasPrefix(word_ActualChar_plus_few_chars, " null ") {
 			detectedType = "null"
-			posFirst = posActual + 1
-			posLast = posActual + 4
+			posFirst = posActual
+			posLast = posActual + 5
 		}
-
+		fmt.Println("DETECTED TYPE", detectedType)
 		if detectedType == "" {
 			// save the original rune, if it was not a detected char
 			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, runeActual)
@@ -241,7 +242,14 @@ func json_detect_true_false_null(src string, tokensStartPositions tokenTable_sta
 
 				// clear all detected positions from the src:
 				srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
+
 			}
+
+			// set the actual position to the last detected pos,
+			// because all chars were added to the Elem between posFirst->posLast,
+			// so there is no reason to detect them again :-)
+			posActual = posLast
+
 			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
 		}
 	} // for runeActual
