@@ -184,85 +184,29 @@ func json_detect_separators_____(src string, tokensStartPositions tokenTable_sta
     the true/false/null words are surrounded with spaces, as separators.
 */
 func json_detect_true_false_null(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) {
-	srcDetectedTokensRemoved := []rune{}
-	var tokenNow Elem
+	srcDetectedTokensRemoved := []rune(src)
 
-	for posActual := 0; posActual < len(src); posActual++ {
+	for _, wordOne := range src_get_whitespace_separated_words_posFirst_posLast(src) {
 
-		runePrev1  := src_get_char(src, posActual - 1)
-		runeActual := src_get_char(src, posActual    )
-		runeNext1  := src_get_char(src, posActual + 1)   // the real rune value IF the pos in the valid range of the src
-		runeNext2  := src_get_char(src, posActual + 2)   // or space, if the index is bigger/lower than the valid range
-		runeNext3  := src_get_char(src, posActual + 3)
-		runeNext4  := src_get_char(src, posActual + 4)
-		runeNext5  := src_get_char(src, posActual + 5)
-		// A good question: why don't I use a simple string indexing? ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-		// because maybe I over index the src, so the wanted index is NOT in the valid range
-		// because of this, runes are collected one by one, and if the index is NOT in the range, substituted with a meaningless SPACE
+		detectedType := "" // 3 types of word can be detected in this fun
+		if wordOne.word == "true"  { detectedType = "true"  }
+		if wordOne.word == "false" { detectedType = "false" }
+		if wordOne.word == "null"  { detectedType = "false" }
 
-		detectedType := ""
-		posFirst := 0
-		posLast := 0
+		if detectedType != "" {
+			tokenNow := Elem{Type: detectedType}
+			tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
+			tokenNow.charPositionLastInSourceCode  = wordOne.posLast
 
-		if  runePrev1  == ' ' &&
-			runeActual == 't'  &&
-			runeNext1  == 'r'  &&
-			runeNext2  == 'u'  &&
-			runeNext3  == 'e'  &&
-			runeNext4  == ' ' {
-				detectedType = "true"  // actual, +1, +2, +3
-				posFirst = posActual
-				posLast  = posActual + 3
-		}
-
-		if  runePrev1  == ' ' &&
-			runeActual == 'f'  &&
-			runeNext1  == 'a'  &&
-			runeNext2  == 'l'  &&
-			runeNext3  == 's'  &&
-			runeNext4  == 'e'  &&
-			runeNext5  == ' ' {
-			detectedType = "false"  // actual, +1, +2, +3
-			posFirst = posActual
-			posLast  = posActual + 4
-		}
-
-		if  runePrev1  == ' ' &&
-			runeActual == 'n'  &&
-			runeNext1  == 'u'  &&
-			runeNext2  == 'l'  &&
-			runeNext3  == 'l'  &&
-			runeNext4  == ' ' {
-			detectedType = "null"  // actual, +1, +2, +3
-			posFirst = posActual
-			posLast  = posActual + 3
-		}
-
-		if detectedType == "" {
-			// save the original rune, if it was not a detected char
-			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, runeActual)
-		} else { // save Elem, if something important is detected
-			tokenNow = Elem{Type: detectedType}
-			tokenNow.charPositionFirstInSourceCode = posFirst
-			tokenNow.charPositionLastInSourceCode  = posLast
-
-			for posDetected := posFirst; posDetected <=posLast; posDetected++ {
+			for posDetected := wordOne.posFirst; posDetected <= wordOne.posLast; posDetected++ {
 				// save all detected positions:
 				tokenNow.runes = append(tokenNow.runes, ([]rune(src))[posDetected])
-
-				// clear all detected positions from the src:
-				srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
-
+				// clear detected positions from the src:
+				srcDetectedTokensRemoved[posDetected] = ' '
 			}
-
-			// set the actual position to the last detected pos,
-			// because all chars were added to the Elem between posFirst->posLast,
-			// so there is no reason to detect them again :-)
-			posActual = posLast
-
 			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
 		}
-	} // for runeActual
+	}
 	return string(srcDetectedTokensRemoved), tokensStartPositions, errorsCollected
 }
 
