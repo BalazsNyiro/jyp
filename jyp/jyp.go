@@ -16,10 +16,10 @@ import (
 )
 
 
-type Elems []Elem
-type ElemMap map[string]Elem
+type Elems []tokenElem
+type ElemMap map[string]tokenElem
 
-type Elem struct {
+type tokenElem struct {
 	Type string
 	// possible types:
 	// array, object,
@@ -41,11 +41,11 @@ type Elem struct {
 	runes []rune
 }
 
-type tokenTable_startPositionIndexed map[int]Elem
+type tokenTable_startPositionIndexed map[int]tokenElem
 
 // if the src can be parsed, return with the JSON root object with nested elems, and err is nil.
-func JsonParse(src string) (Elem, error) {
-	elemRoot := Elem{}
+func JsonParse(src string) (tokenElem, error) {
+	elemRoot := tokenElem{}
 
 	errorsCollected := []error{}
 	tokens := tokenTable_startPositionIndexed{}
@@ -58,6 +58,10 @@ func JsonParse(src string) (Elem, error) {
 
 	// only strings can have errors at this parsing step, but the src|tokens|errors are
 	// lead through every fun, as a standard solution - so the possibility is open to throw an error everywhere.
+
+	// here maybe the tokens|errorsCollected ret val handling could be removed,
+	// but with this, it is clearer what is happening in the fun - so I use this form.
+	// in other words: represent if the structure is changed in the function.
 	src, tokens, errorsCollected = json_detect_strings________(src, tokens, errorsCollected)
 	src, tokens, errorsCollected = json_detect_separators_____(src, tokens, errorsCollected)
 	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
@@ -65,12 +69,58 @@ func JsonParse(src string) (Elem, error) {
 
 	// at this point, Numbers are not validated - the ruins are collected only,
 	// and the lists/objects doesn't have embedded structures - it has to be built, too.
+	// src has to be empty, or contain only whitespaces.
 
 	TokensDisplay(tokens)
+
+	// set correct string values, based on raw rune src.
+	// example: "\u0022quote\u0022"'s real form: `"quote"`,
+	// so the raw source has to be interpreted (escaped chars, unicode chars)
+	tokens, errorsCollected = tokens_validations_value_settings(tokens, errorsCollected)
 
 
 	return elemRoot, nil
 }
+
+
+////////////////////// VALUE setter FUNCTIONS ///////////////////////////////////////////////
+func tokens_validations_value_settings(tokens tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) {
+	for _, token := range tokens {
+		// TODO: continue the validation from here
+		_ = token
+		// tokens, errorsCollected = token_validate_and_value_set_for_strings(token, errorsCollected)
+	}
+
+	return tokens, errorsCollected
+}
+
+func token_validate_and_value_set_for_strings(token tokenElem, errorsCollected []error) (tokenElem, []error) {
+
+	if token.Type != "string" {
+		return token, errorsCollected
+	}
+
+	/* Tasks:
+	 - is it a valid string?
+	 - convert special char representations to real chars
+	*/
+
+	/*
+	for posInString := 0; posInString < len(); posActual++ {
+
+		runePrev1  := src_get_char(src, posActual - 1)
+		runeActual := src_get_char(src, posActual    )
+		runeNext1  := src_get_char(src, posActual + 1)   // the real rune value IF the pos in the valid range of the src
+		runeNext2  := src_get_char(src, posActual + 2)   // or space, if the index is bigger/lower than the valid range
+		runeNext3  := src_get_char(src, posActual + 3)
+		runeNext4  := src_get_char(src, posActual + 4)
+		runeNext5  := src_get_char(src, posActual + 5)
+	*/
+
+	return token, errorsCollected
+}
+
+
 
 
 ////////////////////// BASE FUNCTIONS ///////////////////////////////////////////////
@@ -86,13 +136,13 @@ func json_detect_strings________(src string, tokensStartPositions tokenTable_sta
 		return escapeBackSlashCounterBeforeCurrentChar % 2 != 0
 	}
 
-	var tokenNow Elem
+	var tokenNow tokenElem
 
 	for posInSrc, runeActual := range src {
 
 		if runeActual == '"' {
 			if !inStringDetection {
-					tokenNow = Elem{Type: "string"}
+					tokenNow = tokenElem{Type: "string"}
 					inStringDetection = true
 					tokenNow.charPositionFirstInSourceCode = posInSrc
 					tokenNow.runes = append(tokenNow.runes, runeActual)
@@ -139,7 +189,7 @@ func json_detect_strings________(src string, tokensStartPositions tokenTable_sta
 
 func json_detect_separators_____(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) { // TESTED
 	srcDetectedTokensRemoved := []rune{}
-	var tokenNow Elem
+	var tokenNow tokenElem
 
 	for posInSrc, runeActual := range src {
 		detectedType := ""
@@ -154,8 +204,8 @@ func json_detect_separators_____(src string, tokensStartPositions tokenTable_sta
 		if detectedType == "" {
 			// save the original rune, if it was not a detected char
 			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, runeActual)
-		} else { // save Elem, if something important is detected
-			tokenNow = Elem{Type: detectedType}
+		} else { // save tokenElem, if something important is detected
+			tokenNow = tokenElem{Type: detectedType}
 			tokenNow.charPositionFirstInSourceCode = posInSrc
 			tokenNow.charPositionLastInSourceCode  = posInSrc
 			tokenNow.runes = append(tokenNow.runes, runeActual)
@@ -184,7 +234,7 @@ func json_detect_true_false_null(src string, tokensStartPositions tokenTable_sta
 		if wordOne.word == "null"  { detectedType = "false" }
 
 		if detectedType != "" {
-			tokenNow := Elem{Type: detectedType}
+			tokenNow := tokenElem{Type: detectedType}
 			tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
 			tokenNow.charPositionLastInSourceCode  = wordOne.posLast
 
@@ -207,7 +257,7 @@ func json_detect_numbers________(src string, tokensStartPositions tokenTable_sta
 
 	for _, wordOne := range src_get_whitespace_separated_words_posFirst_posLast(src) {
 
-		tokenNow := Elem{Type: "number"} // only numbers can be in the src now.
+		tokenNow := tokenElem{Type: "number"} // only numbers can be in the src now.
 		tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
 		tokenNow.charPositionLastInSourceCode  = wordOne.posLast
 

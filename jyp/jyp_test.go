@@ -7,72 +7,86 @@ import (
 )
 
 var srcEverything string = `{
-	"whatIsThis": "a global, general json structure that has everything",
+    "whatIsThis": "a global, general json structure that has everything",
 
-	"trueKey"  : true,
-	"falseKey" : false,
-	"nullKey"  : null,
-	"stringKey": "str",
+    "trueKey"  : true,
+    "falseKey" : false,
+    "nullKey"  : null,
+    "stringKey": "str",
 
-	"numbers": {
-		"zeroPos":  0,
-		"zeroNeg": -0,
-		"intPos":   8,
-		"intNeg":  -8,
+    "numbers": {
+        "zeroPos":  0,
+        "zeroNeg": -0,
+        "intPos":   8,
+        "intNeg":  -8,
 
-		"what is this 0":  "zero started nums are different cases in Json spec",
-		"floatPosZero":  0.1023,
-		"floatNegZero": -0.4056,
+        "what is this 0":  "zero started nums are different cases in Json spec",
+        "floatPosZero":  0.1023,
+        "floatNegZero": -0.4056,
 
-		"what is this 1":  "non-zero started nums are different cases in Json spec",
-		"floatPosOne":   1.809 ,
-		"floatNegOne":  -1.5067,
+        "what is this 1":  "non-zero started nums are different cases in Json spec",
+        "floatPosOne":   1.809 ,
+        "floatNegOne":  -1.5067,
 
 
-		"what is this 2": "exponent without fraction"
-		"exp_minus_e_plus":   -4e+3
-		"exp_minus_e_minus":  -4e-4
-		"exp_plus_e_plus":     4e+5
-		"exp_plus_e_minus":    4e-6
+        "what is this 2": "exponent without fraction"
+        "exp_minus_e_plus":   -4e+3
+        "exp_minus_e_minus":  -4e-4
+        "exp_plus_e_plus":     4e+5
+        "exp_plus_e_minus":    4e-6
 
-		"exp_minus_E_plus":   -4E+3
-		"exp_minus_E_minus":  -4E-4
-		"exp_plus_E_plus":     4E+5
-		"exp_plus_E_minus":    4E-6
+        "exp_minus_E_plus":   -4E+3
+        "exp_minus_E_minus":  -4E-4
+        "exp_plus_E_plus":     4E+5
+        "exp_plus_E_minus":    4E-6
 
-		"what is this 3": "exponent with fraction"
-		"exp_minus_e_plus__fract":  -1.1e+3
-		"exp_minus_e_minus_fract":  -2.2e-4
-		"exp_plus_e_plus___fract":   3.3e+5
-		"exp_plus_e_minus__fract":   4.4e-6
+        "what is this 3": "exponent with fraction"
+        "exp_minus_e_plus__fract":  -1.1e+3
+        "exp_minus_e_minus_fract":  -2.2e-4
+        "exp_plus_e_plus___fract":   3.3e+5
+        "exp_plus_e_minus__fract":   4.4e-6
 
-		"exp_minus_E_plus__fract":  -5.5E+3
-		"exp_minus_E_minus_fract":  -6.6E-4
-		"exp_plus_E_plus___fract":   7.7E+5
-		"exp_plus_E_minus__fract":   8.8E-6
+        "exp_minus_E_plus__fract":  -5.5E+3
+        "exp_minus_E_minus_fract":  -6.6E-4
+        "exp_plus_E_plus___fract":   7.7E+5
+        "exp_plus_E_minus__fract":   8.8E-6
 
-		"what is this 4": "zero exponents"
-		"exp_minus_e_plus__zero":  -1.1e+0
-		"exp_plus__e_plus__zero":   2.1e+0
-		"exp_minus_e_minus_zero":  -1.1e-0
-		"exp_plus__e_minus_zero":   2.1e-0
-	},
+        "what is this 4": "zero exponents"
+        "exp_minus_e_plus__zero":  -1.1e+0
+        "exp_plus__e_plus__zero":   2.1e+0
+        "exp_minus_e_minus_zero":  -1.1e-0
+        "exp_plus__e_minus_zero":   2.1e-0
+    },
 
-	"array_with_everything": ["str", -2, 0, 3, -4.5, -0, 6.7,
-	                          {"obj_in_array": ["embeddedArr": null]}
+    "array_with_everything": ["str", -2, 0, 3, -4.5, -0, 6.7,
+                              {"obj_in_array": ["embeddedArr":   null,
+                                                "embeddedTrue":  true,
+                                                "embeddedFalse": false,
+                                               ]}
     ],
 
-	"stringsAllPossibleOption": [
-		"simple":  "text",
-		"quotation_mark": `     + "quote: \"wisdom\"" + `,
-		"whitespace_tab": `     + "a\tb" + `,
-		"whitespace_tab": `     + "a\tb" + `,
-		"whitespace_newline": ` + "more\nlines" + `,
-	]
-	`
+    "stringsAllPossibleOption": [
+        "usedSource":             "https://www.json.org/json-en.html",
+        "simple":                 "text",
+
+        "quotation_mark": `     + "quote: \"wisdom\"" + `,
+        "reverse_solidus": `    + "reversed: '\\' "   + `,
+
+		"solidusExplanationUrl":  "https://groups.google.com/g/opensocial-and-gadgets-spec/c/FkLsC-2blbo?pli=1",
+		"solidusExplanation":     "http:\/\/example.org" is the right way to encode a URL in a JSON string",
+        "solidus":                "solidus:  http:\/\/example.org",
+
+        "backspace": `          + "a\bb" + `,
+        "formfeed": `           + "a\fb" + `,
+        "linefeed": `           + "a\nb" + `,
+        "carriage_return": `    + "a\rb" + `,
+        "horizontal_tab": `     + "a\tb" + `,
+        "4hex digits":            "quotation mark digit: \u0022",
+    ]
+    `
 
 ////////////////////////////////////////////////////////////////////////////////////////////
-func Test_JsonParse(t *testing.T) {
+func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 
 }
 
