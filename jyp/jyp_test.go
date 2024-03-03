@@ -87,7 +87,24 @@ var srcEverything string = `{
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 func Test_token_validate_and_value_set_for_strings(t *testing.T) {
+	funName := "Test_detect_numbers"
 
+	testName := funName + "_escapedQuotes__solidus__reverseSolidus"
+
+	src := `{"quote":"\"Assume a virtue, if you have it not.\"\nShakespeare", "source": "http:\/\/www.quotationspage.com\/quotes\/William_Shakespeare\/"}`
+	tokens := tokenTable_startPositionIndexed{}
+	errorsCollected := []error{}
+
+	src, tokens, errorsCollected = json_detect_strings________(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_separators_____(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_numbers________(src, tokens, errorsCollected)
+
+	tokens, errorsCollected = tokens_validations_value_settings(tokens, errorsCollected)
+	// at this point, string tokens' real value is parsed - but there are no embedded structures yet
+
+	compare_int_int(testName, 9, len(tokens), t)
+	compare_string_string(testName, "quote",  tokens[1].ValString, t)
 }
 
 

@@ -85,38 +85,56 @@ func JsonParse(src string) (tokenElem, error) {
 
 ////////////////////// VALUE setter FUNCTIONS ///////////////////////////////////////////////
 func tokens_validations_value_settings(tokens tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) {
+	tokensUpdated := tokenTable_startPositionIndexed{}
 	for _, token := range tokens {
-		// TODO: continue the validation from here
-		_ = token
-		// tokens, errorsCollected = token_validate_and_value_set_for_strings(token, errorsCollected)
+		fmt.Println("\n>>> one Token value Before detection:", token.ValString)
+		token, errorsCollected = token_string_value_validate_and_set(token, errorsCollected)
+		fmt.Println("<<< one Token value After detection:", token.ValString)
+		tokensUpdated[token.charPositionFirstInSourceCode] = token
 	}
-
-	return tokens, errorsCollected
+	return tokensUpdated, errorsCollected
 }
 
-func token_validate_and_value_set_for_strings(token tokenElem, errorsCollected []error) (tokenElem, []error) {
+
+// set the string value from raw strings
+func token_string_value_validate_and_set(token tokenElem, errorsCollected []error) (tokenElem, []error) {
 
 	if token.Type != "string" {
 		return token, errorsCollected
-	}
+	} // don't modify non-string tokens
 
 	/* Tasks:
 	 - is it a valid string?
 	 - convert special char representations to real chars
+
+	 the func works typically with 2 chars, for example: \t
+	 but sometime with 6: \u0123, so I need to look forward for the next 5 chars
 	*/
 
-	/*
-	for posInString := 0; posInString < len(); posActual++ {
+	src := string(token.runes)
+	src = src[1:len(src)-1]  // "remove opening/closing quotes from the string value"
 
-		runePrev1  := src_get_char(src, posActual - 1)
-		runeActual := src_get_char(src, posActual    )
-		runeNext1  := src_get_char(src, posActual + 1)   // the real rune value IF the pos in the valid range of the src
-		runeNext2  := src_get_char(src, posActual + 2)   // or space, if the index is bigger/lower than the valid range
-		runeNext3  := src_get_char(src, posActual + 3)
-		runeNext4  := src_get_char(src, posActual + 4)
-		runeNext5  := src_get_char(src, posActual + 5)
-	*/
+	valueFromRawSrcParsing := []rune{}
 
+	fmt.Println("string tokenElem value detection:", src)
+
+	for pos := 0; pos < len(src); pos++ {
+
+		runeActual := src_get_char(src, pos)
+		// runeNext1 := src_get_char(src, pos+1)
+		// runeNext2 := src_get_char(src, pos+2)
+		// runeNext3 := src_get_char(src, pos+3)
+		// runeNext4 := src_get_char(src, pos+4)
+		// runeNext5 := src_get_char(src, pos+5)
+
+		if runeActual != '\\' {  // a non-backSlash char
+			valueFromRawSrcParsing = append(valueFromRawSrcParsing, runeActual)
+			continue
+		}
+
+	}
+	fmt.Println("value from raw src parsing:", string(valueFromRawSrcParsing))
+	token.ValString = string(valueFromRawSrcParsing)
 	return token, errorsCollected
 }
 
