@@ -71,7 +71,7 @@ func JsonParse(src string) (tokenElem, error) {
 	// and the lists/objects doesn't have embedded structures - it has to be built, too.
 	// src has to be empty, or contain only whitespaces.
 
-	TokensDisplay(tokens)
+	TokensDisplay_startingCoords(tokens)
 
 	// set correct string values, based on raw rune src.
 	// example: "\u0022quote\u0022"'s real form: `"quote"`,
@@ -117,22 +117,69 @@ func token_string_value_validate_and_set(token tokenElem, errorsCollected []erro
 	valueFromRawSrcParsing := []rune{}
 
 	fmt.Println("string tokenElem value detection:", src)
+	runeBackSlash := '\\' // be careful: this is ONE \ char, only written with this expression
 
 	for pos := 0; pos < len(src); pos++ {
 
 		runeActual := src_get_char(src, pos)
-		// runeNext1 := src_get_char(src, pos+1)
+		runeNext1 := src_get_char(src, pos+1)
 		// runeNext2 := src_get_char(src, pos+2)
 		// runeNext3 := src_get_char(src, pos+3)
 		// runeNext4 := src_get_char(src, pos+4)
 		// runeNext5 := src_get_char(src, pos+5)
 
-		if runeActual != '\\' {  // a non-backSlash char
+		if runeActual != runeBackSlash {  // a non-backSlash char
 			valueFromRawSrcParsing = append(valueFromRawSrcParsing, runeActual)
 			continue
-		}
+		} else {
+			// runeActual is \\ here!
 
-	}
+			if runeNext1 == 'u' {
+				// this is \u.... unicode code point - special situation,
+				// because after the \u four other chars has to be handled
+				// TODO: improve this
+				pos += 1+4 // one extra pos because of the u, and +4 because of the digits
+
+			} else { // the first detected char was a backslash, what is the second?
+				// so this is a simple escaped char, for example: \" \t \b \n
+				runeReal := '?'
+				if runeNext1 == '"' {   // \" -> is a " char in a string
+					runeReal = '"'      // in a string, this is an escaped " double quote char
+				}
+				if runeNext1 == runeBackSlash {  // in reality, these are the 2 chars: \\
+					runeReal = '\\' // reverse solidus
+				}
+				if runeNext1 == '/'{ // a very special escaping: \/
+					runeReal = '/'   // solidus
+				}
+				if runeNext1 == 'b'{ // This is the first good example for escaping:
+					runeReal = '\b'  // in the src there were 2 chars: \ and b,
+				} //  (backspace)    // and one char is inserted into the stringVal
+
+				if runeNext1 == 'f'{ // formfeed
+					runeReal = '\f'
+				}
+
+				if runeNext1 == 'n'{ // linefeed
+					runeReal = '\n'
+				}
+
+				if runeNext1 == 'r'{ // carriage return
+					runeReal = '\r'  //
+				}
+
+				if runeNext1 == 't'{ // horizontal tab
+					runeReal = '\t'  //
+				}
+
+				pos += 1 // one extra pos increasing is necessary, because of
+				// 2 chars were processed: the actual \ and the next one.
+
+				valueFromRawSrcParsing = append(valueFromRawSrcParsing, runeReal)
+			}
+		} // else
+	} // for
+
 	fmt.Println("value from raw src parsing:", string(valueFromRawSrcParsing))
 	token.ValString = string(valueFromRawSrcParsing)
 	return token, errorsCollected
@@ -381,7 +428,7 @@ func is_whitespace_rune(oneRune rune) bool { // TESTED
 }
 
 
-func TokensDisplay(tokens tokenTable_startPositionIndexed) {
+func TokensDisplay_startingCoords(tokens tokenTable_startPositionIndexed) {
 	keys := make([]int, 0, len(tokens))
 	for k := range tokens {
 		keys = append(keys, k)
