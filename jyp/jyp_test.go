@@ -49,6 +49,33 @@ func Test_src_get_char(t *testing.T) {
 }
 
 
+func Test_is_whitespace_string_rune(t *testing.T) {
+	funName := "Test_is_whitespace_string_rune"
+
+	src := "abc\t\n12 -1.2"
+
+	// whitespace string tests
+	testName := funName + "_simpleStringWithWhitespaceEnding"
+	isWhitespace := is_whitespace_string(src[0:5])
+	compare_bool_bool(testName, false, isWhitespace, t)
+
+	testName = funName + "_simpleStringOnlyWhitespace"
+	isWhitespace = is_whitespace_string(src[3:5])
+	compare_bool_bool(testName, true, isWhitespace, t)
+
+
+	// whitespace rune tests
+	testName = funName + "_simpleRuneWhitespace"
+	runeSelected := rune(src[4])
+	isWhitespace = is_whitespace_rune(runeSelected)
+	compare_bool_bool(testName, true, isWhitespace, t)
+
+	testName = funName + "_simpleRuneNonWhitespace"
+	runeSelected = rune(src[6])
+	isWhitespace = is_whitespace_rune(runeSelected)
+	compare_bool_bool(testName, false, isWhitespace, t)
+	compare_rune_rune(testName, '2', runeSelected, t)
+}
 
 
 func Test_true_false_null(t *testing.T) {
@@ -193,6 +220,12 @@ func Test_detect_strings(t *testing.T) {
 func compare_int_int(testName string, wantedNum int, received int, t *testing.T) {
 	if wantedNum != received {
 		t.Fatalf("\nError in %s wanted: %d, received: %d", testName, wantedNum, received)
+	}
+}
+
+func compare_bool_bool(testName string, wanted bool, received bool, t *testing.T) {
+	if wanted != received {
+		t.Fatalf("\nError, different bool comparison %s wanted: %t, received: %t", testName, wanted, received)
 	}
 }
 
