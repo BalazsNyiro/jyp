@@ -3,11 +3,87 @@ package jyp
 
 import (
 	"fmt"
-	"sort"
 	"testing"
 )
 
+var srcEverything string = `{
+	"whatIsThis": "a global, general json structure that has everything",
 
+	"trueKey"  : true,
+	"falseKey" : false,
+	"nullKey"  : null,
+	"stringKey": "str",
+
+	"numbers": {
+		"zeroPos":  0,
+		"zeroNeg": -0,
+		"intPos":   8,
+		"intNeg":  -8,
+
+		"what is this 0":  "zero started nums are different cases in Json spec",
+		"floatPosZero":  0.1023,
+		"floatNegZero": -0.4056,
+
+		"what is this 1":  "non-zero started nums are different cases in Json spec",
+		"floatPosOne":   1.809 ,
+		"floatNegOne":  -1.5067,
+
+
+		"what is this 2": "exponent without fraction"
+		"exp_minus_e_plus":   -4e+3
+		"exp_minus_e_minus":  -4e-4
+		"exp_plus_e_plus":     4e+5
+		"exp_plus_e_minus":    4e-6
+
+		"exp_minus_E_plus":   -4E+3
+		"exp_minus_E_minus":  -4E-4
+		"exp_plus_E_plus":     4E+5
+		"exp_plus_E_minus":    4E-6
+
+		"what is this 3": "exponent with fraction"
+		"exp_minus_e_plus__fract":  -1.1e+3
+		"exp_minus_e_minus_fract":  -2.2e-4
+		"exp_plus_e_plus___fract":   3.3e+5
+		"exp_plus_e_minus__fract":   4.4e-6
+
+		"exp_minus_E_plus__fract":  -5.5E+3
+		"exp_minus_E_minus_fract":  -6.6E-4
+		"exp_plus_E_plus___fract":   7.7E+5
+		"exp_plus_E_minus__fract":   8.8E-6
+
+		"what is this 4": "zero exponents"
+		"exp_minus_e_plus__zero":  -1.1e+0
+		"exp_plus__e_plus__zero":   2.1e+0
+		"exp_minus_e_minus_zero":  -1.1e-0
+		"exp_plus__e_minus_zero":   2.1e-0
+	},
+
+	"array_with_everything": ["str", -2, 0, 3, -4.5, -0, 6.7,
+	                          {"obj_in_array": ["embeddedArr": null]}
+    ],
+
+	"stringsAllPossibleOption": [
+		"simple":  "text",
+		"quotation_mark": `     + "quote: \"wisdom\"" + `,
+		"whitespace_tab": `     + "a\tb" + `,
+		"whitespace_tab": `     + "a\tb" + `,
+		"whitespace_newline": ` + "more\nlines" + `,
+	]
+	`
+
+////////////////////////////////////////////////////////////////////////////////////////////
+func Test_JsonParse(t *testing.T) {
+
+}
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
 func Test_detect_numbers(t *testing.T) {
 	funName := "Test_detect_numbers"
 	testName := funName + "_basic"
@@ -20,8 +96,8 @@ func Test_detect_numbers(t *testing.T) {
 	src, tokens, errorsCollected = json_detect_strings________(src, tokens, errorsCollected)
 	src, tokens, errorsCollected = json_detect_separators_____(src, tokens, errorsCollected)
 	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
-	src, tokens, errorsCollected = json_detect_numbers(src, tokens, errorsCollected)
-	tokensDisplay(tokens)
+	src, tokens, errorsCollected = json_detect_numbers________(src, tokens, errorsCollected)
+	// TokensDisplay(tokens)
 	compare_int_int(testName, 21, len(tokens), t)
 
 	compare_string_string(testName, "123",     string(tokens[7].runes ), t)
@@ -120,7 +196,7 @@ func Test_true_false_null(t *testing.T) {
 
 	// the orig src len has to be equal with the cleaned/received one's length:
 	compare_int_int(testName, srcLenOrig, len(src), t)
-	tokensDisplay(tokens)
+	// TokensDisplay(tokens)
 	compare_string_string(testName, `                      123                                    `, src, t)
 	// compare_int_int(testName, 20 , len(tokens), t)
 
@@ -226,7 +302,6 @@ func Test_detect_strings(t *testing.T) {
 	testName = funName + "_escape"
 	srcEsc := `{"name \"of\" the \t\\\"rose\n\"":"red"}`
 	srcLenOrig = len(srcEsc)
-	print("escaped src:", srcEsc, "\n")
 	tokensStartPositions = tokenTable_startPositionIndexed{}
 	errorsCollected = []error{}
 
@@ -283,15 +358,3 @@ func compare_rune_rune(callerInfo string, runeWanted, runeReceived rune, t *test
 	}
 }
 
-func tokensDisplay(tokens tokenTable_startPositionIndexed) {
-	keys := make([]int, 0, len(tokens))
-	for k := range tokens {
-		keys = append(keys, k)
-	}
-	sort.Ints(keys)
-
-	fmt.Println("== Tokens Table display ==")
-	for _, key := range keys{
-		fmt.Println(string(tokens[key].runes), key, tokens[key])
-	}
-}

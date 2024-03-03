@@ -10,6 +10,8 @@ package jyp
 
 import (
 	"errors"
+	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -53,11 +55,20 @@ func JsonParse(src string) (Elem, error) {
 	// the src is always less and less, as tokens are detected
 	// the tokens table has more and more elems, as the src sections are parsed
 	// at the end, src is total empty (if everything goes well) - and we don't have errors, too
+
+	// only strings can have errors at this parsing step, but the src|tokens|errors are
+	// lead through every fun, as a standard solution - so the possibility is open to throw an error everywhere.
 	src, tokens, errorsCollected = json_detect_strings________(src, tokens, errorsCollected)
 	src, tokens, errorsCollected = json_detect_separators_____(src, tokens, errorsCollected)
 	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
-	src, tokens, errorsCollected = json_detect_numbers(src, tokens, errorsCollected)
-	// at this
+	src, tokens, errorsCollected = json_detect_numbers________(src, tokens, errorsCollected)
+
+	// at this point, Numbers are not validated - the ruins are collected only,
+	// and the lists/objects doesn't have embedded structures - it has to be built, too.
+
+	TokensDisplay(tokens)
+
+
 	return elemRoot, nil
 }
 
@@ -191,7 +202,7 @@ func json_detect_true_false_null(src string, tokensStartPositions tokenTable_sta
 
 
 // words are detected here, and I can hope only that they are numbers - later they will be validated
-func json_detect_numbers(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) { // TESTED
+func json_detect_numbers________(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) { // TESTED
 	srcDetectedTokensRemoved := []rune(src)
 
 	for _, wordOne := range src_get_whitespace_separated_words_posFirst_posLast(src) {
@@ -301,4 +312,17 @@ func is_whitespace_rune(oneRune rune) bool { // TESTED
 	return is_whitespace_string(string([]rune{oneRune}))
 }
 
+
+func TokensDisplay(tokens tokenTable_startPositionIndexed) {
+	keys := make([]int, 0, len(tokens))
+	for k := range tokens {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
+
+	fmt.Println("== Tokens Table display ==")
+	for _, key := range keys{
+		fmt.Println(string(tokens[key].runes), key, tokens[key])
+	}
+}
 /////////////////////// base functions /////////////////
