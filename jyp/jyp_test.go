@@ -15,7 +15,6 @@ func Test_src_get_words(t *testing.T) {
 	whitepaceSeparatedString := "abc\t\n12 -1.2"
 	words := src_get_whitespace_separated_words_posFirst_posLast(whitepaceSeparatedString)
 
-
 	compare_int_int(testName, 3, len(words), t)
 
 	compare_int_int(testName, 5, words[1].posFirst, t)
@@ -26,6 +25,31 @@ func Test_src_get_words(t *testing.T) {
 	compare_int_int(testName, 11, words[2].posLast, t)
 	compare_string_string(testName, "-1.2", words[2].word, t)
 }
+
+func Test_src_get_char(t *testing.T) {
+	funName := "Test_src_get_char"
+
+	src:= "abc\t\n12 -1.2"
+
+	testName := funName + "_overindexNegative"
+	charSelected := src_get_char(src, -2)
+	compare_rune_rune(testName, ' ', charSelected, t)
+
+	testName = funName + "_overindexPositive"
+	charSelected = src_get_char(src, 9999999)
+	compare_rune_rune(testName, ' ', charSelected, t)
+
+	testName = funName + "_whitespaceConversion"
+	charSelected = src_get_char(src, 3)
+	compare_rune_rune(testName, ' ', charSelected, t)
+
+	testName = funName + "_normalSelection"
+	charSelected = src_get_char(src, 2)
+	compare_rune_rune(testName, 'c', charSelected, t)
+}
+
+
+
 
 func Test_true_false_null(t *testing.T) {
 	funName := "Test_true_false_null"
@@ -190,6 +214,13 @@ func compare_runes_runes(callerInfo string, runesWanted, runesReceived []rune, t
 			t.Fatalf(errMsg)
 			return
 		}
+	}
+}
+
+func compare_rune_rune(callerInfo string, runeWanted, runeReceived rune, t *testing.T) {
+	if runeWanted != runeReceived {
+		errMsg := fmt.Sprintf("\nErr (%s) rune <>rune:\n  wanted -->>%s<<-- ??\nreceived -->>%s<<--\n\n", callerInfo, string(runeWanted), string(runeReceived))
+		t.Fatalf(errMsg)
 	}
 }
 
