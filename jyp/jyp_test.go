@@ -22,10 +22,11 @@ func Test_true_false_null(t *testing.T) {
 	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
 
 	// the orig src len has to be equal with the cleaned/received one's length:
-	// compare_int_int(testName, srcLenOrig, len(src), t)
-
-	// compare_string_string(testName, `                      123                                    `, src, t)
+	compare_int_int(testName, srcLenOrig, len(src), t)
+	tokensDisplay(tokens)
+	compare_string_string(testName, `                      123                                    `, src, t)
 	// compare_int_int(testName, 20 , len(tokens), t)
+
 	_ = funName
 	_ = testName
 	_ = srcLenOrig
@@ -140,7 +141,7 @@ func Test_detect_strings(t *testing.T) {
 	//                              `{"name \"of\" the \t\\\"rose\n\"":"red"}`
 	compare_string_string(testName, `{                                :     }`, srcEsc, t)
 	compare_int_int(testName, srcLenOrig, len(srcEsc), t)
-	compare_int_int(testName, 1, tokensEsc[1].charPositionFirstInSourceCode,  t)
+	compare_int_int(testName, 1, tokensEsc[1].charPositionFirstInSourceCode, t)
 	compare_int_int(testName, 32, tokensEsc[1].charPositionLastInSourceCode, t)
 }
 

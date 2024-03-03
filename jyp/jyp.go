@@ -10,8 +10,6 @@ package jyp
 
 import (
 	"errors"
-	"fmt"
-	"strings"
 )
 
 const ABC_lower string = "abcdefghijklmnopqrstuvwxyz"
@@ -190,17 +188,13 @@ func json_detect_true_false_null(src string, tokensStartPositions tokenTable_sta
 
 	for posActual := 0; posActual < len(src); posActual++ {
 
+		runePrev1  := src_get_char(src, posActual - 1)
 		runeActual := src_get_char(src, posActual    )
 		runeNext1  := src_get_char(src, posActual + 1)   // the real rune value IF the pos in the valid range of the src
 		runeNext2  := src_get_char(src, posActual + 2)   // or space, if the index is bigger/lower than the valid range
 		runeNext3  := src_get_char(src, posActual + 3)
 		runeNext4  := src_get_char(src, posActual + 4)
 		runeNext5  := src_get_char(src, posActual + 5)
-		runeNext6  := src_get_char(src, posActual + 6)
-
-		//                                               ' '            n             u           l        l         ' '         ' '  (closing space after the word)
-		//                                               ' '            f             a           l        s          e          ' '  (closing space)
-		word_ActualChar_plus_few_chars := string([]rune{runeActual, runeNext1, runeNext2, runeNext3, runeNext4, runeNext5, runeNext6})
 		// A good question: why don't I use a simple string indexing? ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 		// because maybe I over index the src, so the wanted index is NOT in the valid range
 		// because of this, runes are collected one by one, and if the index is NOT in the range, substituted with a meaningless SPACE
@@ -209,25 +203,40 @@ func json_detect_true_false_null(src string, tokensStartPositions tokenTable_sta
 		posFirst := 0
 		posLast := 0
 
-		// the word has to be detected WITH SPACE boundaries
-		if strings.HasPrefix(word_ActualChar_plus_few_chars, " true ") {
-			detectedType = "true"
-			posFirst = posActual
-			posLast = posActual + 5
+		if  runePrev1  == ' ' &&
+			runeActual == 't'  &&
+			runeNext1  == 'r'  &&
+			runeNext2  == 'u'  &&
+			runeNext3  == 'e'  &&
+			runeNext4  == ' ' {
+				detectedType = "true"  // actual, +1, +2, +3
+				posFirst = posActual
+				posLast  = posActual + 3
 		}
 
-		if strings.HasPrefix(word_ActualChar_plus_few_chars, " false ") {
-			detectedType = "false"
+		if  runePrev1  == ' ' &&
+			runeActual == 'f'  &&
+			runeNext1  == 'a'  &&
+			runeNext2  == 'l'  &&
+			runeNext3  == 's'  &&
+			runeNext4  == 'e'  &&
+			runeNext5  == ' ' {
+			detectedType = "false"  // actual, +1, +2, +3
 			posFirst = posActual
-			posLast = posActual + 6
+			posLast  = posActual + 4
 		}
 
-		if strings.HasPrefix(word_ActualChar_plus_few_chars, " null ") {
-			detectedType = "null"
+		if  runePrev1  == ' ' &&
+			runeActual == 'n'  &&
+			runeNext1  == 'u'  &&
+			runeNext2  == 'l'  &&
+			runeNext3  == 'l'  &&
+			runeNext4  == ' ' {
+			detectedType = "null"  // actual, +1, +2, +3
 			posFirst = posActual
-			posLast = posActual + 5
+			posLast  = posActual + 3
 		}
-		fmt.Println("DETECTED TYPE", detectedType)
+
 		if detectedType == "" {
 			// save the original rune, if it was not a detected char
 			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, runeActual)
