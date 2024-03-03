@@ -345,12 +345,12 @@ func src_get_char(src string, pos int) rune {  // TESTED
 }
 
 // the string has whitespace chars only
-func is_whitespace_string(src string) bool {
+func is_whitespace_string(src string) bool { // TESTED
 	return strings.TrimSpace(src) == ""
 }
 
 // the rune is a whitespace char
-func is_whitespace_rune(oneRune rune) bool {
+func is_whitespace_rune(oneRune rune) bool { // TESTED
 	return is_whitespace_string(string([]rune{oneRune}))
 }
 

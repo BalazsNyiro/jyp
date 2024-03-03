@@ -15,6 +15,7 @@ func Test_src_get_words(t *testing.T) {
 	whitepaceSeparatedString := "abc\t\n12 -1.2"
 	words := src_get_whitespace_separated_words_posFirst_posLast(whitepaceSeparatedString)
 
+	// how many words are detected?
 	compare_int_int(testName, 3, len(words), t)
 
 	compare_int_int(testName, 5, words[1].posFirst, t)
