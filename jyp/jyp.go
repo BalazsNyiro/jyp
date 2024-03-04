@@ -6,6 +6,8 @@
 // this song helped a lot to write this parser - respect:
 // https://open.spotify.com/track/7znjTquY8gek1bKni5yzLG?si=3ae71af19f684d67
 
+// in the code I intentionally avoid direct pointer usage - I think that is safer.
+
 package jyp
 
 import (
@@ -16,17 +18,17 @@ import (
 )
 
 
-type Elems []tokenElem
-type ElemMap map[string]tokenElem
+type JsonValueList []JsonValue
+type JsonValueObject map[string]JsonValue
 
-type tokenElem struct {
+type JsonValue struct {
 	Type string
 	// possible types:
 	// array, object,
 	// bool, null, string, number_int, number_float,
 
-	ValArray       Elems
-	ValObject      ElemMap
+	ValArray  JsonValueList
+	ValObject JsonValueObject
 
 	ValBool        bool // true, false
 	isNull		   bool // if true, then the value is null
@@ -41,11 +43,11 @@ type tokenElem struct {
 	runes []rune
 }
 
-type tokenTable_startPositionIndexed map[int]tokenElem
+type tokenTable_startPositionIndexed map[int]JsonValue
 
 // if the src can be parsed, return with the JSON root object with nested elems, and err is nil.
-func JsonParse(src string) (tokenElem, error) {
-	elemRoot := tokenElem{}
+func JsonParse(src string) (JsonValue, error) {
+	elemRoot := JsonValue{}
 
 	errorsCollected := []error{}
 	tokens := tokenTable_startPositionIndexed{}
@@ -71,13 +73,11 @@ func JsonParse(src string) (tokenElem, error) {
 	// and the lists/objects doesn't have embedded structures - it has to be built, too.
 	// src has to be empty, or contain only whitespaces.
 
-	TokensDisplay_startingCoords(tokens)
 
 	// set correct string values, based on raw rune src.
 	// example: "\u0022quote\u0022"'s real form: `"quote"`,
 	// so the raw source has to be interpreted (escaped chars, unicode chars)
 	tokens, errorsCollected = tokens_validations_value_settings(tokens, errorsCollected)
-
 
 	return elemRoot, nil
 }
@@ -87,9 +87,9 @@ func JsonParse(src string) (tokenElem, error) {
 func tokens_validations_value_settings(tokens tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) {
 	tokensUpdated := tokenTable_startPositionIndexed{}
 	for _, token := range tokens {
-		fmt.Println("\n>>> one Token value Before detection:", token.ValString)
+		// fmt.Println("\n>>> one Token value Before detection:", token.ValString)
 		token, errorsCollected = token_string_value_validate_and_set(token, errorsCollected)
-		fmt.Println("<<< one Token value After detection:", token.ValString)
+		// fmt.Println("<<< one Token value After detection:", token.ValString)
 		tokensUpdated[token.charPositionFirstInSourceCode] = token
 	}
 	return tokensUpdated, errorsCollected
@@ -97,7 +97,7 @@ func tokens_validations_value_settings(tokens tokenTable_startPositionIndexed, e
 
 
 // set the string value from raw strings
-func token_string_value_validate_and_set(token tokenElem, errorsCollected []error) (tokenElem, []error) {
+func token_string_value_validate_and_set(token JsonValue, errorsCollected []error) (JsonValue, []error) { // TESTED
 
 	if token.Type != "string" {
 		return token, errorsCollected
@@ -116,7 +116,7 @@ func token_string_value_validate_and_set(token tokenElem, errorsCollected []erro
 
 	valueFromRawSrcParsing := []rune{}
 
-	fmt.Println("string tokenElem value detection:", src)
+	fmt.Println("string JsonValue value detection:", src)
 	runeBackSlash := '\\' // be careful: this is ONE \ char, only written with this expression
 
 	for pos := 0; pos < len(src); pos++ {
@@ -229,13 +229,13 @@ func json_detect_strings________(src string, tokensStartPositions tokenTable_sta
 		return escapeBackSlashCounterBeforeCurrentChar % 2 != 0
 	}
 
-	var tokenNow tokenElem
+	var tokenNow JsonValue
 
 	for posInSrc, runeActual := range src {
 
 		if runeActual == '"' {
 			if !inStringDetection {
-					tokenNow = tokenElem{Type: "string"}
+					tokenNow = JsonValue{Type: "string"}
 					inStringDetection = true
 					tokenNow.charPositionFirstInSourceCode = posInSrc
 					tokenNow.runes = append(tokenNow.runes, runeActual)
@@ -282,7 +282,7 @@ func json_detect_strings________(src string, tokensStartPositions tokenTable_sta
 
 func json_detect_separators_____(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) { // TESTED
 	srcDetectedTokensRemoved := []rune{}
-	var tokenNow tokenElem
+	var tokenNow JsonValue
 
 	for posInSrc, runeActual := range src {
 		detectedType := ""
@@ -297,8 +297,8 @@ func json_detect_separators_____(src string, tokensStartPositions tokenTable_sta
 		if detectedType == "" {
 			// save the original rune, if it was not a detected char
 			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, runeActual)
-		} else { // save tokenElem, if something important is detected
-			tokenNow = tokenElem{Type: detectedType}
+		} else { // save JsonValue, if something important is detected
+			tokenNow = JsonValue{Type: detectedType}
 			tokenNow.charPositionFirstInSourceCode = posInSrc
 			tokenNow.charPositionLastInSourceCode  = posInSrc
 			tokenNow.runes = append(tokenNow.runes, runeActual)
@@ -327,7 +327,7 @@ func json_detect_true_false_null(src string, tokensStartPositions tokenTable_sta
 		if wordOne.word == "null"  { detectedType = "false" }
 
 		if detectedType != "" {
-			tokenNow := tokenElem{Type: detectedType}
+			tokenNow := JsonValue{Type: detectedType}
 			tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
 			tokenNow.charPositionLastInSourceCode  = wordOne.posLast
 
@@ -350,7 +350,7 @@ func json_detect_numbers________(src string, tokensStartPositions tokenTable_sta
 
 	for _, wordOne := range src_get_whitespace_separated_words_posFirst_posLast(src) {
 
-		tokenNow := tokenElem{Type: "number"} // only numbers can be in the src now.
+		tokenNow := JsonValue{Type: "number"} // only numbers can be in the src now.
 		tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
 		tokenNow.charPositionLastInSourceCode  = wordOne.posLast
 

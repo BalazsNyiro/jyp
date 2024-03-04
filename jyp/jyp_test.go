@@ -7,7 +7,7 @@ import (
 )
 
 var srcEverything string = `{
-    "whatIsThis": "a global, general json structure that has everything",
+    "whatIsThis": "a global, general json structure that has everything - the final test",
 
     "trueKey"  : true,
     "falseKey" : false,
@@ -29,33 +29,33 @@ var srcEverything string = `{
         "floatNegOne":  -1.5067,
 
 
-        "what is this 2": "exponent without fraction"
-        "exp_minus_e_plus":   -4e+3
-        "exp_minus_e_minus":  -4e-4
-        "exp_plus_e_plus":     4e+5
-        "exp_plus_e_minus":    4e-6
+        "what is this 2": "exponent without fraction",
+        "exp_minus_e_plus":   -4e+3,
+        "exp_minus_e_minus":  -4e-4,
+        "exp_plus_e_plus":     4e+5,
+        "exp_plus_e_minus":    4e-6,
 
-        "exp_minus_E_plus":   -4E+3
-        "exp_minus_E_minus":  -4E-4
-        "exp_plus_E_plus":     4E+5
-        "exp_plus_E_minus":    4E-6
+        "exp_minus_E_plus":   -4E+3,
+        "exp_minus_E_minus":  -4E-4,
+        "exp_plus_E_plus":     4E+5,
+        "exp_plus_E_minus":    4E-6,
 
-        "what is this 3": "exponent with fraction"
-        "exp_minus_e_plus__fract":  -1.1e+3
-        "exp_minus_e_minus_fract":  -2.2e-4
-        "exp_plus_e_plus___fract":   3.3e+5
-        "exp_plus_e_minus__fract":   4.4e-6
+        "what is this 3": "exponent with fraction",
+        "exp_minus_e_plus__fract":  -1.1e+3,
+        "exp_minus_e_minus_fract":  -2.2e-4,
+        "exp_plus_e_plus___fract":   3.3e+5,
+        "exp_plus_e_minus__fract":   4.4e-6,
 
-        "exp_minus_E_plus__fract":  -5.5E+3
-        "exp_minus_E_minus_fract":  -6.6E-4
-        "exp_plus_E_plus___fract":   7.7E+5
-        "exp_plus_E_minus__fract":   8.8E-6
+        "exp_minus_E_plus__fract":  -5.5E+3,
+        "exp_minus_E_minus_fract":  -6.6E-4,
+        "exp_plus_E_plus___fract":   7.7E+5,
+        "exp_plus_E_minus__fract":   8.8E-6,
 
-        "what is this 4": "zero exponents"
-        "exp_minus_e_plus__zero":  -1.1e+0
-        "exp_plus__e_plus__zero":   2.1e+0
-        "exp_minus_e_minus_zero":  -1.1e-0
-        "exp_plus__e_minus_zero":   2.1e-0
+        "what is this 4": "zero exponents",
+        "exp_minus_e_plus__zero":  -1.1e+0,
+        "exp_plus__e_plus__zero":   2.1e+0,
+        "exp_minus_e_minus_zero":  -1.1e-0,
+        "exp_plus__e_minus_zero":   2.1e-0,
     },
 
     "array_with_everything": ["str", -2, 0, 3, -4.5, -0, 6.7,
@@ -83,7 +83,9 @@ var srcEverything string = `{
         "horizontal_tab": `     + "a\tb" + `,
         "4hex digits":            "quotation mark digit: \u0022",
     ]
-    `
+}`
+
+// TODO: test json src with errors!
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -138,8 +140,8 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 
 	tokens, errorsCollected = tokens_validations_value_settings(tokens, errorsCollected)
 	// TokensDisplay_startingCoords(tokens)
-	compare_string_string(testName, `" text"`,            tokens[19].ValString, t)
-	compare_string_string(testName, "\\ reverseSolidus",  tokens[63].ValString, t)
+	compare_string_string(testName, `" text"`,            tokens[19].ValString,  t)
+	compare_string_string(testName, "\\ reverseSolidus",  tokens[63].ValString,  t)
 	compare_string_string(testName, "/ solidus",          tokens[115].ValString, t)
 	compare_string_string(testName, "\b backspace",       tokens[160].ValString, t)
 	compare_string_string(testName, "\f formFeed",        tokens[207].ValString, t)
@@ -147,8 +149,8 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 
 	compare_string_string(testName, "\r carriageReturn",  tokens[299].ValString, t)
 	compare_string_string(testName, "\t horizontalTab",   tokens[351].ValString, t)
-	compare_string_string(testName, "\"",   tokens[392].ValString, t)
-	compare_string_string(testName, "ä",   tokens[422].ValString, t)
+	compare_string_string(testName, "\"",                 tokens[392].ValString, t)
+	compare_string_string(testName, "ä",                  tokens[422].ValString, t)
 }
 
 
