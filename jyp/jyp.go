@@ -223,6 +223,13 @@ func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error
 	if token.Type != "number" { return token, errorsCollected } // don't modify non-number elems
 
 	/*
+	digits      mean: 0123456789
+	digits19    mean:  123456789
+	eE          mean: e|E
+    plusMinus   mean: +|-
+	minus       mean: -
+	fractionDot mean: .
+
 	A number's sections:
 	  v maybeMinusSign
        vvvv part integer-digits
