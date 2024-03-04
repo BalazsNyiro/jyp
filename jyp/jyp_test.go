@@ -125,6 +125,7 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
             "carriageReturn": "\r carriageReturn", 
             "horizontalTab":  "\t horizontalTab",
 			"unicodeChar":    "\u0022"
+			"unicodeChar2":   "\u00e4"
 }`
 
 	tokens = tokenTable_startPositionIndexed{}
@@ -136,7 +137,7 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 	src, tokens, errorsCollected = json_detect_numbers________(src, tokens, errorsCollected)
 
 	tokens, errorsCollected = tokens_validations_value_settings(tokens, errorsCollected)
-	TokensDisplay_startingCoords(tokens)
+	// TokensDisplay_startingCoords(tokens)
 	compare_string_string(testName, `" text"`,            tokens[19].ValString, t)
 	compare_string_string(testName, "\\ reverseSolidus",  tokens[63].ValString, t)
 	compare_string_string(testName, "/ solidus",          tokens[115].ValString, t)
@@ -144,9 +145,10 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 	compare_string_string(testName, "\f formFeed",        tokens[207].ValString, t)
 	compare_string_string(testName, "\n lineFeed",        tokens[253].ValString, t)
 
-	fmt.Println("len of ValString", len(tokens[281].ValString))
 	compare_string_string(testName, "\r carriageReturn",  tokens[299].ValString, t)
 	compare_string_string(testName, "\t horizontalTab",   tokens[351].ValString, t)
+	compare_string_string(testName, "\"",   tokens[392].ValString, t)
+	compare_string_string(testName, "ä",   tokens[422].ValString, t)
 }
 
 

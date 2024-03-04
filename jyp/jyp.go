@@ -135,20 +135,37 @@ func token_string_value_validate_and_set(token tokenElem, errorsCollected []erro
 				// this is \u.... unicode code point - special situation,
 				// because after the \u four other chars has to be handled
 
-				/*
 				runeNext2 := src_get_char(src, pos+2)
 				runeNext3 := src_get_char(src, pos+3)
 				runeNext4 := src_get_char(src, pos+4)
 				runeNext5 := src_get_char(src, pos+5)
 
-				 */
+
+				base10_val_2, err2 := hexaRune_to_intVal(runeNext2)
+				if err2 != nil {  errorsCollected = append(errorsCollected, err2)	}
+
+				base10_val_3, err3 := hexaRune_to_intVal(runeNext3)
+				if err3 != nil {  errorsCollected = append(errorsCollected, err3)	}
+
+				base10_val_4, err4 := hexaRune_to_intVal(runeNext4)
+				if err4 != nil {  errorsCollected = append(errorsCollected, err4)	}
+
+				base10_val_5, err5 := hexaRune_to_intVal(runeNext5)
+				if err5 != nil {  errorsCollected = append(errorsCollected, err5)	}
+
 
 				unicodeVal_10Based := 0
-				_ = unicodeVal_10Based
 
-
+				if err2 == nil && err3 == nil && err4 == nil && err5 == nil {
+					unicodeVal_10Based = base10_val_2*16*16*16 +
+						                 base10_val_3*16*16 +
+						                 base10_val_4*16 +
+						                 base10_val_5
+				}
+				runeFromHexaDigits := rune(unicodeVal_10Based)
 
 				pos += 1+4 // one extra pos because of the u, and +4 because of the digits
+				valueFromRawSrcParsing = append(valueFromRawSrcParsing, runeFromHexaDigits)
 
 
 			} else { // the first detected char was a backslash, what is the second?
