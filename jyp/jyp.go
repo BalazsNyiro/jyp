@@ -122,6 +122,7 @@ func token_string_value_validate_and_set(token tokenElem, errorsCollected []erro
 	for pos := 0; pos < len(src); pos++ {
 
 		runeActual := src_get_char(src, pos)
+		//fmt.Println("rune actual (string value set):", pos, string(runeActual), runeActual)
 		runeNext1 := src_get_char(src, pos+1)
 		// runeNext2 := src_get_char(src, pos+2)
 		// runeNext3 := src_get_char(src, pos+3)

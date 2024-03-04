@@ -86,6 +86,8 @@ var srcEverything string = `{
     `
 
 ////////////////////////////////////////////////////////////////////////////////////////////
+
+//  go test -v -run   Test_token_validate_and_value_set_for_strings
 func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 	funName := "Test_detect_numbers"
 
@@ -138,8 +140,10 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 	compare_string_string(testName, "\b backspace",       tokens[160].ValString, t)
 	compare_string_string(testName, "\f formFeed",        tokens[207].ValString, t)
 	compare_string_string(testName, "\n lineFeed",        tokens[253].ValString, t)
-	// compare_string_string(testName, "\r carriageReturn",  tokens[281].ValString, t)
-	// compare_string_string(testName, "\t horizontalTab",   tokens[333].ValString, t)
+
+	fmt.Println("len of ValString", len(tokens[281].ValString))
+	compare_string_string(testName, "\r carriageReturn",  tokens[299].ValString, t)
+	compare_string_string(testName, "\t horizontalTab",   tokens[351].ValString, t)
 }
 
 
