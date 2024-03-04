@@ -124,10 +124,6 @@ func token_string_value_validate_and_set(token tokenElem, errorsCollected []erro
 		runeActual := src_get_char(src, pos)
 		//fmt.Println("rune actual (string value set):", pos, string(runeActual), runeActual)
 		runeNext1 := src_get_char(src, pos+1)
-		// runeNext2 := src_get_char(src, pos+2)
-		// runeNext3 := src_get_char(src, pos+3)
-		// runeNext4 := src_get_char(src, pos+4)
-		// runeNext5 := src_get_char(src, pos+5)
 
 		if runeActual != runeBackSlash {  // a non-backSlash char
 			valueFromRawSrcParsing = append(valueFromRawSrcParsing, runeActual)
@@ -138,8 +134,22 @@ func token_string_value_validate_and_set(token tokenElem, errorsCollected []erro
 			if runeNext1 == 'u' {
 				// this is \u.... unicode code point - special situation,
 				// because after the \u four other chars has to be handled
-				// TODO: improve this
+
+				/*
+				runeNext2 := src_get_char(src, pos+2)
+				runeNext3 := src_get_char(src, pos+3)
+				runeNext4 := src_get_char(src, pos+4)
+				runeNext5 := src_get_char(src, pos+5)
+
+				 */
+
+				unicodeVal_10Based := 0
+				_ = unicodeVal_10Based
+
+
+
 				pos += 1+4 // one extra pos because of the u, and +4 because of the digits
+
 
 			} else { // the first detected char was a backslash, what is the second?
 				// so this is a simple escaped char, for example: \" \t \b \n
@@ -440,5 +450,32 @@ func TokensDisplay_startingCoords(tokens tokenTable_startPositionIndexed) {
 	for _, key := range keys{
 		fmt.Println(string(tokens[key].runes), key, tokens[key])
 	}
+}
+
+
+func hexaRune_to_intVal(hexaChar rune) (int, error) {  // TESTED
+	hexaTable := map[rune]int{
+		'0': 0,
+		'1': 1,
+		'2': 2,
+		'3': 3,
+		'4': 4,
+		'5': 5,
+		'6': 6,
+		'7': 7,
+		'8': 8,
+		'9': 9,
+		'a': 10,
+		'b': 11,
+		'c': 12,
+		'd': 13,
+		'e': 14,
+		'f': 15,
+	}
+	base10Val, keyInHexaTable := hexaTable[hexaChar]
+	if keyInHexaTable {
+		return base10Val, nil
+	}
+	return 0, errors.New("hexa char(" + string(hexaChar) + ") was not in hexa table")
 }
 /////////////////////// base functions /////////////////

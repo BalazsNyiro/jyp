@@ -87,6 +87,7 @@ var srcEverything string = `{
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
+
 //  go test -v -run   Test_token_validate_and_value_set_for_strings
 func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 	funName := "Test_detect_numbers"
@@ -122,7 +123,9 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
             "formFeed":       "\f formFeed", 
             "lineFeed":       "\n lineFeed", 
             "carriageReturn": "\r carriageReturn", 
-            "horizontalTab":  "\t horizontalTab"}`
+            "horizontalTab":  "\t horizontalTab",
+			"unicodeChar":    "\u0022"
+}`
 
 	tokens = tokenTable_startPositionIndexed{}
 	errorsCollected = []error{}
@@ -385,6 +388,20 @@ func Test_detect_strings(t *testing.T) {
 	compare_int_int(testName, srcLenOrig, len(srcEsc), t)
 	compare_int_int(testName, 1, tokensEsc[1].charPositionFirstInSourceCode, t)
 	compare_int_int(testName, 32, tokensEsc[1].charPositionLastInSourceCode, t)
+}
+
+
+//  go test -v -run Test_hexaRune_to_intVal
+func Test_hexaRune_to_intVal(t *testing.T) {
+	funName := "Test_hexaRune_to_intVal"
+	testName := funName + "hexa2int_conversation"
+
+	intValDetected, err := hexaRune_to_intVal('b')
+	compare_bool_bool(testName, true, err == nil, t)
+	compare_int_int(testName, 11, intValDetected, t)
+
+	intValDetected, err = hexaRune_to_intVal('m')
+	compare_bool_bool(testName, true, err != nil, t)
 }
 
 //////////////////////////// TEST BASE FUNCS ///////////////////
