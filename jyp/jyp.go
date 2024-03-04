@@ -88,8 +88,11 @@ func tokens_validations_value_settings(tokens tokenTable_startPositionIndexed, e
 	tokensUpdated := tokenTable_startPositionIndexed{}
 	for _, token := range tokens {
 		// fmt.Println("\n>>> one Token value Before detection:", token.ValString)
-		token, errorsCollected = token_string_value_validate_and_set(token, errorsCollected)
+		token, errorsCollected = elem_string_value_validate_and_set(token, errorsCollected)
 		// fmt.Println("<<< one Token value After detection:", token.ValString)
+
+		token, errorsCollected = elem_number_value_validate_and_set(token, errorsCollected)
+		// TODO: elem true|false|null value set?
 		tokensUpdated[token.charPositionFirstInSourceCode] = token
 	}
 	return tokensUpdated, errorsCollected
@@ -97,7 +100,7 @@ func tokens_validations_value_settings(tokens tokenTable_startPositionIndexed, e
 
 
 // set the string value from raw strings
-func token_string_value_validate_and_set(token JsonValue, errorsCollected []error) (JsonValue, []error) { // TESTED
+func elem_string_value_validate_and_set(token JsonValue, errorsCollected []error) (JsonValue, []error) { // TESTED
 
 	if token.Type != "string" {
 		return token, errorsCollected
@@ -215,6 +218,29 @@ func token_string_value_validate_and_set(token JsonValue, errorsCollected []erro
 
 
 
+func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error) (JsonValue, []error) {
+
+	if token.Type != "number" { return token, errorsCollected } // don't modify non-number elems
+
+	/*
+	A number's sections:
+	  v maybeMinusSign
+       vvvv part integer-digits
+	       v fraction point
+	        vvv  part fraction digits
+               v exponentEeLetter ----------\
+	            v exponentPlusMinus ---------| exponent_section
+                 v exponentDigits ----------/
+	  -1234.567e-8
+
+	- maybeMinus: optional
+	- fractionPoint: optional
+	- exponentSection: optional
+	*/
+
+
+	return token, errorsCollected
+}
 
 ////////////////////// BASE FUNCTIONS ///////////////////////////////////////////////
 func json_detect_strings________(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) { // TESTED
