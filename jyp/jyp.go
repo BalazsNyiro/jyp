@@ -246,6 +246,21 @@ func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error
 	*/
 
 
+	// dividerBecauseOfFractionPoint := 0 // 10^0 = 1.
+	// in case of 12.3: divider = 10^-1
+	// in case of 1.23: divider = 10^-2
+
+	// if the number is -1234.567e-8
+	isNegative := token.runes[0] == '-'
+	runesSectionInteger := []rune{}    // 1234   if the number is 1234.567
+	runesSectionFraction := []rune{}   // 567
+	runesSectionExpoinent := []rune{}  // e-8
+
+	_, _, _, _ = runesSectionInteger, runesSectionFraction, runesSectionExpoinent, isNegative
+
+
+
+
 	return token, errorsCollected
 }
 
