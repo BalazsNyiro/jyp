@@ -98,6 +98,8 @@ func Test_object_hierarchy_building(t *testing.T) {
 
 	elemRoot, errorsCollected := JsonParse(src)
 
+	// TODO: the main root object and hierarchy building is in progress
+
 	_ = elemRoot
 	_ = errorsCollected
 	_ = testName
