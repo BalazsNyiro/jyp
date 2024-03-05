@@ -285,7 +285,7 @@ func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error
 	runesSectionInteger = numberRunes
 	///////////////////
 
-	lenErrorCollectorBeforeErrorHandling := len(errorsCollected)
+	lenErrorCollectorBeforeErrorDetection := len(errorsCollected)
 
 
 	/////////// ERROR HANDLING ////////////
@@ -297,8 +297,8 @@ func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error
 		}
 	}
 
-	digits09 := []rune("0123456789")
 
+	var digits09 = []rune("0123456789")
 	if ! validate_runes_are_in_allowed_set(runesSectionInteger, digits09) {
 		errorsCollected = append(errorsCollected, errors.New("illegal char in integer part: " + string(runesSectionInteger)))
 	}
@@ -312,6 +312,11 @@ func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error
 			errorsCollected = append(errorsCollected, errors.New("exponent part's first char is not +-: " + string(runesSectionExponent)))
 		}
 	}
+
+	if len(runesSectionExponent) == 1 { // exponent section is too short
+		errorsCollected = append(errorsCollected, errors.New("in exponent section +|- can be the FIRST char, then minimum one digit is necessary, and that is missing: " + string(runesSectionExponent)))
+	}
+
 	if len(runesSectionExponent) > 1 { // validate other chars in exponent section
 		if ! validate_runes_are_in_allowed_set(runesSectionExponent[1:], digits09) {
 			errorsCollected = append(errorsCollected, errors.New("illegal char after first char of exponent section: " + string(runesSectionExponent)))
@@ -319,14 +324,60 @@ func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error
 	}
 
 
-	thisIsValidNumber := lenErrorCollectorBeforeErrorHandling == len(errorsCollected)
+	/////////////////////////// NUM CALCULATION, BASED ON DIGITS ////////////////////////////////
+	thisIsValidNumber := lenErrorCollectorBeforeErrorDetection == len(errorsCollected)
 	if thisIsValidNumber {
 
+		// if isNegative { multiplier = -1}
+
+		integerValue := 0
+
+		// calculate the exact value, based on elements of the number
+		for _, r := range string(runesSectionInteger) + string(runesSectionFraction) {
+			integerValue = integerValue * 10 // shift the value with one decimal place left
+			integerValue += digitIntegerValue(r)
+		}
+
+		if runesSectionExponent[0] == '+' {
+			for _, eDigit := range runesSectionExponent[1:] {
+				eDigitVal := digitIntegerValue(eDigit)
+				integerValue = integerValue * 10
+				if eDigitVal > 0 {
+					integerValue = integerValue * eDigitVal
+				}
+			}
+		}
+
+		////////////////////////////////////////////////////////////////////
+		// then negative exponent and fraction points has to be handled, too
+		divider := 0
+		if runesSectionExponent[0] == '-' {
+			for _, eDigit := range runesSectionExponent[1:] {
+				eDigitVal := digitIntegerValue(eDigit)
+				divider = divider * 10
+				if eDigitVal > 0 {
+					integerValue = integerValue * eDigitVal
+				}
+			}
+		}
+
+		if len(runesSectionFraction) > 0 {
+			divider = divider - len(runesSectionFraction)  // divide the num with 10, 100, 1000...
+		}
+
+
+
+		// numberValue := multiplier * ()
 	}
 
 	return token, errorsCollected
 }
 
+// runesSections were checked against illegal chars, so here digitRune is in 0123456789
+func digitIntegerValue(digit rune) int {
+	unicode_code_point_zero_shift := '0' // '9' -> 9
+	return int(digit - unicode_code_point_zero_shift)
+}
 
 // are the runes in the set?
 func validate_runes_are_in_allowed_set(runes []rune, runesAllowed []rune) bool {
