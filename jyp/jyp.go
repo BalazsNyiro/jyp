@@ -245,23 +245,137 @@ func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error
 	- exponentSection: optional
 	*/
 
-
 	// dividerBecauseOfFractionPoint := 0 // 10^0 = 1.
 	// in case of 12.3: divider = 10^-1
 	// in case of 1.23: divider = 10^-2
 
-	// if the number is -1234.567e-8
-	isNegative := token.runes[0] == '-'
-	runesSectionInteger := []rune{}    // 1234   if the number is 1234.567
-	runesSectionFraction := []rune{}   // 567
-	runesSectionExpoinent := []rune{}  // e-8
+	numberRunes := runes_copy(token.runes)
 
-	_, _, _, _ = runesSectionInteger, runesSectionFraction, runesSectionExpoinent, isNegative
+	// example number: -1234.567e-8
+	isNegative := numberRunes[0] == '-'
+	if isNegative { numberRunes = numberRunes[1:] } // remove - sign, if that is the first
+
+	runesSectionInteger  := []rune{}   // and at the end, only integers remain...
+	runesSectionFraction := []rune{}  // filled second
+	runesSectionExponent := []rune{} // filled first
+	////////////////// the main sections of the number
 
 
 
+	///////////////// the main markers of the number
+	isFractionDotUsed   := strings.ContainsRune(string(numberRunes), '.')
+	isExponent_E_used   := strings.ContainsRune(string(numberRunes), 'E')
+	isExponent_e_used   := strings.ContainsRune(string(numberRunes), 'e')
+
+
+	/////////// go from back to forward: remove exponent part first
+	if isExponent_e_used {
+		numberRunes, runesSectionExponent = runes_split_at_pattern(numberRunes, 'e')
+	}
+	if isExponent_E_used {
+		numberRunes, runesSectionExponent = runes_split_at_pattern(numberRunes, 'E')
+	} /////////// if exponent is used, that is filled into the runeSectionExponentPart
+
+
+	if isFractionDotUsed{
+		numberRunes, runesSectionFraction = runes_split_at_pattern(numberRunes, '.')
+		// after this, numberRunes lost the integer part.
+	} // if FractionDot is used, split the runes :-)
+
+	runesSectionInteger = numberRunes
+	///////////////////
+
+	lenErrorCollectorBeforeErrorHandling := len(errorsCollected)
+
+
+	/////////// ERROR HANDLING ////////////
+	// if the first digit is 0, there cannot be more digits.
+
+	if len(runesSectionInteger) > 1 {
+		if runesSectionInteger[0] == 0 { // if integer part starts with 0, there cannot be other digits after initial 0
+			errorsCollected = append(errorsCollected, errors.New("digits after 0 in integer part: " + string(runesSectionInteger)))
+		}
+	}
+
+	digits09 := []rune("0123456789")
+
+	if ! validate_runes_are_in_allowed_set(runesSectionInteger, digits09) {
+		errorsCollected = append(errorsCollected, errors.New("illegal char in integer part: " + string(runesSectionInteger)))
+	}
+
+	if ! validate_runes_are_in_allowed_set(runesSectionFraction, digits09) {
+		errorsCollected = append(errorsCollected, errors.New("illegal char in fraction part: " + string(runesSectionFraction)))
+	}
+
+	if len(runesSectionExponent) > 0 { // validate the first char in exponent section
+		if ! validate_rune_are_in_allowed_set(runesSectionExponent[0], []rune{'+', '-'}) {
+			errorsCollected = append(errorsCollected, errors.New("exponent part's first char is not +-: " + string(runesSectionExponent)))
+		}
+	}
+	if len(runesSectionExponent) > 1 { // validate other chars in exponent section
+		if ! validate_runes_are_in_allowed_set(runesSectionExponent[1:], digits09) {
+			errorsCollected = append(errorsCollected, errors.New("exponent part's first char is not +-: " + string(runesSectionExponent)))
+		}
+	}
+
+
+	thisIsValidNumber := lenErrorCollectorBeforeErrorHandling == len(errorsCollected)
+	if thisIsValidNumber {
+
+	}
 
 	return token, errorsCollected
+}
+
+
+// are the runes in the set?
+func validate_runes_are_in_allowed_set(runes []rune, runesAllowed []rune) bool {
+	for _, r := range runes {
+		if ! validate_rune_are_in_allowed_set(r, runesAllowed) {
+			return false
+		}
+	}
+	return true
+}
+
+
+// is the rune in allowed set?
+func validate_rune_are_in_allowed_set(runeValidated rune, runesAllowed []rune) bool {
+	for _, r := range runesAllowed {
+		if r == runeValidated {
+			return true
+		}
+	}
+	return false
+}
+
+
+// split once, at first occurance
+func runes_split_at_pattern(runes []rune, splitterRune rune) ([]rune, []rune) {
+	runesBefore := []rune{}
+	runesAfter := []rune{}
+	splitterDetected := false
+	for _, r := range runes {
+		if r == splitterRune {
+			splitterDetected = true
+			continue
+		}
+		if splitterDetected {
+			runesAfter = append(runesAfter, r)
+		} else {
+			runesBefore = append(runesBefore, r)
+		}
+	}
+	return runesBefore, runesAfter
+}
+
+// create a separated copy about original rune Slice
+func runes_copy(runes []rune) []rune {
+	runesNew := []rune{}
+	for _, r := range runes {
+		runesNew = append(runesNew, r)
+	}
+	return runesNew
 }
 
 ////////////////////// BASE FUNCTIONS ///////////////////////////////////////////////
