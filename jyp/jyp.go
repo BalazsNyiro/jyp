@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -334,6 +335,32 @@ func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error
 		//        - int+exponent part
 		//        - int+fraction+exponent part
 
+
+		// ONLY INTEGER PART
+		if len(runesSectionInteger) > 0 && len(runesSectionFraction) == 0 && len(runesSectionExponent) == 0 {
+			numBase10, err := strconv.Atoi(string(runesSectionInteger));
+			if err != nil {
+				errorsCollected = append(errorsCollected, err)
+			} else {
+				token.ValNumberInt = numBase10
+				token.Type = "number_integer"
+			}
+		}
+
+		// ONLY INTEGER + FRACTION PART
+		if len(runesSectionInteger) > 0 && len(runesSectionFraction) > 0 && len(runesSectionExponent) == 0 {
+			numBase10, err := strconv.ParseFloat(string(runesSectionInteger), 64);
+			if err != nil {
+				errorsCollected = append(errorsCollected, err)
+			} else {
+				token.ValNumberFloat = numBase10
+				token.Type = "number_float64"
+			}
+		}
+
+
+		/*
+
 		// if isNegative { multiplier = -1}
 
 		integerValue := 0
@@ -370,6 +397,10 @@ func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error
 		if len(runesSectionFraction) > 0 {
 			divider = divider - len(runesSectionFraction)  // divide the num with 10, 100, 1000...
 		}
+
+
+		*/
+
 
 
 
