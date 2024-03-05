@@ -32,7 +32,7 @@ type JsonValue struct {
 	ValObject JsonValueObject
 
 	ValBool        bool // true, false
-	isNull		   bool // if true, then the value is null
+	isNull         bool // if true, then the value is null
 
 	ValString      string
 	ValNumberInt   int
