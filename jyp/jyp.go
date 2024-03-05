@@ -328,6 +328,12 @@ func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error
 	thisIsValidNumber := lenErrorCollectorBeforeErrorDetection == len(errorsCollected)
 	if thisIsValidNumber {
 
+		// TODO: this section is too complicated, rewrite it.
+		// cases: - only integer part,
+		//        - int+fraction part,
+		//        - int+exponent part
+		//        - int+fraction+exponent part
+
 		// if isNegative { multiplier = -1}
 
 		integerValue := 0
