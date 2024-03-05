@@ -120,7 +120,7 @@ func elem_string_value_validate_and_set(token JsonValue, errorsCollected []error
 
 	valueFromRawSrcParsing := []rune{}
 
-	fmt.Println("string JsonValue value detection:", src)
+	// fmt.Println("string JsonValue value detection:", src)
 	runeBackSlash := '\\' // be careful: this is ONE \ char, only written with this expression
 
 	for pos := 0; pos < len(src); pos++ {
@@ -212,7 +212,7 @@ func elem_string_value_validate_and_set(token JsonValue, errorsCollected []error
 		} // else
 	} // for
 
-	fmt.Println("value from raw src parsing:", string(valueFromRawSrcParsing))
+	// fmt.Println("value from raw src parsing:", string(valueFromRawSrcParsing))
 	token.ValString = string(valueFromRawSrcParsing)
 	return token, errorsCollected
 }
@@ -329,7 +329,6 @@ func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error
 	thisIsValidNumber := lenErrorCollectorBeforeErrorDetection == len(errorsCollected)
 	if thisIsValidNumber {
 
-		// TODO: this section is too complicated, rewrite it.
 		// cases: - only integer part,
 		//        - int+fraction part,
 		//        - int+exponent part
@@ -349,7 +348,7 @@ func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error
 
 		// ONLY INTEGER + FRACTION PART
 		if len(runesSectionInteger) > 0 && len(runesSectionFraction) > 0 && len(runesSectionExponent) == 0 {
-			numBase10, err := strconv.ParseFloat(string(runesSectionInteger), 64);
+			numBase10, err := strconv.ParseFloat(string(runesSectionInteger)+"."+string(runesSectionFraction), 64);
 			if err != nil {
 				errorsCollected = append(errorsCollected, err)
 			} else {
@@ -358,6 +357,8 @@ func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error
 			}
 		}
 
+
+		// TODO: this section is too complicated, rewrite it.
 
 		/*
 

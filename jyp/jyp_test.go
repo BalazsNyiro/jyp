@@ -89,6 +89,27 @@ var srcEverything string = `{
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
+func Test_parse_number_integer(t *testing.T) {
+	funName := "Test_parse_number_integer"
+	testName := funName + "_basic"
+
+	src := `{"int":123, "float": 456.78}`
+	tokens := tokenTable_startPositionIndexed{}
+	errorsCollected := []error{}
+
+	src, tokens, errorsCollected = json_detect_strings________(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_separators_____(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_numbers________(src, tokens, errorsCollected)
+
+	tokens, errorsCollected = tokens_validations_value_settings(tokens, errorsCollected)
+	TokensDisplay_startingCoords(tokens)
+
+	compare_int_int(testName, 9, len(tokens), t)
+	compare_string_string(testName, "int",  tokens[1].ValString, t)
+	compare_int_int(testName, 123,  tokens[7].ValNumberInt, t)
+	compare_float_float(testName, 456.78,  tokens[21].ValNumberFloat, t)
+}
 
 //  go test -v -run   Test_token_validate_and_value_set_for_strings
 func Test_token_validate_and_value_set_for_strings(t *testing.T) {
@@ -409,13 +430,20 @@ func Test_hexaRune_to_intVal(t *testing.T) {
 }
 
 //////////////////////////// TEST BASE FUNCS ///////////////////
-func compare_int_int(testName string, wantedNum int, received int, t *testing.T) {
+func compare_int_int(testName string, wantedNum, received int, t *testing.T) {
 	if wantedNum != received {
 		t.Fatalf("\nError in %s wanted: %d, received: %d", testName, wantedNum, received)
 	}
 }
 
-func compare_bool_bool(testName string, wanted bool, received bool, t *testing.T) {
+func compare_float_float(testName string, wantedNum, received float64, t *testing.T) {
+	if wantedNum != received {
+		t.Fatalf("\nError in %s wanted: %f, received: %f", testName, wantedNum, received)
+	}
+}
+
+
+func compare_bool_bool(testName string, wanted, received bool, t *testing.T) {
 	if wanted != received {
 		t.Fatalf("\nError, different bool comparison %s wanted: %t, received: %t", testName, wanted, received)
 	}
