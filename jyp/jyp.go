@@ -19,17 +19,19 @@ import (
 )
 
 
-type JsonValueList []JsonValue
-type JsonValueObject map[string]JsonValue
+type tokenList []token
+type tokenTable map[string]token
 
-type JsonValue struct {
+
+// token: a structural elem of the source code, maybe without real meaning (comma separator, for example)
+type token struct {
 	Type string
 	// possible types:
-	// array, object,
+	// objectOpen, objectClose, arrayOpen, arrayClose, comma, colon
 	// bool, null, string, number_int, number_float,
 
-	ValArray  JsonValueList
-	ValObject JsonValueObject
+	ValArray  tokenList
+	ValObject tokenTable
 
 	ValBool        bool // true, false
 	isNull         bool // if true, then the value is null
@@ -44,13 +46,12 @@ type JsonValue struct {
 	runes []rune
 }
 
-type tokenTable_startPositionIndexed map[int]JsonValue
+type tokenTable_startPositionIndexed map[int]token
 
 // if the src can be parsed, return with the JSON root object with nested elems, and err is nil.
-func JsonParse(src string) (JsonValue, error) {
-	elemRoot := JsonValue{}
+func JsonParse(src string) (token, []error) {
 
-	errorsCollected := []error{}
+	var errorsCollected []error
 	tokens := tokenTable_startPositionIndexed{}
 
 	// a simple rule - inputs:  src, tokens, errors are inputs,
@@ -80,7 +81,27 @@ func JsonParse(src string) (JsonValue, error) {
 	// so the raw source has to be interpreted (escaped chars, unicode chars)
 	tokens, errorsCollected = tokens_validations_value_settings(tokens, errorsCollected)
 
-	return elemRoot, nil
+	elemRoot, errorsCollected := object_hierarchy_building(tokens, errorsCollected)
+
+	return elemRoot, errorsCollected
+}
+
+
+func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCollected []error)  (token, []error) {
+
+	newObj := func()token{ return token{Type: "object"}}
+	// newArr := func()token{ return token{Type: "array"}}
+
+	elemRoot := newObj()
+	if len(tokens) < 1 {
+		errorsCollected = append(errorsCollected, errors.New("emtpy source code, no root json elem"))
+	}
+
+	if tokens[0].Type != "objectOpen"  {
+		errorsCollected = append(errorsCollected, errors.New("the first token has to be 'objectOpen' in JSON source code"))
+	}
+
+	return elemRoot, errorsCollected
 }
 
 
@@ -88,10 +109,7 @@ func JsonParse(src string) (JsonValue, error) {
 func tokens_validations_value_settings(tokens tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) {
 	tokensUpdated := tokenTable_startPositionIndexed{}
 	for _, token := range tokens {
-		// fmt.Println("\n>>> one Token value Before detection:", token.ValString)
 		token, errorsCollected = elem_string_value_validate_and_set(token, errorsCollected)
-		// fmt.Println("<<< one Token value After detection:", token.ValString)
-
 		token, errorsCollected = elem_number_value_validate_and_set(token, errorsCollected)
 		// TODO: elem true|false|null value set?
 		tokensUpdated[token.charPositionFirstInSourceCode] = token
@@ -101,7 +119,7 @@ func tokens_validations_value_settings(tokens tokenTable_startPositionIndexed, e
 
 
 // set the string value from raw strings
-func elem_string_value_validate_and_set(token JsonValue, errorsCollected []error) (JsonValue, []error) { // TESTED
+func elem_string_value_validate_and_set(token token, errorsCollected []error) (token, []error) { // TESTED
 
 	if token.Type != "string" {
 		return token, errorsCollected
@@ -120,7 +138,7 @@ func elem_string_value_validate_and_set(token JsonValue, errorsCollected []error
 
 	valueFromRawSrcParsing := []rune{}
 
-	// fmt.Println("string JsonValue value detection:", src)
+	// fmt.Println("string token value detection:", src)
 	runeBackSlash := '\\' // be careful: this is ONE \ char, only written with this expression
 
 	for pos := 0; pos < len(src); pos++ {
@@ -219,7 +237,7 @@ func elem_string_value_validate_and_set(token JsonValue, errorsCollected []error
 
 
 
-func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error) (JsonValue, []error) {
+func elem_number_value_validate_and_set(token token, errorsCollected []error) (token, []error) {
 
 	if token.Type != "number" { return token, errorsCollected } // don't modify non-number elems
 
@@ -486,13 +504,13 @@ func json_detect_strings________(src string, tokensStartPositions tokenTable_sta
 		return escapeBackSlashCounterBeforeCurrentChar % 2 != 0
 	}
 
-	var tokenNow JsonValue
+	var tokenNow token
 
 	for posInSrc, runeActual := range src {
 
 		if runeActual == '"' {
 			if !inStringDetection {
-					tokenNow = JsonValue{Type: "string"}
+					tokenNow = token{Type: "string"}
 					inStringDetection = true
 					tokenNow.charPositionFirstInSourceCode = posInSrc
 					tokenNow.runes = append(tokenNow.runes, runeActual)
@@ -539,7 +557,7 @@ func json_detect_strings________(src string, tokensStartPositions tokenTable_sta
 
 func json_detect_separators_____(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) { // TESTED
 	srcDetectedTokensRemoved := []rune{}
-	var tokenNow JsonValue
+	var tokenNow token
 
 	for posInSrc, runeActual := range src {
 		detectedType := ""
@@ -554,8 +572,8 @@ func json_detect_separators_____(src string, tokensStartPositions tokenTable_sta
 		if detectedType == "" {
 			// save the original rune, if it was not a detected char
 			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, runeActual)
-		} else { // save JsonValue, if something important is detected
-			tokenNow = JsonValue{Type: detectedType}
+		} else { // save token, if something important is detected
+			tokenNow = token{Type: detectedType}
 			tokenNow.charPositionFirstInSourceCode = posInSrc
 			tokenNow.charPositionLastInSourceCode  = posInSrc
 			tokenNow.runes = append(tokenNow.runes, runeActual)
@@ -584,7 +602,7 @@ func json_detect_true_false_null(src string, tokensStartPositions tokenTable_sta
 		if wordOne.word == "null"  { detectedType = "false" }
 
 		if detectedType != "" {
-			tokenNow := JsonValue{Type: detectedType}
+			tokenNow := token{Type: detectedType}
 			tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
 			tokenNow.charPositionLastInSourceCode  = wordOne.posLast
 
@@ -607,7 +625,7 @@ func json_detect_numbers________(src string, tokensStartPositions tokenTable_sta
 
 	for _, wordOne := range src_get_whitespace_separated_words_posFirst_posLast(src) {
 
-		tokenNow := JsonValue{Type: "number"} // only numbers can be in the src now.
+		tokenNow := token{Type: "number"} // only numbers can be in the src now.
 		tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
 		tokenNow.charPositionLastInSourceCode  = wordOne.posLast
 
