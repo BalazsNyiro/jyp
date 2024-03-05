@@ -109,7 +109,8 @@ func Test_parse_number_integer(t *testing.T) {
 	compare_str_str(testName, "int",  tokens[ 1].ValString,      t)
 	compare_int_int(testName, 123,    tokens[ 7].ValNumberInt,   t)
 	compare_flt_flt(testName, 456.78, tokens[21].ValNumberFloat, t)
-	compare_int_int(testName, 123,    tokens[ 7].ValNumberInt,   t)
+	compare_int_int(testName, -9,     tokens[44].ValNumberInt,   t)
+	compare_flt_flt(testName, -0.12,  tokens[65].ValNumberFloat, t)
 }
 
 //  go test -v -run   Test_token_validate_and_value_set_for_strings
