@@ -314,7 +314,7 @@ func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error
 	}
 	if len(runesSectionExponent) > 1 { // validate other chars in exponent section
 		if ! validate_runes_are_in_allowed_set(runesSectionExponent[1:], digits09) {
-			errorsCollected = append(errorsCollected, errors.New("exponent part's first char is not +-: " + string(runesSectionExponent)))
+			errorsCollected = append(errorsCollected, errors.New("illegal char after first char of exponent section: " + string(runesSectionExponent)))
 		}
 	}
 
