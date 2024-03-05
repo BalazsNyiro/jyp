@@ -30,6 +30,19 @@ type token struct {
 	// objectOpen, objectClose, arrayOpen, arrayClose, comma, colon
 	// bool, null, string, number_int, number_float,
 
+	ValString      string
+	ValNumberInt   int
+	ValNumberFloat float64
+
+	charPositionFirstInSourceCode int   // 0: the first char in source code, 1: 2nd...
+	charPositionLastInSourceCode  int   // 0: the first char in source code, 1: 2nd...
+	runes []rune
+}
+
+type JSON_value struct {
+	Type string // possible types:
+	// object, array, bool, null, string, number_int, number_float
+
 	ValArray  tokenList
 	ValObject tokenTable
 
@@ -49,7 +62,7 @@ type token struct {
 type tokenTable_startPositionIndexed map[int]token
 
 // if the src can be parsed, return with the JSON root object with nested elems, and err is nil.
-func JsonParse(src string) (token, []error) {
+func JsonParse(src string) (JSON_value, []error) {
 
 	var errorsCollected []error
 	tokens := tokenTable_startPositionIndexed{}
@@ -87,18 +100,29 @@ func JsonParse(src string) (token, []error) {
 }
 
 
-func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCollected []error)  (token, []error) {
+func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCollected []error)  (JSON_value, []error) {
 
-	newObj := func()token{ return token{Type: "object"}}
-	// newArr := func()token{ return token{Type: "array"}}
+	newObj := func()JSON_value{ return JSON_value{Type: "object"}}
+	// newArr := func()JSON_value{ return JSON_value{Type: "array" }}
 
-	elemRoot := newObj()
-	if len(tokens) < 1 {
-		errorsCollected = append(errorsCollected, errors.New("emtpy source code, no root json elem"))
+	tokenTableKeys := tokenTable_position_keys_sorted(tokens)
+
+	if len(tokenTableKeys) < 1 {
+		errorsCollected = append(errorsCollected, errors.New("emtpy source code, no tokens"))
 	}
 
-	if tokens[0].Type != "objectOpen"  {
+	keyFirst := tokenTableKeys[0]
+	if tokens[keyFirst].Type != "objectOpen"  {
 		errorsCollected = append(errorsCollected, errors.New("the first token has to be 'objectOpen' in JSON source code"))
+	}
+
+	elemRoot := newObj()
+
+	for tokenNum, tokenPositionKey := range tokenTableKeys[1:] {
+		tokenActual := tokens[tokenPositionKey]
+		fmt.Println(tokenNum, "token:", tokenActual)
+
+		// TODO: here build the hierarchy from tokens
 	}
 
 	return elemRoot, errorsCollected
@@ -732,16 +756,22 @@ func is_whitespace_rune(oneRune rune) bool { // TESTED
 
 
 func TokensDisplay_startingCoords(tokens tokenTable_startPositionIndexed) {
-	keys := make([]int, 0, len(tokens))
-	for k := range tokens {
-		keys = append(keys, k)
-	}
-	sort.Ints(keys)
+	keys := tokenTable_position_keys_sorted(tokens)
 
 	fmt.Println("== Tokens Table display ==")
 	for _, key := range keys{
 		fmt.Println(string(tokens[key].runes), key, tokens[key])
 	}
+}
+
+// tokenTable keys are character positions in JSON source code (positive integers)
+func tokenTable_position_keys_sorted(tokens tokenTable_startPositionIndexed) []int {
+	keys := make([]int, 0, len(tokens))
+	for k := range tokens {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
+	return keys
 }
 
 

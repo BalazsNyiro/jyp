@@ -87,6 +87,23 @@ var srcEverything string = `{
 
 // TODO: test json src with errors!
 
+
+
+//  go test -v -run Test_object_hierarchy_building
+func Test_object_hierarchy_building(t *testing.T) {
+	funName := "Test_object_hierarchy_building"
+	testName := funName + "_basic"
+
+	src := `{"int":123, "float": 456.78, "intNegative": -9, "floatNegative": -0.12}`
+
+	elemRoot, errorsCollected := JsonParse(src)
+
+	_ = elemRoot
+	_ = errorsCollected
+	_ = testName
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 func Test_parse_number_integer(t *testing.T) {
