@@ -341,6 +341,9 @@ func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error
 			if err != nil {
 				errorsCollected = append(errorsCollected, err)
 			} else {
+				if isNegative {
+					numBase10 = -numBase10
+				}
 				token.ValNumberInt = numBase10
 				token.Type = "number_integer"
 			}
@@ -352,6 +355,9 @@ func elem_number_value_validate_and_set(token JsonValue, errorsCollected []error
 			if err != nil {
 				errorsCollected = append(errorsCollected, err)
 			} else {
+				if isNegative {
+					numBase10 = -numBase10
+				}
 				token.ValNumberFloat = numBase10
 				token.Type = "number_float64"
 			}
