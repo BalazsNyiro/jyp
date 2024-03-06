@@ -135,13 +135,10 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 
 
 
-	// JSON_value{Type: "array" }}
-
-	jsonValues_database := map[int]JSON_value{}
-
 	idParent := -1 // id can be 0 or bigger, so -1 is a non-existing parent id (root elem doesn't have parent
-
-	lastDetectedObjectKey := ""
+	database_containers := map[int]JSON_value{}
+	database_keys := map[int]string{} // if the parent is an object, elems can be inserted with keys.
+	database_key_last := ""
 
 	// tokenKeys are charPosition based numbers, they are not continuous.
 	for tokenNum, tokenPositionKey := range tokenTableKeys {
@@ -149,93 +146,102 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 		tokenActual := tokens[tokenPositionKey]
 		fmt.Println(tokenNum, "token:", tokenActual)
 
-
-
-		//////////////////////////////////////////////////////////////////////
-		if tokenActual.Type == "objectOpen"{
-			id := len(jsonValues_database) // get the next free id in the database
-			jsonValues_database[id] = JSON_value{	idParent:       idParent,
-													idSelf:         id,
-													Type:           "object",
-													charPositionFirstInSourceCode: tokenActual.charPositionFirstInSourceCode,
-													ValObject: map[string]JSON_value{},
-													}
-
-			idParent = id // this new object is the new parent for the next elems
-			continue
-		}
-
-		if tokenActual.Type == "objectClose"{
-			parent := jsonValues_database[idParent]
-			parent.charPositionLastInSourceCode = tokenActual.charPositionLastInSourceCode
-			jsonValues_database[idParent] = parent
-			idParent = parent.idParent // the new parent is the current parent's parent
-			continue
-		}
-
-		///////////////////////////////////
-		if tokenActual.Type == "arrayOpen"{
-			id := len(jsonValues_database)
-			jsonValues_database[id] = JSON_value{	idParent:       idParent,
-													idSelf:         id,
-													Type:           "array",
-													charPositionFirstInSourceCode: tokenActual.charPositionFirstInSourceCode,
-													ValArray: []JSON_value{},
-			}
-			idParent = id // this new array is the new parent for the next elems
-			continue
-		}
-		if tokenActual.Type == "arrayClose"{
-			parent := jsonValues_database[idParent]
-			parent.charPositionLastInSourceCode = tokenActual.charPositionLastInSourceCode
-			jsonValues_database[idParent] = parent
-			idParent = parent.idParent // the new parent is the current parent's parent
-			continue
-		}
-		//////////////////////////////////////////////////////////////////////
-
-
-		//////////////////////////////////////////
-		if tokenActual.Type == "comma"{ continue }
+		if tokenActual.Type == "comma"{ continue } // placeholders
 		if tokenActual.Type == "colon"{ continue }
 
 
-
-
-
-
 		///////////////// SIMPLE JSON VALUES ARE SAVED DIRECTLY INTO THEIR PARENT /////////////////////////
-		if tokenActual.Type == "bool" || tokenActual.Type == "null" || tokenActual.Type == "string"   || tokenActual.Type == "number_integer" || tokenActual.Type == "number_float64"  {
-			value := JSON_value{Type: tokenActual.Type,
+		// in json objects, the first string is always the key. then the next elem is the value
+		if  database_key_last == "" &&
+			database_containers[idParent].Type == "object" &&
+			tokenActual.Type == "string"  {
+			database_key_last = tokenActual.ValString
+			continue
+		}
+
+
+
+
+
+
+
+
+		//////////////////////////////////////////////////////////////////////
+		if tokenActual.Type == "objectOpen" || tokenActual.Type == "arrayOpen " {
+			id := len(database_containers) // get the next free id in the database
+
+			containerNew := JSON_value{
+				idParent: idParent,
+				idSelf: id,
+				charPositionFirstInSourceCode: tokenActual.charPositionFirstInSourceCode,
+			}
+			if tokenActual.Type == "objectOpen"{
+				containerNew.Type = "object"
+				containerNew.ValObject = map[string]JSON_value{}
+			} else {  // arrayOpen
+				containerNew.Type = "array"
+				containerNew.ValArray = []JSON_value{}
+			}
+			/* at this point, key has to be saved, because when the container is CLOSED,
+			   at that moment the key will be used, to insert the obj into te parent. */
+			database_keys[id] = database_key_last // save the key (it can be empty, or filled!)
+			database_key_last = ""
+			idParent = id // this new array is the new parent for the next elems
+			continue
+		} // openers
+
+
+
+
+
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		/////////////////// SIMPLE VALUES or container-closers ////////////////////////////////////////
+		// 	"bool", "null", "string", "number_integer", "number_float64", "objectClose", "arrayClose"
+
+		isCloserToken := tokenActual.Type == "objectClose" || tokenActual.Type == "arrayClose"
+
+		var value JSON_value
+
+		if isCloserToken {
+			value = database_containers[idParent] // the actual parent is closed
+			delete(database_containers, idParent)
+		} else {
+			value = JSON_value{Type: tokenActual.Type,
 								charPositionFirstInSourceCode: tokenActual.charPositionFirstInSourceCode,
-								charPositionLastInSourceCode:  tokenActual.charPositionLastInSourceCode,
+								charPositionLastInSourceCode: tokenActual.charPositionLastInSourceCode,
 								runes: tokenActual.runes,
+								idParent: idParent,
 			}
-			if tokenActual.Type == "null" {
-				// null type has only one value, there is not reason to store that
-			}
+			if tokenActual.Type == "null" 			{ _ = "null type has no value, don't store it"      }
 			if tokenActual.Type == "bool"           { value.ValBool = tokenActual.ValBool               }
 			if tokenActual.Type == "string"         { value.ValString = tokenActual.ValString           }
 			if tokenActual.Type == "number_integer" { value.ValNumberInt = tokenActual.ValNumberInt     }
 			if tokenActual.Type == "number_float64" { value.ValNumberFloat = tokenActual.ValNumberFloat }
 
+		} // notCloser
 
-			parent := jsonValues_database[idParent]
 
-			if parent.Type == "array"{
-				elems := parent.ValArray
-				elems = append(elems, value)
-				parent.ValArray = elems
-			}
-			if parent.Type == "object"{
-				valObjects := parent.ValObject
-				valObjects[lastDetectedObjectKey] = value
-				parent.ValObject = valObjects
-			}
-			jsonValues_database[idParent] = parent
-			continue
+		///////////////// update the parent container with the new elem ////////////////////////////
+		parent := database_containers[value.idParent]
+		parent.charPositionLastInSourceCode = value.charPositionLastInSourceCode
+		// ^^^ the tokenCloser's last position is saved with this!
+		if parent.Type == "array" {
+			elems := parent.ValArray
+			elems = append(elems, value)
+			parent.ValArray = elems
+		}
+		if parent.Type == "object" {
+			valObjects := parent.ValObject
+			valObjects[database_key_last] = value
+			database_key_last = ""  // clear the keyName, we used that for the current object
+			parent.ValObject = valObjects
 		}
 
+		database_containers[idParent] = parent // save back the updated parent
+
+		if isCloserToken {
+			idParent = parent.idParent // the new parent is the current parent's parent
+		}
 
 
 
