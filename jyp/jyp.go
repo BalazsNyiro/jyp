@@ -26,10 +26,11 @@ type tokenTable map[string]token
 // token: a structural elem of the source code, maybe without real meaning (comma separator, for example)
 type token struct {
 	Type string
-	// possible types:
+	// possible token types:
 	// objectOpen, objectClose, arrayOpen, arrayClose, comma, colon
-	// bool, null, string, number_int, number_float,
+	// bool null, string, number_int, number_float,
 
+	ValBool        bool
 	ValString      string
 	ValNumberInt   int
 	ValNumberFloat float64
@@ -40,23 +41,28 @@ type token struct {
 }
 
 type JSON_value struct {
-	Type string // possible types:
+	Type string // possible value types:
 	// object, array, bool, null, string, number_int, number_float
 
-	ValArray  tokenList
-	ValObject tokenTable
+	ValArray  map[string]JSON_value
+	ValObject []JSON_value
 
 	ValBool        bool // true, false
-	isNull         bool // if true, then the value is null
 
 	ValString      string
 	ValNumberInt   int
 	ValNumberFloat float64
 
+	levelInObjStructure int
+
 	//////// PARSING SECTION: detection from the JSON source code /////
 	charPositionFirstInSourceCode int   // 0: the first char in source code, 1: 2nd...
 	charPositionLastInSourceCode  int   // 0: the first char in source code, 1: 2nd...
 	runes []rune
+
+	/////// CONNECTIONS ///
+	idParent int  // the id of the parent elem
+	idSelf   int  // the id of this actual elem
 }
 
 type tokenTable_startPositionIndexed map[int]token
@@ -102,9 +108,6 @@ func JsonParse(src string) (JSON_value, []error) {
 
 func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCollected []error)  (JSON_value, []error) {
 
-	newObj := func()JSON_value{ return JSON_value{Type: "object"}}
-	// newArr := func()JSON_value{ return JSON_value{Type: "array" }}
-
 	tokenTableKeys := tokenTable_position_keys_sorted(tokens)
 
 	if len(tokenTableKeys) < 1 {
@@ -116,15 +119,112 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 		errorsCollected = append(errorsCollected, errors.New("the first token has to be 'objectOpen' in JSON source code"))
 	}
 
-	elemRoot := newObj()
 
-	for tokenNum, tokenPositionKey := range tokenTableKeys[1:] {
+
+	/* if  tokenActual.Type == "objectOpen" || tokenActual.Type == "arrayOpen " ||
+		tokenActual.Type == "bool"       || tokenActual.Type == "null"       ||
+		tokenActual.Type == "string"     || tokenActual.Type == "number_int" ||
+		tokenActual.Type == "number_float" {
+	} */
+	///////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+	// JSON_value{Type: "array" }}
+
+	jsonValues_database := map[int]JSON_value{}
+
+	idParent := -1 // id can be 0 or bigger, so -1 is a non-existing parent id (root elem doesn't have parent
+
+	// tokenKeys are charPosition based numbers, they are not continuous.
+	for tokenNum, tokenPositionKey := range tokenTableKeys {
+
 		tokenActual := tokens[tokenPositionKey]
 		fmt.Println(tokenNum, "token:", tokenActual)
 
-		// TODO: here build the hierarchy from tokens
-	}
 
+
+		///////////////////////////////////
+		if tokenActual.Type == "objectOpen"{
+			id := len(jsonValues_database) // get the next free id in the database
+			jsonValues_database[id] = JSON_value{	idParent:       idParent,
+													idSelf:         id,
+													Type:           "object",
+													charPositionFirstInSourceCode: tokenActual.charPositionFirstInSourceCode,
+													}
+
+			idParent = id // this new object is the new parent for the next elems
+			continue
+		}
+
+		if tokenActual.Type == "objectClose"{
+			parent := jsonValues_database[idParent]
+			parent.charPositionLastInSourceCode = tokenActual.charPositionLastInSourceCode
+			jsonValues_database[idParent] = parent
+			idParent = parent.idParent // the new parent is the current parent's parent
+			continue
+		}
+
+		///////////////////////////////////
+		if tokenActual.Type == "arrayOpen"{
+			id := len(jsonValues_database)
+			jsonValues_database[id] = JSON_value{	idParent:       idParent,
+													idSelf:         id,
+													Type:           "array",
+													charPositionFirstInSourceCode: tokenActual.charPositionFirstInSourceCode,
+			}
+			idParent = id // this new array is the new parent for the next elems
+			continue
+		}
+		if tokenActual.Type == "arrayClose"{
+			parent := jsonValues_database[idParent]
+			parent.charPositionLastInSourceCode = tokenActual.charPositionLastInSourceCode
+			jsonValues_database[idParent] = parent
+			idParent = parent.idParent // the new parent is the current parent's parent
+			continue
+		}
+
+
+		///////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	} // for, tokenNum, tokenPositionKey
+
+	var elemRoot JSON_value
 	return elemRoot, errorsCollected
 }
 
@@ -621,12 +721,13 @@ func json_detect_true_false_null(src string, tokensStartPositions tokenTable_sta
 	for _, wordOne := range src_get_whitespace_separated_words_posFirst_posLast(src) {
 
 		detectedType := "" // 3 types of word can be detected in this fun
-		if wordOne.word == "true"  { detectedType = "true"  }
-		if wordOne.word == "false" { detectedType = "false" }
-		if wordOne.word == "null"  { detectedType = "false" }
+		if wordOne.word == "true"  { detectedType = "bool"  }
+		if wordOne.word == "false" { detectedType = "bool" }
+		if wordOne.word == "null"  { detectedType = "null" }
 
 		if detectedType != "" {
 			tokenNow := token{Type: detectedType}
+			if detectedType == "bool" { tokenNow.ValBool = wordOne.word == "true"}
 			tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
 			tokenNow.charPositionLastInSourceCode  = wordOne.posLast
 
@@ -674,6 +775,8 @@ type word struct {
 	posLast int
 }
 
+
+// give back words (plus posFirst/posLast info)
 func src_get_whitespace_separated_words_posFirst_posLast(src string) []word { // TESTED
 	words := []word{}
 
