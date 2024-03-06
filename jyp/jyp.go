@@ -44,16 +44,14 @@ type JSON_value struct {
 	Type string // possible value types:
 	// object, array, bool, null, string, number_int, number_float
 
-	ValArray  map[string]JSON_value
-	ValObject []JSON_value
+	ValObject  map[string]JSON_value
+	ValArray []JSON_value
 
 	ValBool        bool // true, false
 
 	ValString      string
 	ValNumberInt   int
 	ValNumberFloat float64
-
-	levelInObjStructure int
 
 	//////// PARSING SECTION: detection from the JSON source code /////
 	charPositionFirstInSourceCode int   // 0: the first char in source code, 1: 2nd...
@@ -143,6 +141,8 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 
 	idParent := -1 // id can be 0 or bigger, so -1 is a non-existing parent id (root elem doesn't have parent
 
+	lastDetectedObjectKey := ""
+
 	// tokenKeys are charPosition based numbers, they are not continuous.
 	for tokenNum, tokenPositionKey := range tokenTableKeys {
 
@@ -151,13 +151,14 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 
 
 
-		///////////////////////////////////
+		//////////////////////////////////////////////////////////////////////
 		if tokenActual.Type == "objectOpen"{
 			id := len(jsonValues_database) // get the next free id in the database
 			jsonValues_database[id] = JSON_value{	idParent:       idParent,
 													idSelf:         id,
 													Type:           "object",
 													charPositionFirstInSourceCode: tokenActual.charPositionFirstInSourceCode,
+													ValObject: map[string]JSON_value{},
 													}
 
 			idParent = id // this new object is the new parent for the next elems
@@ -179,6 +180,7 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 													idSelf:         id,
 													Type:           "array",
 													charPositionFirstInSourceCode: tokenActual.charPositionFirstInSourceCode,
+													ValArray: []JSON_value{},
 			}
 			idParent = id // this new array is the new parent for the next elems
 			continue
@@ -190,12 +192,49 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 			idParent = parent.idParent // the new parent is the current parent's parent
 			continue
 		}
+		//////////////////////////////////////////////////////////////////////
 
 
-		///////////////////////////////////
+		//////////////////////////////////////////
+		if tokenActual.Type == "comma"{ continue }
+		if tokenActual.Type == "colon"{ continue }
 
 
 
+
+
+
+		///////////////// SIMPLE JSON VALUES ARE SAVED DIRECTLY INTO THEIR PARENT /////////////////////////
+		if tokenActual.Type == "bool" || tokenActual.Type == "null" || tokenActual.Type == "string"   || tokenActual.Type == "number_integer" || tokenActual.Type == "number_float64"  {
+			value := JSON_value{Type: tokenActual.Type,
+								charPositionFirstInSourceCode: tokenActual.charPositionFirstInSourceCode,
+								charPositionLastInSourceCode:  tokenActual.charPositionLastInSourceCode,
+								runes: tokenActual.runes,
+			}
+			if tokenActual.Type == "null" {
+				// null type has only one value, there is not reason to store that
+			}
+			if tokenActual.Type == "bool"           { value.ValBool = tokenActual.ValBool               }
+			if tokenActual.Type == "string"         { value.ValString = tokenActual.ValString           }
+			if tokenActual.Type == "number_integer" { value.ValNumberInt = tokenActual.ValNumberInt     }
+			if tokenActual.Type == "number_float64" { value.ValNumberFloat = tokenActual.ValNumberFloat }
+
+
+			parent := jsonValues_database[idParent]
+
+			if parent.Type == "array"{
+				elems := parent.ValArray
+				elems = append(elems, value)
+				parent.ValArray = elems
+			}
+			if parent.Type == "object"{
+				valObjects := parent.ValObject
+				valObjects[lastDetectedObjectKey] = value
+				parent.ValObject = valObjects
+			}
+			jsonValues_database[idParent] = parent
+			continue
+		}
 
 
 
