@@ -61,10 +61,19 @@ type JSON_value struct {
 	/////// CONNECTIONS ///
 	idParent int  // the id of the parent elem
 	idSelf   int  // the id of this actual elem
+
+	levelInObjectStructure int  // later it helps to print the Json Value :-)
 }
 
+
+// printing for tests
 func (v JSON_value) print() {
-	fmt.Println("print>", v.idSelf, v.Type, string(v.runes) )
+	prefix := ""
+	for i:=0; i<v.levelInObjectStructure; i++ {
+		prefix += "  "
+	}
+
+	fmt.Println(prefix, v.idSelf, v.Type, "\t", string(v.runes) )
 	for _, elem := range v.ValArray {
 		elem.print()
 	}
@@ -128,20 +137,7 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 	if tokens[keyFirst].Type != "objectOpen"  {
 		errorsCollected = append(errorsCollected, errors.New("the first token has to be 'objectOpen' in JSON source code"))
 	}
-
-
-
-	/* if  tokenActual.Type == "objectOpen" || tokenActual.Type == "arrayOpen " ||
-		tokenActual.Type == "bool"       || tokenActual.Type == "null"       ||
-		tokenActual.Type == "string"     || tokenActual.Type == "number_int" ||
-		tokenActual.Type == "number_float" {
-	} */
 	///////////////////////////////////////////////////////////////
-
-
-
-
-
 
 
 
@@ -175,18 +171,20 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 
 
 
-
-
-
-
 		//////////////////////////////////////////////////////////////////////
 		if tokenActual.Type == "objectOpen" || tokenActual.Type == "arrayOpen " {
 			id := len(containers) // get the next free id in the database
 			// container: array|object,
+			levelInObjectStructure := 0
+			if idParent >= 0 {
+				levelInObjectStructure = containers[idParent].levelInObjectStructure+1
+			}
+
 			containerNew := JSON_value{
 				idParent: idParent,
 				idSelf: id,
 				charPositionFirstInSourceCode: tokenActual.charPositionFirstInSourceCode,
+				levelInObjectStructure: levelInObjectStructure,
 			}
 			if tokenActual.Type == "objectOpen"{
 				containerNew.Type = "object"
@@ -229,6 +227,7 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 								charPositionLastInSourceCode: tokenActual.charPositionLastInSourceCode,
 								runes: tokenActual.runes,
 								idParent: idParent,
+								levelInObjectStructure: containers[idParent].levelInObjectStructure+1,
 			}
 			if tokenActual.Type == "null" 			{ _ = "null type has no value, don't store it"      }
 			if tokenActual.Type == "bool"           { value.ValBool = tokenActual.ValBool               }
@@ -254,7 +253,6 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 			lastDetectedStringKey__inObject = "" // clear the keyName, we used that for the current object
 			parent.ValObject = valObjects
 		}
-
 		containers[idParent] = parent // save back the updated parent
 
 		if isCloserToken {
@@ -262,31 +260,7 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 		}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	} // for, tokenNum, tokenPositionKey
-
 	return elemRoot, errorsCollected
 }
 
