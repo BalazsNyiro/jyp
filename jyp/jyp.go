@@ -63,6 +63,16 @@ type JSON_value struct {
 	idSelf   int  // the id of this actual elem
 }
 
+func (v JSON_value) print() {
+	fmt.Println("print>", v.idSelf, v.Type, string(v.runes) )
+	for _, elem := range v.ValArray {
+		elem.print()
+	}
+	for _, elem := range v.ValObject {
+		elem.print()
+	}
+}
+
 type tokenTable_startPositionIndexed map[int]token
 
 // if the src can be parsed, return with the JSON root object with nested elems, and err is nil.
@@ -105,14 +115,16 @@ func JsonParse(src string) (JSON_value, []error) {
 
 
 func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCollected []error)  (JSON_value, []error) {
+	var elemRoot JSON_value
 
-	tokenTableKeys := tokenTable_position_keys_sorted(tokens)
 
-	if len(tokenTableKeys) < 1 {
+	positionKeys_of_tokens := tokenTable_position_keys_sorted(tokens)
+
+	if len(positionKeys_of_tokens) < 1 {
 		errorsCollected = append(errorsCollected, errors.New("emtpy source code, no tokens"))
 	}
 
-	keyFirst := tokenTableKeys[0]
+	keyFirst := positionKeys_of_tokens[0]
 	if tokens[keyFirst].Type != "objectOpen"  {
 		errorsCollected = append(errorsCollected, errors.New("the first token has to be 'objectOpen' in JSON source code"))
 	}
@@ -136,12 +148,12 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 
 
 	idParent := -1 // id can be 0 or bigger, so -1 is a non-existing parent id (root elem doesn't have parent
-	database_containers := map[int]JSON_value{}
-	database_keys := map[int]string{} // if the parent is an object, elems can be inserted with keys.
-	database_key_last := ""
+	containers := map[int]JSON_value{}
+	keyString_OfCollectors__filledIfObjectKey_emptyIfParentIsArray := map[int]string{} // if the parent is an object, elems can be inserted with keys.
+	lastDetectedStringKey__inObject := ""
 
 	// tokenKeys are charPosition based numbers, they are not continuous.
-	for tokenNum, tokenPositionKey := range tokenTableKeys {
+	for tokenNum, tokenPositionKey := range positionKeys_of_tokens {
 
 		tokenActual := tokens[tokenPositionKey]
 		fmt.Println(tokenNum, "token:", tokenActual)
@@ -152,13 +164,14 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 
 		///////////////// SIMPLE JSON VALUES ARE SAVED DIRECTLY INTO THEIR PARENT /////////////////////////
 		// in json objects, the first string is always the key. then the next elem is the value
-		if  database_key_last == "" &&
-			database_containers[idParent].Type == "object" &&
-			tokenActual.Type == "string"  {
-			database_key_last = tokenActual.ValString
-			continue
+		if idParent >= 0 { // the first root elem doesn't have parents, so idParent == -1
+			if  lastDetectedStringKey__inObject == "" &&
+				containers[idParent].Type == "object" &&
+				tokenActual.Type == "string"  {
+				lastDetectedStringKey__inObject = tokenActual.ValString
+				continue
+			}
 		}
-
 
 
 
@@ -168,8 +181,8 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 
 		//////////////////////////////////////////////////////////////////////
 		if tokenActual.Type == "objectOpen" || tokenActual.Type == "arrayOpen " {
-			id := len(database_containers) // get the next free id in the database
-
+			id := len(containers) // get the next free id in the database
+			// container: array|object,
 			containerNew := JSON_value{
 				idParent: idParent,
 				idSelf: id,
@@ -182,10 +195,11 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 				containerNew.Type = "array"
 				containerNew.ValArray = []JSON_value{}
 			}
+			containers[id] = containerNew
 			/* at this point, key has to be saved, because when the container is CLOSED,
 			   at that moment the key will be used, to insert the obj into te parent. */
-			database_keys[id] = database_key_last // save the key (it can be empty, or filled!)
-			database_key_last = ""
+			keyString_OfCollectors__filledIfObjectKey_emptyIfParentIsArray[id] = lastDetectedStringKey__inObject // save the key (it can be empty, or filled!)
+			lastDetectedStringKey__inObject = ""
 			idParent = id // this new array is the new parent for the next elems
 			continue
 		} // openers
@@ -203,8 +217,12 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 		var value JSON_value
 
 		if isCloserToken {
-			value = database_containers[idParent] // the actual parent is closed
-			delete(database_containers, idParent)
+			value = containers[idParent] // the actual parent is closed
+			if idParent == 0 {
+				elemRoot = value
+				break
+			}
+			delete(containers, idParent)
 		} else {
 			value = JSON_value{Type: tokenActual.Type,
 								charPositionFirstInSourceCode: tokenActual.charPositionFirstInSourceCode,
@@ -222,7 +240,7 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 
 
 		///////////////// update the parent container with the new elem ////////////////////////////
-		parent := database_containers[value.idParent]
+		parent := containers[value.idParent]
 		parent.charPositionLastInSourceCode = value.charPositionLastInSourceCode
 		// ^^^ the tokenCloser's last position is saved with this!
 		if parent.Type == "array" {
@@ -232,12 +250,12 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 		}
 		if parent.Type == "object" {
 			valObjects := parent.ValObject
-			valObjects[database_key_last] = value
-			database_key_last = ""  // clear the keyName, we used that for the current object
+			valObjects[lastDetectedStringKey__inObject] = value
+			lastDetectedStringKey__inObject = "" // clear the keyName, we used that for the current object
 			parent.ValObject = valObjects
 		}
 
-		database_containers[idParent] = parent // save back the updated parent
+		containers[idParent] = parent // save back the updated parent
 
 		if isCloserToken {
 			idParent = parent.idParent // the new parent is the current parent's parent
@@ -269,7 +287,6 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 
 	} // for, tokenNum, tokenPositionKey
 
-	var elemRoot JSON_value
 	return elemRoot, errorsCollected
 }
 
