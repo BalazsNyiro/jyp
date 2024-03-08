@@ -31,7 +31,7 @@ type Elem struct {
 
 // basically this is the native reading solution of an embedded elem struct/list, 3rd element:
 // {"personal":{"city":"Paris", "cell": 123, "list": [1,2,"third"]}}
-// fmt.Println(elem_root.ValObject["personal"].ValObject["list"].ValArray[2].ValString)
+// fmt.Println(elem_root.ValObject["personal"].ValObject["list"].ValArray[2].valString)
 
 // because in json an object can have string keys only and a list can have integer keys only,
 // there is a wrapper solution to simplify reading:
@@ -374,7 +374,7 @@ func JsonCollectStringsInElems__removeSpaces(src Elem_list) Elem_list {
 
 func ElemStr(value string) Elem {
 	// example:
-	// Elem{ValString: "age", Type: "string"},
+	// Elem{valString: "age", typeDetected: "string"},
 	return Elem{ValString: value, ValType: "string"}
 }
 
@@ -387,12 +387,12 @@ func ElemArray(values Elem_list) Elem {
 }
 
 func ElemInt(value int) Elem {
-	// return Elem{ValString: "5", Type: "number_int", ValNumberInt: 5},
+	// return Elem{valString: "5", typeDetected: "number_int", valNumberInt: 5},
 	return Elem{ValString: strconv.Itoa(value), ValType: "number_int", ValNumberInt: value}
 }
 
 func ElemFloat(value_str_representation string, value_more_or_less_precise float64) Elem {
-	// Elem{ValString: "7.6", Type: "number_float", ValNumberFloat: 7.599999904632568},
+	// Elem{valString: "7.6", typeDetected: "number_float", valNumberFloat: 7.599999904632568},
 	return Elem{ValString: value_str_representation, ValType: "number_float", ValNumberFloat: value_more_or_less_precise}
 }
 
@@ -410,7 +410,7 @@ func ElemNull() Elem {
 
 func elemRune(value rune) Elem {
 	// example:
-	// Elem{ValRune: ':', Type: "rune"},
+	// Elem{ValRune: ':', typeDetected: "rune"},
 	return Elem{ValRune: value, ValRuneString: string(value), ValType: "rune"}
 }
 

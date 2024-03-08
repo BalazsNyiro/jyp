@@ -9,7 +9,7 @@ func main() {
 	elem_root, _ := jyp.JsonParseSrc(`{"personal":{"city":"Paris", "cell": 123, "money": 2.34, "list": [1,2,"third"]}}`)
 	jyp.ElemPrintOne(elem_root)
 
-	// if the JSON structure is unknown for you, maybe you have to check Type of elements.
+	// if the JSON structure is unknown for you, maybe you have to check typeDetected of elements.
 	// if you read a known structure, the GETTERS are easier to read.
 
 	// native structure reading:
