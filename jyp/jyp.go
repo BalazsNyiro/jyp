@@ -3,8 +3,9 @@
 // this file is the implementation of the _standard_ json data format:
 // https://www.json.org/json-en.html
 
-// this song helped a lot to write this parser - respect:
-// https://open.spotify.com/track/7znjTquY8gek1bKni5yzLG?si=3ae71af19f684d67
+// these songs helped a lot to write this parser - respect:
+//	- Drummatix /туманами/
+//  - Mari Samuelsen /Sequence (four)/
 
 // in the code I intentionally avoid direct pointer usage - I think that is safer.
 
@@ -56,8 +57,6 @@ type JSON_value struct {
 	ValNumberInt   int           // an integer JSON value is stored here
 	ValNumberFloat float64       // a float JSON value is saved here
 	// ...............................................................................................
-
-
 
 
 	//////// PARSING SECTION: detection from the JSON source code /////
