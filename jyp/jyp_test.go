@@ -97,7 +97,11 @@ func Test_object_hierarchy_building(t *testing.T) {
 	src := `{"int":123, "float": 456.78, "intNegative": -9, "floatNegative": -0.12}`
 
 	elemRoot, errorsCollected := JsonParse(src)
-	elemRoot.print()
+	fmt.Println("REPR:")
+	print(elemRoot.repr(2))
+
+	fmt.Println("=====================")
+	fmt.Println("rootType", elemRoot.ValType)
 
 	// TODO: the main root object and hierarchy building is in progress
 

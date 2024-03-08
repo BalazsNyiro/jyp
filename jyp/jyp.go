@@ -44,14 +44,21 @@ type JSON_value struct {
 	ValType string // possible value types:
 	// object, array, bool, null, string, number_int, number_float
 
+
+	// ...............................................................................................
+	// ...... these values represent a Json elem's value - and one of them is filled only.. ..........
 	ValObject  map[string]JSON_value
 	ValArray []JSON_value
 
 	ValBool        bool // true, false
 
-	ValString      string
-	ValNumberInt   int
-	ValNumberFloat float64
+	ValString      string		 // a string JSON value is stored here (filled ONLY if ValType is string)
+	ValNumberInt   int           // an integer JSON value is stored here
+	ValNumberFloat float64       // a float JSON value is saved here
+	// ...............................................................................................
+
+
+
 
 	//////// PARSING SECTION: detection from the JSON source code /////
 	CharPositionFirstInSourceCode int // 0: the first char in source code, 1: 2nd...
@@ -65,15 +72,70 @@ type JSON_value struct {
 	LevelInObjectStructure int // later it helps to print the Json Value :-)
 }
 
+func (v JSON_value) ValObject_keys_sorted() []string{
+	keys := make([]string, 0, len(v.ValObject))
+	for k, _ := range v.ValObject {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+
+// an ALWAYS string representation of the value
+// if indentation > 0: pretty print, with passed indentation per level
+// if indentation <= 0, inline print
+func (v JSON_value) repr(indentation int) string {
+	prefix := ""      // dense/inline mode is default, so no prefix
+	prefixChildOfObj := ""      // dense/inline mode is default, so no prefix
+	lineEnd := ""     // no line ending
+	objectKeyValSeparator := ":"  // and tight separator
+
+	if indentation >= 1 {
+		lineEnd = "\n"  // inline print if no indentaion
+
+		prefixFiller := " "
+		prefix = strings.Repeat(prefixFiller, v.LevelInObjectStructure*indentation)
+		prefixChildOfObj = strings.Repeat(prefixFiller, (v.LevelInObjectStructure+1)*indentation)
+		objectKeyValSeparator = ": " // separator with space
+	}
+
+	if v.ValType == "object" || v.ValType == "array" {
+		var charOpen  string
+		var charClose string
+		var reprValue string
+
+		if v.ValType == "object" {
+			charOpen = "{"
+			charClose = "}"
+
+			counter := 0
+			for _, childKey := range v.ValObject_keys_sorted() {
+				childVal := v.ValObject[childKey]
+				comma := separator_set_if_no_last_elem(counter, len(v.ValObject), ",")
+				reprValue += prefixChildOfObj + "\"" + childKey + "\"" + objectKeyValSeparator + childVal.repr(indentation) + comma + lineEnd
+				counter ++
+			}
+		} else {
+			charOpen = "["
+			charClose = "]"
+			for counter, childVal := range v.ValArray {
+				comma := separator_set_if_no_last_elem(counter, len(v.ValObject), ",")
+				reprValue += prefixChildOfObj + childVal.repr(indentation) + comma + lineEnd
+			}
+		}
+		return prefix + charOpen + lineEnd + reprValue + prefix + charClose + lineEnd
+
+	} else {
+		// simple value, not a container
+		return string(v.Runes)
+	}
+}
 
 // printing for tests
 func (v JSON_value) print() {
-	prefix := ""
-	for i:=0; i<v.LevelInObjectStructure; i++ {
-		prefix += "  "
-	}
 
-	fmt.Println(prefix, v.idSelf, v.ValType, "\t", string(v.Runes) )
+	fmt.Println(v.repr(0), "\t", v.idSelf, v.ValType)
 	for _, elem := range v.ValArray {
 		elem.print()
 	}
@@ -943,4 +1005,14 @@ func hexaRune_to_intVal(hexaChar rune) (int, error) {  // TESTED
 	}
 	return 0, errors.New("hexa char(" + string(hexaChar) + ") was not in hexa table")
 }
+
+// return with a separator if no last elem, or empty string if last elem is reached
+func separator_set_if_no_last_elem(position, length_numOfAllElems int, separator string) string {
+	if position < length_numOfAllElems -1 {
+		return separator
+	}
+	return ""
+}
+
+
 /////////////////////// base functions /////////////////
