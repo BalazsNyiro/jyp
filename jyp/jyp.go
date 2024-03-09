@@ -31,10 +31,10 @@ type token struct {
 	// objectOpen, objectClose, arrayOpen, arrayClose, comma, colon
 	// bool null, string, number_int, number_float,
 
-	valBool      bool
-	valString      string
-	valNumberInt   int
-	valNumberFloat float64
+	valBool      	bool
+	valString      	string
+	valNumberInt   	int
+	valNumberFloat 	float64
 
 	charPositionFirstInSourceCode int // 0: the first char in source code, 1: 2nd...
 	charPositionLastInSourceCode  int // 0: the first char in source code, 1: 2nd...
@@ -131,8 +131,35 @@ func (v JSON_value) repr(indentation int) string {
 	}
 }
 
-// printing for tests
-func (v JSON_value) print() {
+// General elem getter func to loop over Json structure.
+func (v JSON_value) GetElems() {
+	/* in Json, objects have string keys. Lists have integer indexes,
+	the values can be objects, lists, strings, bool values, and null -
+	from the perspective of a programmer, it is a nightmare to use it,
+	to handle all types when he wants to process it.
+
+	The Go programmer has to options:
+	 - directly ask the 'JSON_value.ValType', and handle all possible value types.
+	 - use GetElems to receive a simplified type structure
+
+	in both case, the user will know exactly the type of the elem, and the value,
+	so the suggested way is the GetElems usage.
+
+
+	To simplify the life, GetElems return with a standardised type structure:
+
+	                                                  the value is ALWAYS JSON_value:
+
+	 - a JSON object:  ValType="object",           []string  keys         JSON_value elems
+	 - a JSON array:   ValType="array"             []integer keys         JSON_value elems
+
+	for simple types, the key is ALWAYS A string:
+	 - a JSON string:  ValType="string"            "string"               JSON_value_elem
+	 - a JSON integer: ValType="number_integer"    "number_integer"
+
+	because
+
+	*/
 
 	fmt.Println(v.repr(0), "\t", v.idSelf, v.ValType)
 	for _, elem := range v.ValArray {
@@ -142,6 +169,7 @@ func (v JSON_value) print() {
 		elem.print()
 	}
 }
+
 
 type tokenTable_startPositionIndexed map[int]token
 
@@ -290,15 +318,11 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 								idParent:                      idParent,
 								LevelInObjectStructure:        containers[idParent].LevelInObjectStructure +1,
 			}
-			if tokenActual.valType == "null" 			{ _ = "null type has no value, don't store it"      }
-			if tokenActual.valType == "bool"           { value.ValBool = tokenActual.valBool
-			}
-			if tokenActual.valType == "string"         { value.ValString = tokenActual.valString
-			}
-			if tokenActual.valType == "number_integer" { value.ValNumberInt = tokenActual.valNumberInt
-			}
-			if tokenActual.valType == "number_float64" { value.ValNumberFloat = tokenActual.valNumberFloat
-			}
+			if tokenActual.valType == "null" { _ = "null type has no value, don't store it"}
+			if tokenActual.valType == "bool" { value.ValBool = tokenActual.valBool }
+			if tokenActual.valType == "string" { value.ValString = tokenActual.valString }
+			if tokenActual.valType == "number_integer" { value.ValNumberInt = tokenActual.valNumberInt }
+			if tokenActual.valType == "number_float64" { value.ValNumberFloat = tokenActual.valNumberFloat }
 
 		} // notCloser
 

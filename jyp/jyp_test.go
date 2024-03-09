@@ -99,9 +99,9 @@ func Test_object_hierarchy_building(t *testing.T) {
 	elemRoot, errorsCollected := JsonParse(src)
 	fmt.Println("REPR:")
 	print(elemRoot.repr(2))
-
+	fmt.Println("ValType:", elemRoot.ValType)
 	fmt.Println("=====================")
-	fmt.Println("rootType", elemRoot.ValType)
+	fmt.Println("KeysVals", elemRoot.ValType)
 
 	// TODO: the main root object and hierarchy building is in progress
 
