@@ -94,14 +94,18 @@ func Test_object_hierarchy_building(t *testing.T) {
 	funName := "Test_object_hierarchy_building"
 	testName := funName + "_basic"
 
-	src := `{"int":123, "float": 456.78, "intNegative": -9, "floatNegative": -0.12}`
+	// src := `{"int":123, "float": 456.78, "intNegative": -9, "floatNegative": -0.12, {"embedded": 0}}`
+	src := `{"embedded":{"level2": 0}}`
 
 	elemRoot, errorsCollected := JsonParse(src)
 	fmt.Println("REPR:")
 	print(elemRoot.repr(2))
 	fmt.Println("ValType:", elemRoot.ValType)
 	fmt.Println("=====================")
-	fmt.Println("KeysVals", elemRoot.ValType)
+	fmt.Println("Keys LOOP")
+	for key, val := range elemRoot.ValObject {
+		fmt.Println("level 1", key, val)
+	}
 
 	// TODO: the main root object and hierarchy building is in progress
 

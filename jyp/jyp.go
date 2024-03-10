@@ -131,44 +131,77 @@ func (v JSON_value) repr(indentation int) string {
 	}
 }
 
-// General elem getter func to loop over Json structure.
-func (v JSON_value) GetElems() {
-	/* in Json, objects have string keys. Lists have integer indexes,
-	the values can be objects, lists, strings, bool values, and null -
-	from the perspective of a programmer, it is a nightmare to use it,
-	to handle all types when he wants to process it.
-
-	The Go programmer has to options:
-	 - directly ask the 'JSON_value.ValType', and handle all possible value types.
-	 - use GetElems to receive a simplified type structure
-
-	in both case, the user will know exactly the type of the elem, and the value,
-	so the suggested way is the GetElems usage.
 
 
-	To simplify the life, GetElems return with a standardised type structure:
 
-	                                                  the value is ALWAYS JSON_value:
 
-	 - a JSON object:  ValType="object",           []string  keys         JSON_value elems
-	 - a JSON array:   ValType="array"             []integer keys         JSON_value elems
-
-	for simple types, the key is ALWAYS A string:
-	 - a JSON string:  ValType="string"            "string"               JSON_value_elem
-	 - a JSON integer: ValType="number_integer"    "number_integer"
-
-	because
-
-	*/
-
-	fmt.Println(v.repr(0), "\t", v.idSelf, v.ValType)
-	for _, elem := range v.ValArray {
-		elem.print()
-	}
-	for _, elem := range v.ValObject {
-		elem.print()
-	}
-}
+// a mixed string/integer key, because objects have string keys only, arrays have integers only
+// type KeyStrInt struct {
+// 	KeyInt int
+// 	KeyStr string
+// }
+//
+// type ElemsSimpleHierarchy map[KeyStrInt] JSON_value
+//
+// // General elem getter func to loop over Json structure.
+// func (v JSON_value) GetElems() ElemsSimpleHierarchy {
+// 	/*
+// 	in Json, objects have string keys. Lists have integer indexes,
+// 	the values can be objects, lists, strings, bool values, and null -
+// 	from the perspective of a programmer, it is a nightmare to use it,
+// 	to handle all types when he wants to process it.
+//
+// 	The Go programmer has two options:
+// 	 - directly ask the 'JSON_value.ValType', and handle all possible value types.
+// 	   so if ValType == 'object' then manage the string keys,
+// 	   if ValType == 'array' then manage the integer keys,
+// 	   and manage one-by-one the bool values and the null type, and integer/float numbers
+// 	 - use GetElems to receive a simplified type structure
+//
+// 	in both case, the user will know exactly the type of the elem, and the value,
+// 	so the suggested way is the GetElems usage.
+//
+//
+// 	To simplify the life, GetElems return with a standardised type structure:
+//
+// 	To READ the values, everything has a
+// 	 - string key -> JSON_elem value
+//
+// 	 - an object elem
+// 	array:  an array has integer indexes naturally. To standardize the
+//
+//
+// 	*/
+// 	keyIntForNonIndexedValues := -1
+// 	keyForNonObjectNonArray := KeyStrInt{KeyInt: keyIntForNonIndexedValues, KeyStr:""}
+//
+// 	elem := ElemsSimpleHierarchy{}
+// 	if v.ValType == "object" {
+// 		for keyTxt, valJson := range v.ValObject {
+// 			keyCombined := KeyStrInt{KeyInt: keyIntForNonIndexedValues, KeyStr: keyTxt}
+// 			elem[keyCombined] = valJson.GetElems()
+// 		}
+// 	}
+// 	if v.ValType == "array" {
+// 		for keyIdx, valJson := range v.ValArray {
+// 			keyCombined := KeyStrInt{KeyInt: keyIdx, KeyStr:""}
+// 			elem[keyCombined] = valJson.GetElems()
+// 		}
+// 	}
+// 	if v.ValType == "null" {
+// 		elem[keyForNonObjectNonArray] = v
+// 	}
+// 	if v.ValType == "bool" {
+// 		elem[keyForNonObjectNonArray] = v
+// 	}
+// 	if v.ValType == "number_integer" {
+// 		elem[keyForNonObjectNonArray] = v
+// 	}
+// 	if v.ValType == "number_float64" {
+// 		elem[keyForNonObjectNonArray] = v
+// 	}
+// 	return elem
+// }
 
 
 type tokenTable_startPositionIndexed map[int]token
@@ -180,7 +213,7 @@ func JsonParse(src string) (JSON_value, []error) {
 	tokens := tokenTable_startPositionIndexed{}
 
 	// a simple rule - inputs:  src, tokens, errors are inputs,
-	//                 outputs: src, tokens, errors
+//                 outputs: src, tokens, errors
 	// the src is always less and less, as tokens are detected
 	// the tokens table has more and more elems, as the src sections are parsed
 	// at the end, src is total empty (if everything goes well) - and we don't have errors, too
@@ -250,13 +283,15 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 		///////////////// SIMPLE JSON VALUES ARE SAVED DIRECTLY INTO THEIR PARENT /////////////////////////
 		// in json objects, the first string is always the key. then the next elem is the value
 		if idParent >= 0 { // the first root elem doesn't have parents, so idParent == -1
-			if  lastDetectedStringKey__inObject == "" &&
-				containers[idParent].ValType == "object" &&
-				tokenActual.valType == "string"  {
-				lastDetectedStringKey__inObject = tokenActual.valString
-				continue
-			}
-		}
+			if  lastDetectedStringKey__inObject == "" {
+				if containers[idParent].ValType == "object" {
+					if tokenActual.valType == "string"  {
+						lastDetectedStringKey__inObject = tokenActual.valString
+						continue
+					} // == string
+				} // == object
+			} // == ""
+		} // >= 0
 
 
 
@@ -304,12 +339,15 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 		var value JSON_value
 
 		if isCloserToken {
-			value = containers[idParent] // the actual parent is closed
-			if idParent == 0 {
-				elemRoot = value
+			if idParent == -1 { // only the root elem is WITHOUT valid parents.
+				elemRoot = containers[0] //  read elem 0
 				break
 			}
-			delete(containers, idParent)
+			value = containers[idParent] // the actual parent is closed, handle it as ONE value
+			delete(containers, idParent) // and remove the actual elemContainer from containers
+
+			idParent = value.idParent // the new parent after the obj close is the UPPER level parent
+			lastDetectedStringKey__inObject = keyString_OfCollectors__filledIfObjectKey_emptyIfParentIsArray[value.idSelf]
 		} else {
 			value = JSON_value{ValType: tokenActual.valType,
 								CharPositionFirstInSourceCode: tokenActual.charPositionFirstInSourceCode,
@@ -328,7 +366,7 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 
 
 		///////////////// update the parent container with the new elem ////////////////////////////
-		parent := containers[value.idParent]
+		parent := containers[idParent]
 		parent.CharPositionLastInSourceCode = value.CharPositionLastInSourceCode
 		// ^^^ the tokenCloser's last position is saved with this!
 		if parent.ValType == "array" {
@@ -337,10 +375,10 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 			parent.ValArray = elems
 		}
 		if parent.ValType == "object" {
-			valObjects := parent.ValObject
-			valObjects[lastDetectedStringKey__inObject] = value
+			parent_valObjects := parent.ValObject
+			parent_valObjects[lastDetectedStringKey__inObject] = value
 			lastDetectedStringKey__inObject = "" // clear the keyName, we used that for the current object
-			parent.ValObject = valObjects
+			parent.ValObject = parent_valObjects
 		}
 		containers[idParent] = parent // save back the updated parent
 
