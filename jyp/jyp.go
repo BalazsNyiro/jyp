@@ -146,7 +146,7 @@ func (v JSON_value) objPath(keysEmbedded []string) (JSON_value, error) {
 		return valueEmpty, errors.New(errorPrefix + "missing object keys (no keys are passed)")
 	}
 
-	// minimum 1 keys are received
+	// minimum 1 key is received
 	valueCollected, keyFirstIsKnownInObject := v.ValObject[keysEmbedded[0]]
 	if ! keyFirstIsKnownInObject {
 		return valueEmpty, errors.New(errorPrefix + "unknown object key (key:"+keysEmbedded[0]+")")
@@ -174,7 +174,7 @@ func (v JSON_value) arrPath(indexEmbedded []int) (JSON_value, error) {
 		return valueEmpty, errors.New(errorPrefix + "missing array index")
 	}
 
-	// minimum 1 keys are received
+	// minimum 1 key is received
 	valueCollected := v.ValArray[indexEmbedded[0]]
 	if len(indexEmbedded) == 1 {
 		return valueCollected, nil
