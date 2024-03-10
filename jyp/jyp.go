@@ -21,6 +21,7 @@ import (
 
 
 type tokenTable map[string]token
+var errorPrefix = "Error: "
 
 
 // token: a structural elem of the source code, maybe without real meaning (comma separator, for example)
@@ -135,6 +136,56 @@ func (v JSON_value) repr(indentation int) string {
 	}
 }
 
+
+
+func (v JSON_value) objPath(keysEmbedded []string) (JSON_value, error) {
+	// object reader:  elem_root.obj("personal", "list")
+	var valueEmpty JSON_value
+
+	if len(keysEmbedded) < 1 {
+		return valueEmpty, errors.New(errorPrefix + "missing object keys (no keys are passed)")
+	}
+
+	// minimum 1 keys are received
+	valueCollected, keyFirstIsKnownInObject := v.ValObject[keysEmbedded[0]]
+	if ! keyFirstIsKnownInObject {
+		return valueEmpty, errors.New(errorPrefix + "unknown object key (key:"+keysEmbedded[0]+")")
+	}
+
+	if len(keysEmbedded) == 1 {
+		if keyFirstIsKnownInObject {
+			return valueCollected, nil
+		}
+	}
+
+	// len(keys) > 1
+	if valueCollected.ValType != "object" {
+		return valueEmpty, errors.New(errorPrefix + keysEmbedded[0] + "-> child is not object, key cannot be used")
+	}
+	return valueCollected.objPath(keysEmbedded[1:])
+}
+
+
+func (v JSON_value) arrPath(indexEmbedded []int) (JSON_value, error) {
+	// array reader:  elem_root.obj("list").arr(0, 1)
+	var valueEmpty JSON_value
+
+	if len(indexEmbedded) < 1 {
+		return valueEmpty, errors.New(errorPrefix + "missing array index")
+	}
+
+	// minimum 1 keys are received
+	valueCollected := v.ValArray[indexEmbedded[0]]
+	if len(indexEmbedded) == 1 {
+		return valueCollected, nil
+	}
+
+	// len(keys) > 1
+	if valueCollected.ValType != "array" {
+		return valueEmpty, errors.New(errorPrefix + strconv.Itoa(indexEmbedded[0]) + "-> child is not array, index cannot be used")
+	}
+	return valueCollected.arrPath(indexEmbedded[1:])
+}
 
 
 

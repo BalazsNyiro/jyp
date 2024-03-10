@@ -12,10 +12,11 @@ func main() {
 
 	fmt.Println("errors collected:", errorsCollected)
 
-	for key, val := range elem_root.ValObject["personal"].ValObject {
-		// fmt.Println("key:", key, "val:", val)
-		fmt.Println("key:", key)
-		_ = val
+	for key, val := range elem_root.ValObject["personal"].ValObject["list"].ValArray {
+		fmt.Println("key:", key, "valueType:", val.ValType)
+		// fmt.Println("key:", key)
 	}
+
+	// wanted usage: elem_root.get("personal", "list", "0").
 
 }
