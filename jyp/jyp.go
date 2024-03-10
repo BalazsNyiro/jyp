@@ -20,7 +20,6 @@ import (
 )
 
 
-type tokenList []token
 type tokenTable map[string]token
 
 
@@ -123,7 +122,12 @@ func (v JSON_value) repr(indentation int) string {
 				reprValue += prefixChildOfObj + childVal.repr(indentation) + comma + lineEnd
 			}
 		}
-		return prefix + charOpen + lineEnd + reprValue + prefix + charClose + lineEnd
+
+		extraNewlineAfterRootElemPrint := ""
+		if v.idSelf == 0 {
+			extraNewlineAfterRootElemPrint = "\n"
+		}
+		return prefix + charOpen + lineEnd + reprValue + prefix + charClose + extraNewlineAfterRootElemPrint
 
 	} else {
 		// simple value, not a container

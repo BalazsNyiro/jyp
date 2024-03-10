@@ -1,5 +1,5 @@
-module proba
+module example_program
 
-go 1.18
+go 1.22.1
 
-require github.com/BalazsNyiro/jyp v0.0.0-20221020013057-7687beba2ab4
+require github.com/BalazsNyiro/jyp v0.0.0-20240310023436-2d0984fc85c4
