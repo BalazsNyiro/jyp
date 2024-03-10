@@ -119,7 +119,7 @@ func (v JSON_value) repr(indentation int) string {
 			charOpen = "["
 			charClose = "]"
 			for counter, childVal := range v.ValArray {
-				comma := separator_set_if_no_last_elem(counter, len(v.ValObject), ",")
+				comma := separator_set_if_no_last_elem(counter, len(v.ValArray), ",")
 				reprValue += prefixChildOfObj + childVal.repr(indentation) + comma + lineEnd
 			}
 		}
@@ -248,27 +248,28 @@ func JsonParse(src string) (JSON_value, []error) {
 func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCollected []error)  (JSON_value, []error) {
 	var elemRoot JSON_value
 
-
 	positionKeys_of_tokens := tokenTable_position_keys_sorted(tokens)
 
 	if len(positionKeys_of_tokens) < 1 {
 		errorsCollected = append(errorsCollected, errors.New("emtpy source code, no tokens"))
+		return elemRoot, errorsCollected
 	}
 
 	keyFirst := positionKeys_of_tokens[0]
 	if tokens[keyFirst].valType != "objectOpen"  {
 		errorsCollected = append(errorsCollected, errors.New("the first token has to be 'objectOpen' in JSON source code"))
+		return elemRoot, errorsCollected
 	}
 	///////////////////////////////////////////////////////////////
 
 
-
-
-
 	idParent := -1 // id can be 0 or bigger, so -1 is a non-existing parent id (root elem doesn't have parent
 	containers := map[int]JSON_value{}
-	keyString_OfCollectors__filledIfObjectKey_emptyIfParentIsArray := map[int]string{} // if the parent is an object, elems can be inserted with keys.
+	keyStrings_of_collectors__filledIfObjectKey_emptyIfParentIsArray := map[int]string{} // if the parent is an object, elems can be inserted with keys.
 	lastDetectedStringKey__inObject := ""
+
+
+
 
 	// tokenKeys are charPosition based numbers, they are not continuous.
 	for tokenNum, tokenPositionKey := range positionKeys_of_tokens {
@@ -282,6 +283,7 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 
 		///////////////// SIMPLE JSON VALUES ARE SAVED DIRECTLY INTO THEIR PARENT /////////////////////////
 		// in json objects, the first string is always the key. then the next elem is the value
+		// detect this situation: string key in an object:
 		if idParent >= 0 { // the first root elem doesn't have parents, so idParent == -1
 			if  lastDetectedStringKey__inObject == "" {
 				if containers[idParent].ValType == "object" {
@@ -296,7 +298,10 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 
 
 		//////////////////////////////////////////////////////////////////////
-		if tokenActual.valType == "objectOpen" || tokenActual.valType == "arrayOpen " {
+		if tokenActual.valType == "objectOpen" || tokenActual.valType == "arrayOpen" {
+			// the id is important ONLY for the children - when they are inserted
+			// into the parent containers. So when the container elem is parsed,
+			// the id can be re-used later.
 			id := len(containers) // get the next free id in the database
 			// container: array|object,
 			levelInObjectStructure := 0
@@ -317,10 +322,16 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 				containerNew.ValType = "array"
 				containerNew.ValArray = []JSON_value{}
 			}
-			containers[id] = containerNew
-			/* at this point, key has to be saved, because when the container is CLOSED,
-			   at that moment the key will be used, to insert the obj into te parent. */
-			keyString_OfCollectors__filledIfObjectKey_emptyIfParentIsArray[id] = lastDetectedStringKey__inObject // save the key (it can be empty, or filled!)
+
+			// the container has to be saved, because every new elem will be inserted
+			// later, and at the close point, the whole container is handled as one
+			containers[id] = containerNew  // single value.
+
+			/* 	at this point, key has to be saved, because when the container is CLOSED,
+			   	at that moment the key will be used, to insert the obj into te parent.
+				if the container is an 'array' then keywords are not used, so they are empty
+			*/
+			keyStrings_of_collectors__filledIfObjectKey_emptyIfParentIsArray[id] = lastDetectedStringKey__inObject // save the key (it can be empty, or filled!)
 			lastDetectedStringKey__inObject = ""
 			idParent = id // this new array is the new parent for the next elems
 			continue
@@ -339,15 +350,17 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 		var value JSON_value
 
 		if isCloserToken {
-			if idParent == -1 { // only the root elem is WITHOUT valid parents.
+			if idParent == 0 { // closerToken IN root elem, which id==0
 				elemRoot = containers[0] //  read elem 0
-				break
+				break // the exit point of the processing
 			}
+			// handle the container as a single value - and restore it's keyString.
 			value = containers[idParent] // the actual parent is closed, handle it as ONE value
 			delete(containers, idParent) // and remove the actual elemContainer from containers
 
 			idParent = value.idParent // the new parent after the obj close is the UPPER level parent
-			lastDetectedStringKey__inObject = keyString_OfCollectors__filledIfObjectKey_emptyIfParentIsArray[value.idSelf]
+			lastDetectedStringKey__inObject = keyStrings_of_collectors__filledIfObjectKey_emptyIfParentIsArray[value.idSelf]
+			delete(keyStrings_of_collectors__filledIfObjectKey_emptyIfParentIsArray, value.idSelf)
 		} else {
 			value = JSON_value{ValType: tokenActual.valType,
 								CharPositionFirstInSourceCode: tokenActual.charPositionFirstInSourceCode,
@@ -382,9 +395,9 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 		}
 		containers[idParent] = parent // save back the updated parent
 
-		if isCloserToken {
-			idParent = parent.idParent // the new parent is the current parent's parent
-		}
+		// if isCloserToken {
+		// 	idParent = parent.idParent // the new parent is the current parent's parent
+		//}
 
 
 	} // for, tokenNum, tokenPositionKey

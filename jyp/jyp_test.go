@@ -95,7 +95,7 @@ func Test_object_hierarchy_building(t *testing.T) {
 	testName := funName + "_basic"
 
 	// src := `{"int":123, "float": 456.78, "intNegative": -9, "floatNegative": -0.12, {"embedded": 0}}`
-	src := `{"embedded":{"level2": 0}}`
+ 	src := `{"embedded":{"level2": [3,4.5]}}`
 
 	elemRoot, errorsCollected := JsonParse(src)
 	fmt.Println("REPR:")
