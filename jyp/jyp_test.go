@@ -113,6 +113,7 @@ func Test_object_hierarchy_building(t *testing.T) {
 
 	valThird, _ := jsonVal1.Arr(2)
 	compare_str_str(testName, `"stringAtEnd"`, valThird.repr(), t)
+	fmt.Println(elemRoot.repr())
 }
 
 

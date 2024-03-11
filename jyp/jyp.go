@@ -69,6 +69,7 @@ type JSON_value struct {
 	CharPositionFirstInSourceCode int // 0: the first char in source code, 1: 2nd...
 	CharPositionLastInSourceCode  int // 0: the first char in source code, 1: 2nd...
 	Runes []rune
+	AddedInGoCode	bool
 
 	/////// CONNECTIONS ///
 	idParent int  // the id of the parent elem - internal attrib to build structures
@@ -91,7 +92,7 @@ func (v JSON_value) ValObject_keys_sorted() []string{
 // an ALWAYS string representation of the value
 // if indentation > 0: pretty print, with passed indentation per level
 // if indentation <= 0, inline print
-// zero or one param
+// zero or one param is accepted. repr() means repr(0), when there is NO indentation (for simple values that is fine)
 func (v JSON_value) repr(indentationByUser ...int) string {
 	prefix := ""      // dense/inline mode is default, so no prefix
 	prefixChildOfObj := ""      // dense/inline mode is default, so no prefix
@@ -388,6 +389,8 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 								Runes:                         tokenActual.runes,
 								idParent:                      idParent,
 								LevelInObjectStructure:        containers[idParent].LevelInObjectStructure +1,
+								// idSelf is not filled, the whole id conception is used ONLY to find parents
+								// during parsing.
 			}
 			if tokenActual.valType == "null" { _ = "null type has no value, don't store it"}
 			if tokenActual.valType == "bool" { value.ValBool = tokenActual.valBool }
@@ -1107,6 +1110,4 @@ func separator_set_if_no_last_elem(position, length_numOfAllElems int, separator
 	}
 	return ""
 }
-
-
 /////////////////////// base functions /////////////////
