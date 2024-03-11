@@ -99,21 +99,11 @@ func Test_object_hierarchy_building(t *testing.T) {
 	elemRoot, errorsCollected := JsonParse(src)
 	jsonVal1, _ := elemRoot.ObjPathKeys([]string{"embedded", "level2"})
 	jsonVal2, _ := elemRoot.ObjPath("/embedded/level2")
-
-	compare_str_str(testName, jsonVal1.ValArray[2].repr(0), jsonVal2.ValArray[2].repr(0), t)
-	// fmt.Println("valArray", jsonVal1.ValArray[2].repr(0))
+	compare_int_int(testName, 0, len(errorsCollected), t)
+	compare_str_str(testName, jsonVal1.ValArray[2].repr(), jsonVal2.ValArray[2].repr(), t)
 
 	valThird, _ := jsonVal1.Arr(2)
-	fmt.Println("valThird", valThird.repr(0))
-
-
-
-
-	// TODO: the main root object and hierarchy building is in progress
-
-	_ = elemRoot
-	_ = errorsCollected
-	_ = testName
+	compare_str_str(testName, `"stringAtEnd"`, valThird.repr(), t)
 }
 
 
