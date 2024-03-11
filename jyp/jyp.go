@@ -81,14 +81,22 @@ func (v JSON_value) ValObject_keys_sorted() []string{
 }
 
 
+
 // an ALWAYS string representation of the value
 // if indentation > 0: pretty print, with passed indentation per level
 // if indentation <= 0, inline print
-func (v JSON_value) repr(indentation int) string {
+// zero or one param
+func (v JSON_value) repr(indentationByUser ...int) string {
 	prefix := ""      // dense/inline mode is default, so no prefix
 	prefixChildOfObj := ""      // dense/inline mode is default, so no prefix
 	lineEnd := ""     // no line ending
 	objectKeyValSeparator := ":"  // and tight separator
+
+	indentation := 0
+	if len(indentationByUser) > 0 {
+		indentation = indentationByUser[0]
+	}
+
 
 	if indentation >= 1 {
 		lineEnd = "\n"  // inline print if no indentaion
@@ -138,8 +146,8 @@ func (v JSON_value) repr(indentation int) string {
 
 
 
-func (v JSON_value) objPath(keysEmbedded []string) (JSON_value, error) {
-	// object reader:  elem_root.obj("personal", "list")
+func (v JSON_value) ObjPathKeys(keysEmbedded []string) (JSON_value, error) {
+	// object reader with separated string keys:  elem_root.ObjPathKeys([]string{"personal", "list"})
 	var valueEmpty JSON_value
 
 	if len(keysEmbedded) < 1 {
@@ -162,29 +170,51 @@ func (v JSON_value) objPath(keysEmbedded []string) (JSON_value, error) {
 	if valueCollected.ValType != "object" {
 		return valueEmpty, errors.New(errorPrefix + keysEmbedded[0] + "-> child is not object, key cannot be used")
 	}
-	return valueCollected.objPath(keysEmbedded[1:])
+	return valueCollected.ObjPathKeys(keysEmbedded[1:])
+}
+
+func (v JSON_value) ObjPath(keysMerged string) (JSON_value, error) {
+	// object reader with merged string keys (first character is the key elem separator
+	// elem_root.ObjPath("/personal/list")     separator: /
+	// elem_root.ObjPath("|personal|list")     separator: |
+	// elem_root.ObjPath(">personal>list")     separator: |
+	// the separator can be any character.
+	var valueEmpty JSON_value
+
+	if len(keysMerged) < 2 {
+		return valueEmpty, errors.New(errorPrefix + "missing separator and key(s) in merged ObjPath")
+	}
+
+	separatorChar := keysMerged[0]
+	fmt.Println("separator:", string(separatorChar))
+	keys := strings.Split(keysMerged, string(separatorChar))
+	/*
+	if you try to use this:  '/embedded/level2' then before the first separator, an empty string will be in elems
+	separator: /
+	>>> ''
+	>>> 'embedded'
+	>>> 'level2'
+	keys: [ embedded level2]
+	for _, key := range keys {
+		print(fmt.Sprintf(">>> '%s' \n", key))
+	}
+
+	 */
+	return v.ObjPathKeys(keys[1:])
 }
 
 
-func (v JSON_value) arrPath(indexEmbedded []int) (JSON_value, error) {
-	// array reader:  elem_root.obj("list").arr(0, 1)
+func (v JSON_value) Arr(index int) (JSON_value, error) {
+	// ask ONE indexed elem from an array
+
 	var valueEmpty JSON_value
-
-	if len(indexEmbedded) < 1 {
-		return valueEmpty, errors.New(errorPrefix + "missing array index")
+	indexMax := len(v.ValArray) - 1
+	if index > indexMax {
+		return valueEmpty, errors.New(errorPrefix + "index ("+strconv.Itoa(index)+") is not in array")
 	}
 
-	// minimum 1 key is received
-	valueCollected := v.ValArray[indexEmbedded[0]]
-	if len(indexEmbedded) == 1 {
-		return valueCollected, nil
-	}
-
-	// len(keys) > 1
-	if valueCollected.ValType != "array" {
-		return valueEmpty, errors.New(errorPrefix + strconv.Itoa(indexEmbedded[0]) + "-> child is not array, index cannot be used")
-	}
-	return valueCollected.arrPath(indexEmbedded[1:])
+	valueCollected := v.ValArray[index]
+	return valueCollected, nil
 }
 
 
