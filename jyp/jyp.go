@@ -88,6 +88,30 @@ func (v JSON_value) ValObject_keys_sorted() []string{
 }
 
 
+func (v JSON_value) updateLevelForChildren() {
+	// when new elems are added dynamically, the level of the objects needs to be synchronised,
+	// because the newly inserted object level can be determined ONLY when they are inserted
+
+	if v.ValType == "array" {
+		arrayUpdated := []JSON_value{}
+		for _, elem := range v.ValArray {
+			elem.LevelInObjectStructure = v.LevelInObjectStructure + 1
+			arrayUpdated = append(arrayUpdated, elem)
+		}
+		v.ValArray = arrayUpdated
+	}
+	if v.ValType == "object" {
+		objectsUpdated := map[string]JSON_value{}
+
+		for key, elem := range v.ValObject {
+			elem.LevelInObjectStructure = v.LevelInObjectStructure + 1
+			objectsUpdated[key] = elem
+		}
+		v.ValObject = objectsUpdated
+	}
+
+}
+
 
 // an ALWAYS string representation of the value
 // if indentation > 0: pretty print, with passed indentation per level
