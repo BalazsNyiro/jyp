@@ -1,4 +1,12 @@
-// author: Balazs Nyiro, balazs.nyiro.ca@gmail.com
+/*
+Copyright (c) 2024, Balazs Nyiro, balazs.nyiro.ca@gmail.com
+All rights reserved.
+
+This source code (all file in this repo) is licensed
+under the Apache-2 style license found in the
+LICENSE file in the root directory of this source tree.
+
+*/
 
 // this file is the implementation of the _standard_ json data format:
 // https://www.json.org/json-en.html
@@ -20,9 +28,7 @@ import (
 )
 
 
-type tokenTable map[string]token
 var errorPrefix = "Error: "
-
 
 // token: a structural elem of the source code, maybe without real meaning (comma separator, for example)
 type token struct {
@@ -218,77 +224,6 @@ func (v JSON_value) Arr(index int) (JSON_value, error) {
 }
 
 
-
-
-// a mixed string/integer key, because objects have string keys only, arrays have integers only
-// type KeyStrInt struct {
-// 	KeyInt int
-// 	KeyStr string
-// }
-//
-// type ElemsSimpleHierarchy map[KeyStrInt] JSON_value
-//
-// // General elem getter func to loop over Json structure.
-// func (v JSON_value) GetElems() ElemsSimpleHierarchy {
-// 	/*
-// 	in Json, objects have string keys. Lists have integer indexes,
-// 	the values can be objects, lists, strings, bool values, and null -
-// 	from the perspective of a programmer, it is a nightmare to use it,
-// 	to handle all types when he wants to process it.
-//
-// 	The Go programmer has two options:
-// 	 - directly ask the 'JSON_value.ValType', and handle all possible value types.
-// 	   so if ValType == 'object' then manage the string keys,
-// 	   if ValType == 'array' then manage the integer keys,
-// 	   and manage one-by-one the bool values and the null type, and integer/float numbers
-// 	 - use GetElems to receive a simplified type structure
-//
-// 	in both case, the user will know exactly the type of the elem, and the value,
-// 	so the suggested way is the GetElems usage.
-//
-//
-// 	To simplify the life, GetElems return with a standardised type structure:
-//
-// 	To READ the values, everything has a
-// 	 - string key -> JSON_elem value
-//
-// 	 - an object elem
-// 	array:  an array has integer indexes naturally. To standardize the
-//
-//
-// 	*/
-// 	keyIntForNonIndexedValues := -1
-// 	keyForNonObjectNonArray := KeyStrInt{KeyInt: keyIntForNonIndexedValues, KeyStr:""}
-//
-// 	elem := ElemsSimpleHierarchy{}
-// 	if v.ValType == "object" {
-// 		for keyTxt, valJson := range v.ValObject {
-// 			keyCombined := KeyStrInt{KeyInt: keyIntForNonIndexedValues, KeyStr: keyTxt}
-// 			elem[keyCombined] = valJson.GetElems()
-// 		}
-// 	}
-// 	if v.ValType == "array" {
-// 		for keyIdx, valJson := range v.ValArray {
-// 			keyCombined := KeyStrInt{KeyInt: keyIdx, KeyStr:""}
-// 			elem[keyCombined] = valJson.GetElems()
-// 		}
-// 	}
-// 	if v.ValType == "null" {
-// 		elem[keyForNonObjectNonArray] = v
-// 	}
-// 	if v.ValType == "bool" {
-// 		elem[keyForNonObjectNonArray] = v
-// 	}
-// 	if v.ValType == "number_integer" {
-// 		elem[keyForNonObjectNonArray] = v
-// 	}
-// 	if v.ValType == "number_float64" {
-// 		elem[keyForNonObjectNonArray] = v
-// 	}
-// 	return elem
-// }
-
-
 type tokenTable_startPositionIndexed map[int]token
 
 // if the src can be parsed, return with the JSON root object with nested elems, and err is nil.
@@ -298,7 +233,7 @@ func JsonParse(src string) (JSON_value, []error) {
 	tokens := tokenTable_startPositionIndexed{}
 
 	// a simple rule - inputs:  src, tokens, errors are inputs,
-//                 outputs: src, tokens, errors
+    //                 outputs: src, tokens, errors
 	// the src is always less and less, as tokens are detected
 	// the tokens table has more and more elems, as the src sections are parsed
 	// at the end, src is total empty (if everything goes well) - and we don't have errors, too
