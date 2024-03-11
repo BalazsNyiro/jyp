@@ -117,6 +117,9 @@ func Test_object_hierarchy_building(t *testing.T) {
 
 	elemRoot.addKeyVal("newKey", newString("newVal"))
 	fmt.Println(elemRoot.repr(4))
+
+	elemRoot.addKeyVal_path("/embedded/level2", newString("overwritten"))
+	fmt.Println(elemRoot.repr(4))
 }
 
 

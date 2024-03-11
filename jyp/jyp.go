@@ -15,7 +15,11 @@ LICENSE file in the root directory of this source tree.
 //	- Drummatix /туманами/
 //  - Mari Samuelsen /Sequence (four)/
 
-// in the code I intentionally avoid direct pointer usage - I think that is safer.
+/* in the code I intentionally avoid direct pointer usage - I think that is safer:
+	- for goroutines
+	- if json blocks are read and inserted into other json block, pointers are not useful,
+      because they can have side-effects. Every value has to be COPIED.
+*/
 
 package jyp
 
@@ -215,25 +219,34 @@ func (v JSON_value) ObjPath(keysMerged string) (JSON_value, error) {
 	if len(keysMerged) < 2 {
 		return valueEmpty, errors.New(errorPrefix + "missing separator and key(s) in merged ObjPath")
 	}
-
-	separatorChar := keysMerged[0]
-	fmt.Println("separator:", string(separatorChar))
-	keys := strings.Split(keysMerged, string(separatorChar))
-	/*
-	if you try to use this:  '/embedded/level2' then before the first separator, an empty string will be in elems
-	separator: /
-	>>> ''
-	>>> 'embedded'
-	>>> 'level2'
-	keys: [ embedded level2]
-	for _, key := range keys {
-		print(fmt.Sprintf(">>> '%s' \n", key))
-	}
-
-	 */
-	return v.ObjPathKeys(keys[1:])
+	// possible errors are handled with len(...)<2
+	keys, _ := ObjPath_merged_expand__split_with_first_char(keysMerged)
+	fmt.Println("KEYS:", keys, len(keys))
+	return v.ObjPathKeys(keys)
 }
 
+func ObjPath_merged_expand__split_with_first_char(path string) ([]string, error){
+	if len(path) < 1 {
+		return []string{}, errors.New("separator is NOT defined")
+	}
+	if len(path) < 2 { // minimum one path elem is necessary, that we want to read or write
+		// if there is nothing after the separator, the path is empty
+		return []string{}, errors.New("separator and minimum one path elem are NOT defined")
+	}
+	separatorChar := path[0]
+	return strings.Split(path, string(separatorChar))[1:], nil
+	// so the first empty elem has to be removed (empty string), this is the reason of [1:]
+	/*
+		if you try to use this:  '/embedded/level2' then before the first separator, an empty string will be in elems
+		separator: /
+		>>> ''           // EMPTY STRING
+		>>> 'embedded'
+		>>> 'level2'
+		for _, key := range keys {
+			print(fmt.Sprintf(">>> '%s' \n", key))
+		}
+	*/
+}
 
 func (v JSON_value) Arr(index int) (JSON_value, error) {
 	// ask ONE indexed elem from an array
