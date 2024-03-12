@@ -13,6 +13,7 @@ package jyp
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 var srcEverything string = `{
@@ -95,6 +96,72 @@ var srcEverything string = `{
 }`
 
 // TODO: test json src with errors!
+
+
+//  go test -v -run Test_speed
+func Test_speed(t *testing.T) {
+	funName := "Test_speed"
+	testName := funName + "_basic"
+	_ = testName
+
+	src := srcEverything
+	tokens := tokenTable_startPositionIndexed{}
+	errorsCollected := []error{}
+
+	start1 := time.Now()
+	src, tokens, errorsCollected = json_detect_strings________(src, tokens, errorsCollected)
+	time_str := time.Since(start1)
+
+	startSep := time.Now()
+	src, tokens, errorsCollected = json_detect_separators_____(src, tokens, errorsCollected)
+	time_separators := time.Since(startSep)
+
+	startBool := time.Now()
+	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
+	time_bool := time.Since(startBool)
+
+	startNum := time.Now()
+	src, tokens, errorsCollected = json_detect_numbers________(src, tokens, errorsCollected)
+	time_num := time.Since(startNum)
+
+	startValid := time.Now()
+	tokens, errorsCollected = tokens_validations_value_settings(tokens, errorsCollected)
+	time_valid := time.Since(startValid)
+
+	startHierarchy := time.Now()
+	elemRoot, errorsCollected := object_hierarchy_building(tokens, errorsCollected)
+	time_hierarchy := time.Since(startHierarchy)
+
+
+	fmt.Println("time_str", time_str)
+	fmt.Println("time_sep", time_separators)
+	fmt.Println("time_bol", time_bool)
+	fmt.Println("time_num", time_num)
+	fmt.Println("time_val", time_valid)
+	fmt.Println("time_hie", time_hierarchy)
+
+	/* basic big result:
+	time_str 185.342µs
+	time_sep 116.447µs
+	time_bol 18.02011ms
+	time_num 18.412806ms
+	time_val 443.194µs
+	time_hie 1.073941ms
+
+	# a little bigger json time result:
+	time_str 1.152284ms
+	time_sep 1.425252ms
+	time_bol 1.433805656s
+	time_num 1.121081367s
+	time_val 3.130319ms
+	time_hie 20.419823ms
+
+	*/
+
+	_ = elemRoot
+}
+
+
 
 
 
