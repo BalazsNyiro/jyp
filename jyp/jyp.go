@@ -496,7 +496,7 @@ func elem_string_value_validate_and_set(token token, errorsCollected []error) (t
 	 but sometime with 6: \u0123, so I need to look forward for the next 5 chars
 	*/
 
-	src := string(token.runes)
+	src := token.runes
 	src = src[1:len(src)-1]  // "remove opening/closing quotes from the string value"
 
 	valueFromRawSrcParsing := []rune{}
@@ -957,7 +957,7 @@ func json_detect_separators_____(src string, tokensStartPositions tokenTable_sta
 func json_detect_true_false_null(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) { // TESTED
 	srcDetectedTokensRemoved := []rune(src)
 
-	for _, wordOne := range src_get_whitespace_separated_words_posFirst_posLast(src) {
+	for _, wordOne := range src_get_whitespace_separated_words_posFirst_posLast([]rune(src)) {
 
 		detectedType := "" // 3 types of word can be detected in this fun
 		if wordOne.word == "true"  { detectedType = "bool"  }
@@ -987,7 +987,7 @@ func json_detect_true_false_null(src string, tokensStartPositions tokenTable_sta
 func json_detect_numbers________(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) { // TESTED
 	srcDetectedTokensRemoved := []rune(src)
 
-	for _, wordOne := range src_get_whitespace_separated_words_posFirst_posLast(src) {
+	for _, wordOne := range src_get_whitespace_separated_words_posFirst_posLast([]rune(src)) {
 
 		tokenNow := token{valType: "number"} // only numbers can be in the src now.
 		tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
@@ -1016,7 +1016,7 @@ type word struct {
 
 
 // give back words (plus posFirst/posLast info)
-func src_get_whitespace_separated_words_posFirst_posLast(src string) []word { // TESTED
+func src_get_whitespace_separated_words_posFirst_posLast(src []rune) []word { // TESTED
 	timeStartWhite := time.Now()
 
 	words := []word{}
@@ -1073,14 +1073,14 @@ func src_get_whitespace_separated_words_posFirst_posLast(src string) []word { //
 // the space can be answered because this func is used when a real char wanted to be detected,
 // and if a space is returned, this has NO MEANING in that parse section
 // this fun is NOT used in string detection - and other places whitespaces can be neglected, too
-func src_get_char(src string, pos int) rune {  // TESTED
+func src_get_char(src []rune, pos int) rune {  // TESTED
 	posPossibleMax := len(src)-1
 	posPossibleMin := 0
 	if len(src)	== 0 { // if the src is empty, posPossibleMax == -1, min cannot be bigger than max
 		posPossibleMin = -1
 	}
 	if (pos >= posPossibleMin) && (pos <= posPossibleMax) {
-		charSelected := ([]rune(src))[pos]
+		charSelected := src[pos]
 		if is_whitespace_rune(charSelected) {
 			charSelected = ' '
 			// simplify everything. if the char is a whitespace, return with SPACE

@@ -322,7 +322,7 @@ func Test_src_get_words(t *testing.T) {
 	testName := funName + "_basic"
 
 	whitepaceSeparatedString := "abc\t\n12 -1.2"
-	words := src_get_whitespace_separated_words_posFirst_posLast(whitepaceSeparatedString)
+	words := src_get_whitespace_separated_words_posFirst_posLast([]rune(whitepaceSeparatedString))
 
 	// how many words are detected?
 	compare_int_int(testName, 3, len(words), t)
@@ -339,7 +339,7 @@ func Test_src_get_words(t *testing.T) {
 func Test_src_get_char(t *testing.T) {
 	funName := "Test_src_get_char"
 
-	src:= "abc\t\n12 -1.2"
+	src:= []rune("abc\t\n12 -1.2")
 
 	testName := funName + "_overindexNegative"
 	charSelected := src_get_char(src, -2)
