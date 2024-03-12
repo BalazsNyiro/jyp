@@ -12,6 +12,7 @@ package jyp
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 )
@@ -104,7 +105,7 @@ func Test_speed(t *testing.T) {
 	testName := funName + "_basic"
 	_ = testName
 
-	src := srcEverything
+	src := strings.Repeat(srcEverything, 11)
 	tokens := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 

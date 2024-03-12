@@ -29,6 +29,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
+	"unicode"
 )
 
 
@@ -333,7 +335,8 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 	for tokenNum, tokenPositionKey := range positionKeys_of_tokens {
 
 		tokenActual := tokens[tokenPositionKey]
-		fmt.Println(tokenNum, "token:", tokenActual)
+		_ = tokenNum
+		// fmt.Println(tokenNum, "token:", tokenActual)
 
 		if tokenActual.valType == "comma"{ continue } // placeholders
 		if tokenActual.valType == "colon"{ continue }
@@ -1014,6 +1017,8 @@ type word struct {
 
 // give back words (plus posFirst/posLast info)
 func src_get_whitespace_separated_words_posFirst_posLast(src string) []word { // TESTED
+	timeStartWhite := time.Now()
+
 	words := []word{}
 
 	wordChars := []rune{}
@@ -1056,6 +1061,8 @@ func src_get_whitespace_separated_words_posFirst_posLast(src string) []word { //
 	}
 
 
+	time_end := time.Since(timeStartWhite)
+	fmt.Println("time whitespace:", time_end)
 	return words
 }
 ////////////////////////////////////
@@ -1090,7 +1097,20 @@ func is_whitespace_string(src string) bool { // TESTED
 
 // the rune is a whitespace char
 func is_whitespace_rune(oneRune rune) bool { // TESTED
-	return is_whitespace_string(string([]rune{oneRune}))
+	/*
+	https://stackoverflow.com/questions/29038314/determining-whitespace-in-go
+	func IsSpace
+
+	func IsSpace(r rune) bool
+
+	IsSpace reports whether the rune is a space character as defined by Unicode's White Space property; in the Latin-1 space this is
+
+	'\t', '\n', '\v', '\f', '\r', ' ', U+0085 (NEL), U+00A0 (NBSP).
+
+	Other definitions of spacing characters are set by category Z and property Pattern_White_Space.
+	*/
+	return unicode.IsSpace(oneRune)
+	// return is_whitespace_string(string([]rune{oneRune}))
 }
 
 
