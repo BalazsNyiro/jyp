@@ -29,7 +29,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 	"unicode"
 )
 
@@ -267,10 +266,11 @@ func (v JSON_value) Arr(index int) (JSON_value, error) {
 type tokenTable_startPositionIndexed map[int]token
 
 // if the src can be parsed, return with the JSON root object with nested elems, and err is nil.
-func JsonParse(src string) (JSON_value, []error) {
+func JsonParse(srcStr string) (JSON_value, []error) {
 
 	var errorsCollected []error
 	tokens := tokenTable_startPositionIndexed{}
+	src := []rune(srcStr)
 
 	// a simple rule - inputs:  src, tokens, errors are inputs,
     //                 outputs: src, tokens, errors
@@ -855,7 +855,7 @@ func runes_copy(runes []rune) []rune {
 }
 
 ////////////////////// BASE FUNCTIONS ///////////////////////////////////////////////
-func json_detect_strings________(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) { // TESTED
+func json_detect_strings________(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
 
 	srcDetectedTokensRemoved := []rune{}
 	// to find escaped \" \\\" sections in strings
@@ -914,11 +914,11 @@ func json_detect_strings________(src string, tokensStartPositions tokenTable_sta
 		errorsCollected = append(errorsCollected, errors.New("non-closed string detected:"))
 	}
 
-	return string(srcDetectedTokensRemoved), tokensStartPositions, errorsCollected
+	return srcDetectedTokensRemoved, tokensStartPositions, errorsCollected
 }
 
 
-func json_detect_separators_____(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) { // TESTED
+func json_detect_separators_____(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
 	srcDetectedTokensRemoved := []rune{}
 	var tokenNow token
 
@@ -944,7 +944,7 @@ func json_detect_separators_____(src string, tokensStartPositions tokenTable_sta
 			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
 		}
 	} // for runeActual
-	return string(srcDetectedTokensRemoved), tokensStartPositions, errorsCollected
+	return srcDetectedTokensRemoved, tokensStartPositions, errorsCollected
 }
 
 
@@ -954,10 +954,10 @@ func json_detect_separators_____(src string, tokensStartPositions tokenTable_sta
 	because the strings/separators are removed and replaced with space in the src, as placeholders,
     the true/false/null words are surrounded with spaces, as separators.
 */
-func json_detect_true_false_null(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) { // TESTED
-	srcDetectedTokensRemoved := []rune(src)
+func json_detect_true_false_null(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
+	srcDetectedTokensRemoved := []rune(string(src)) // copy the original structure, not use the same variable
 
-	for _, wordOne := range src_get_whitespace_separated_words_posFirst_posLast([]rune(src)) {
+	for _, wordOne := range src_get_whitespace_separated_words_posFirst_posLast(src) {
 
 		detectedType := "" // 3 types of word can be detected in this fun
 		if wordOne.word == "true"  { detectedType = "bool"  }
@@ -972,20 +972,20 @@ func json_detect_true_false_null(src string, tokensStartPositions tokenTable_sta
 
 			for posDetected := wordOne.posFirst; posDetected <= wordOne.posLast; posDetected++ {
 				// save all detected positions:
-				tokenNow.runes = append(tokenNow.runes, ([]rune(src))[posDetected])
+				tokenNow.runes = append(tokenNow.runes, (src)[posDetected])
 				// clear detected positions from the src:
 				srcDetectedTokensRemoved[posDetected] = ' '
 			}
 			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
 		}
 	}
-	return string(srcDetectedTokensRemoved), tokensStartPositions, errorsCollected
+	return srcDetectedTokensRemoved, tokensStartPositions, errorsCollected
 }
 
 
 // words are detected here, and I can hope only that they are numbers - later they will be validated
-func json_detect_numbers________(src string, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (string, tokenTable_startPositionIndexed, []error) { // TESTED
-	srcDetectedTokensRemoved := []rune(src)
+func json_detect_numbers________(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
+	srcDetectedTokensRemoved := []rune(string(src)) // copy the original structure, not use the same variable
 
 	for _, wordOne := range src_get_whitespace_separated_words_posFirst_posLast([]rune(src)) {
 
@@ -995,13 +995,13 @@ func json_detect_numbers________(src string, tokensStartPositions tokenTable_sta
 
 		for posDetected := wordOne.posFirst; posDetected <= wordOne.posLast; posDetected++ {
 			// save all detected positions:
-			tokenNow.runes = append(tokenNow.runes, ([]rune(src))[posDetected])
+			tokenNow.runes = append(tokenNow.runes, (src)[posDetected])
 			// clear detected positions from the src:
 			srcDetectedTokensRemoved[posDetected] = ' '
 		}
 		tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
 	}
-	return string(srcDetectedTokensRemoved), tokensStartPositions, errorsCollected
+	return srcDetectedTokensRemoved, tokensStartPositions, errorsCollected
 }
 
 
@@ -1017,7 +1017,6 @@ type word struct {
 
 // give back words (plus posFirst/posLast info)
 func src_get_whitespace_separated_words_posFirst_posLast(src []rune) []word { // TESTED
-	timeStartWhite := time.Now()
 
 	words := []word{}
 
@@ -1061,8 +1060,6 @@ func src_get_whitespace_separated_words_posFirst_posLast(src []rune) []word { //
 	}
 
 
-	time_end := time.Since(timeStartWhite)
-	fmt.Println("time whitespace:", time_end)
 	return words
 }
 ////////////////////////////////////

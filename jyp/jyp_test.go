@@ -105,7 +105,8 @@ func Test_speed(t *testing.T) {
 	testName := funName + "_basic"
 	_ = testName
 
-	src := strings.Repeat(srcEverything, 11)
+	srcStr := strings.Repeat(srcEverything, 11)
+	src := []rune(srcStr)
 	tokens := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 
@@ -201,7 +202,8 @@ func Test_parse_number_integer(t *testing.T) {
 	funName := "Test_parse_number_integer"
 	testName := funName + "_basic"
 
-	src := `{"int":123, "float": 456.78, "intNegative": -9, "floatNegative": -0.12}`
+	srcStr := `{"int":123, "float": 456.78, "intNegative": -9, "floatNegative": -0.12}`
+	src := []rune(srcStr)
 	tokens := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 
@@ -223,11 +225,12 @@ func Test_parse_number_integer(t *testing.T) {
 
 //  go test -v -run   Test_token_validate_and_value_set_for_strings
 func Test_token_validate_and_value_set_for_strings(t *testing.T) {
-	funName := "Test_detect_numbers"
+	funName := "Test_token_validate_and_value_set_for_strings"
 
 	testName := funName + "_escaped__quotes__reverseSolidus"
 
-	src := `{"quote":"\"Assume a virtue, if you have it not.\"\nShakespeare", "source": "http:\/\/www.quotationspage.com\/quotes\/William_Shakespeare\/"}`
+	srcStr := `{"quote":"\"Assume a virtue, if you have it not.\"\nShakespeare", "source": "http:\/\/www.quotationspage.com\/quotes\/William_Shakespeare\/"}`
+	src := []rune(srcStr)
 	tokens := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 
@@ -249,7 +252,7 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	testName = funName + "_all"
-	src = `{"quotation":      "\" text\"", 
+	src2:=`{"quotation":      "\" text\"", 
             "reverseSolidus": "\\ reverseSolidus", 
             "solidus":        "\/ solidus", 
             "backspace":      "\b backspace", 
@@ -261,6 +264,7 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 			"unicodeChar2":   "\u00e4"
 }`
 
+	src = []rune(src2)
 	tokens = tokenTable_startPositionIndexed{}
 	errorsCollected = []error{}
 
@@ -297,7 +301,8 @@ func Test_detect_numbers(t *testing.T) {
 	testName := funName + "_basic"
 
 
-	src := `{"age":123, "balance": -456.78, "problems": 0, "loan": -1.2E+3, "otherNum": 0.1e-4}`
+	srcStr := `{"age":123, "balance": -456.78, "problems": 0, "loan": -1.2E+3, "otherNum": 0.1e-4}`
+	src := []rune(srcStr)
 	tokens := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 
@@ -392,7 +397,8 @@ func Test_true_false_null(t *testing.T) {
 	funName := "Test_true_false_null"
 	testName := funName + "_basic"
 
-	src := `{"name":"Bob","money":123,"boy":true,"girl":false,"age":null}`
+	srcStr := `{"name":"Bob","money":123,"boy":true,"girl":false,"age":null}`
+	src := []rune(srcStr)
 	srcLenOrig := len(src)
 
 	tokens := tokenTable_startPositionIndexed{}
@@ -405,7 +411,7 @@ func Test_true_false_null(t *testing.T) {
 	// the orig src len has to be equal with the cleaned/received one's length:
 	compare_int_int(testName, srcLenOrig, len(src), t)
 	// TokensDisplay_startingCoords(tokens)
-	compare_str_str(testName, `                      123                                    `, src, t)
+	compare_runes_runes(testName, []rune(`                      123                                    `), src, t)
 	// compare_int_int(testName, 20 , len(tokens), t)
 
 	_ = funName
@@ -417,13 +423,14 @@ func Test_separators_detect(t *testing.T) {
 	funName := "Test_separators_detect"
 
 	testName := funName + "_basic"
-	src := `{"students":[{"name":"Bob", "age":12}{"name": "Eve", "age":34.56}]}`
+	srcStr := `{"students":[{"name":"Bob", "age":12}{"name": "Eve", "age":34.56}]}`
+	src := []rune(srcStr)
 	tokensStartPositions := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 
 	srcSep, tokensSep, errorsCollectedSep := json_detect_separators_____(src, tokensStartPositions, errorsCollected)
 	//                              `{"students":[{"name":"Bob", "age":12}{"name": "Eve", "age":34.56}]}`
-	compare_str_str(testName, ` "students"   "name" "Bob"  "age" 12  "name"  "Eve"  "age" 34.56   `, srcSep, t)
+	compare_runes_runes(testName, []rune(` "students"   "name" "Bob"  "age" 12  "name"  "Eve"  "age" 34.56   `), srcSep, t)
 	compare_int_int(testName, 15, len(tokensSep), t)
 
 	/* because the separators are one char long elems, the start position and end position
@@ -461,7 +468,8 @@ func Test_detect_strings(t *testing.T) {
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	testName := funName + "_emptyString"
-	src := `{"empty":""}`
+	srcStr := `{"empty":""}`
+	src := []rune(srcStr)
 	srcLenOrig := len(src)
 
 	tokensStartPositions := tokenTable_startPositionIndexed{}
@@ -471,7 +479,7 @@ func Test_detect_strings(t *testing.T) {
 	srcEmpty, tokensEmpty, errorsCollectedEmpty := json_detect_strings________(src, tokensStartPositions, errorsCollected)
 	// after token detection, the parsed section is removed;
 	//                                       `{"empty":""}`, t)
-	compare_str_str(testName, `{       :  }`, srcEmpty, t)
+	compare_runes_runes(testName, []rune(`{       :  }`), srcEmpty, t)
 	compare_int_int(testName, srcLenOrig, len(srcEmpty), t)
 
 	compare_int_int(testName, len(tokensEmpty), 2, t) // 3 strings were detected
@@ -487,7 +495,8 @@ func Test_detect_strings(t *testing.T) {
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	testName = funName + "_simpleStringDetect"
-	src = `{"name":"Bob", "age": 42}`
+	srcStr = `{"name":"Bob", "age": 42}`
+	src = []rune(srcStr)
 	srcLenOrig = len(src)
 	tokensStartPositions = tokenTable_startPositionIndexed{}
 	errorsCollected = []error{}
@@ -496,7 +505,7 @@ func Test_detect_strings(t *testing.T) {
 	src2, tokens2, errorsCollected2 := json_detect_strings________(src, tokensStartPositions, errorsCollected)
 	//                              `{"name":"Bob", "age": 42}`
 	// after token detection, the parsed section is removed;
-	compare_str_str(testName, `{      :     ,      : 42}`, src2, t)
+	compare_runes_runes(testName, []rune(`{      :     ,      : 42}`), src2, t)
 	compare_int_int(testName, srcLenOrig, len(src2), t)
 
 	compare_int_int(testName, 3, len(tokens2), t) // 3 strings were detected
@@ -508,7 +517,8 @@ func Test_detect_strings(t *testing.T) {
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	testName = funName + "_escape"
-	srcEsc := `{"name \"of\" the \t\\\"rose\n\"":"red"}`
+	srcEscStr := `{"name \"of\" the \t\\\"rose\n\"":"red"}`
+	srcEsc := []rune(srcEscStr)
 	srcLenOrig = len(srcEsc)
 	tokensStartPositions = tokenTable_startPositionIndexed{}
 	errorsCollected = []error{}
@@ -519,7 +529,7 @@ func Test_detect_strings(t *testing.T) {
 	_ = errorsCollectedEsc
 
 	//                              `{"name \"of\" the \t\\\"rose\n\"":"red"}`
-	compare_str_str(testName, `{                                :     }`, srcEsc, t)
+	compare_runes_runes(testName, []rune(`{                                :     }`), srcEsc, t)
 	compare_int_int(testName, srcLenOrig, len(srcEsc), t)
 	compare_int_int(testName, 1, tokensEsc[1].charPositionFirstInSourceCode, t)
 	compare_int_int(testName, 32, tokensEsc[1].charPositionLastInSourceCode, t)
