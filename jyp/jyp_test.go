@@ -116,9 +116,13 @@ func Test_object_hierarchy_building(t *testing.T) {
 	fmt.Println(elemRoot.repr())
 
 	elemRoot.addKeyVal("newKey", newString("newVal"))
+	jsonVal3, _ := elemRoot.ObjPath("/newKey")
+	compare_str_str(testName, `"newVal"`, jsonVal3.repr(), t)
 	fmt.Println(elemRoot.repr(4))
 
 	elemRoot.addKeyVal_path("/embedded/level2", newString("overwritten"))
+	jsonVal4, _ := elemRoot.ObjPath("/embedded/level2")
+	compare_str_str(testName, `"overwritten"`, jsonVal4.repr(), t)
 	fmt.Println(elemRoot.repr(4))
 }
 
