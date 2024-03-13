@@ -222,7 +222,7 @@ func (v JSON_value) ObjPath(keysMerged string) (JSON_value, error) {
 	}
 	// possible errors are handled with len(...)<2
 	keys, _ := ObjPath_merged_expand__split_with_first_char(keysMerged)
-	fmt.Println("KEYS:", keys, len(keys))
+	// fmt.Println("KEYS:", keys, len(keys))
 	return v.ObjPathKeys(keys)
 }
 
