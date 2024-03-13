@@ -29,7 +29,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"unicode"
 )
 
 
@@ -155,7 +154,7 @@ func (v JSON_value) repr(indentationByUser ...int) string {
 			counter := 0
 			for _, childKey := range v.ValObject_keys_sorted() {
 				childVal := v.ValObject[childKey]
-				comma := separator_set_if_no_last_elem(counter, len(v.ValObject), ",")
+				comma := base__separator_set_if_no_last_elem(counter, len(v.ValObject), ",")
 				reprValue += prefixChildOfObj + "\"" + childKey + "\"" + objectKeyValSeparator + childVal.repr(indentation) + comma + lineEnd
 				counter ++
 			}
@@ -163,7 +162,7 @@ func (v JSON_value) repr(indentationByUser ...int) string {
 			charOpen = "["
 			charClose = "]"
 			for counter, childVal := range v.ValArray {
-				comma := separator_set_if_no_last_elem(counter, len(v.ValArray), ",")
+				comma := base__separator_set_if_no_last_elem(counter, len(v.ValArray), ",")
 				reprValue += prefixChildOfObj + childVal.repr(indentation) + comma + lineEnd
 			}
 		}
@@ -526,16 +525,16 @@ func elem_string_value_validate_and_set(token token, errorsCollected []error) (t
 				runeNext5 := src_get_char(src, pos+5)
 
 
-				base10_val_2, err2 := hexaRune_to_intVal(runeNext2)
+				base10_val_2, err2 := base__hexaRune_to_intVal(runeNext2)
 				if err2 != nil {  errorsCollected = append(errorsCollected, err2)	}
 
-				base10_val_3, err3 := hexaRune_to_intVal(runeNext3)
+				base10_val_3, err3 := base__hexaRune_to_intVal(runeNext3)
 				if err3 != nil {  errorsCollected = append(errorsCollected, err3)	}
 
-				base10_val_4, err4 := hexaRune_to_intVal(runeNext4)
+				base10_val_4, err4 := base__hexaRune_to_intVal(runeNext4)
 				if err4 != nil {  errorsCollected = append(errorsCollected, err4)	}
 
-				base10_val_5, err5 := hexaRune_to_intVal(runeNext5)
+				base10_val_5, err5 := base__hexaRune_to_intVal(runeNext5)
 				if err5 != nil {  errorsCollected = append(errorsCollected, err5)	}
 
 
@@ -1035,7 +1034,7 @@ func src_get_whitespace_separated_words_posFirst_posLast(src []rune) []word { //
 		runeActual := src_get_char(src, posActual)
 
 		// the first and last chars, because of overindexing, are spaces, this is guaranteed!
-		if is_whitespace_rune(runeActual) {
+		if base__is_whitespace_rune(runeActual) {
 			if len(wordChars) > 0 {
 				word := word{
 					word    : string(wordChars),
@@ -1078,36 +1077,13 @@ func src_get_char(src []rune, pos int) rune {  // TESTED
 	}
 	if (pos >= posPossibleMin) && (pos <= posPossibleMax) {
 		charSelected := src[pos]
-		if is_whitespace_rune(charSelected) {
+		if base__is_whitespace_rune(charSelected) {
 			charSelected = ' '
 			// simplify everything. if the char is a whitespace, return with SPACE
 		}
 		return charSelected
 	}
 	return ' '
-}
-
-// the string has whitespace chars only
-func is_whitespace_string(src string) bool { // TESTED
-	return strings.TrimSpace(src) == ""
-}
-
-// the rune is a whitespace char
-func is_whitespace_rune(oneRune rune) bool { // TESTED
-	/*
-	https://stackoverflow.com/questions/29038314/determining-whitespace-in-go
-	func IsSpace
-
-	func IsSpace(r rune) bool
-
-	IsSpace reports whether the rune is a space character as defined by Unicode's White Space property; in the Latin-1 space this is
-
-	'\t', '\n', '\v', '\f', '\r', ' ', U+0085 (NEL), U+00A0 (NBSP).
-
-	Other definitions of spacing characters are set by category Z and property Pattern_White_Space.
-	*/
-	return unicode.IsSpace(oneRune)
-	// return is_whitespace_string(string([]rune{oneRune}))
 }
 
 

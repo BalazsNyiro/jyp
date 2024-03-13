@@ -10,9 +10,39 @@ LICENSE file in the root directory of this source tree.
 
 package jyp
 
-import "errors"
+import (
+	"errors"
+	"unicode"
+)
 
-func hexaRune_to_intVal(hexaChar rune) (int, error) {  // TESTED
+// the string has whitespace chars only
+func base__is_whitespace_string(src string) bool { // TESTED
+	for _, runeFromStr := range src {
+		if ! base__is_whitespace_rune(runeFromStr) {
+			return false
+		}
+	}
+	return true
+}
+
+// the rune is a whitespace char
+func base__is_whitespace_rune(oneRune rune) bool { // TESTED
+	/*
+		https://stackoverflow.com/questions/29038314/determining-whitespace-in-go
+		func IsSpace
+
+		func IsSpace(r rune) bool
+
+		IsSpace reports whether the rune is a space character as defined by Unicode's White Space property; in the Latin-1 space this is
+
+		'\t', '\n', '\v', '\f', '\r', ' ', U+0085 (NEL), U+00A0 (NBSP).
+
+		Other definitions of spacing characters are set by category Z and property Pattern_White_Space.
+	*/
+	return unicode.IsSpace(oneRune)
+}
+
+func base__hexaRune_to_intVal(hexaChar rune) (int, error) { // TESTED
 	hexaTable := map[rune]int{
 		'0': 0,
 		'1': 1,
@@ -41,8 +71,8 @@ func hexaRune_to_intVal(hexaChar rune) (int, error) {  // TESTED
 // return with a separator if position is not last elem, (position is before the last)
 // or with empty string if last elem is reached
 // position is 0 based
-func separator_set_if_no_last_elem(position, length_numOfAllElems int, separator string) string {
-	if position < length_numOfAllElems -1 {
+func base__separator_set_if_no_last_elem(position, length_numOfAllElems int, separator string) string {
+	if position < length_numOfAllElems-1 {
 		return separator
 	}
 	return ""

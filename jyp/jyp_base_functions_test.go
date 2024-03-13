@@ -12,34 +12,59 @@ package jyp
 
 import "testing"
 
+func Test_is_whitespace_string_rune(t *testing.T) {
+	funName := "Test_is_whitespace_string_rune"
 
-//  go test -v -run Test_hexaRune_to_intVal
+	src := "abc\t\n12 -1.2"
+
+	// whitespace string tests
+	testName := funName + "_simpleStringWithWhitespaceEnding"
+	isWhitespace := base__is_whitespace_string(src[0:5])
+	compare_bool_bool(testName, false, isWhitespace, t)
+
+	testName = funName + "_simpleStringOnlyWhitespace"
+	isWhitespace = base__is_whitespace_string(src[3:5])
+	compare_bool_bool(testName, true, isWhitespace, t)
+
+	// whitespace rune tests
+	testName = funName + "_simpleRuneWhitespace"
+	runeSelected := rune(src[4])
+	isWhitespace = base__is_whitespace_rune(runeSelected)
+	compare_bool_bool(testName, true, isWhitespace, t)
+
+	testName = funName + "_simpleRuneNonWhitespace"
+	runeSelected = rune(src[6])
+	isWhitespace = base__is_whitespace_rune(runeSelected)
+	compare_bool_bool(testName, false, isWhitespace, t)
+	compare_rune_rune(testName, '2', runeSelected, t)
+}
+
+// go test -v -run Test_hexaRune_to_intVal
 func Test_hexaRune_to_intVal(t *testing.T) {
 	funName := "Test_hexaRune_to_intVal"
 	testName := funName + "hexa2int_conversation"
 
-	intValDetected, err := hexaRune_to_intVal('b')
+	intValDetected, err := base__hexaRune_to_intVal('b')
 	compare_bool_bool(testName, true, err == nil, t)
 	compare_int_int(testName, 11, intValDetected, t)
 
-	intValDetected, err = hexaRune_to_intVal('m')
+	intValDetected, err = base__hexaRune_to_intVal('m')
 	compare_bool_bool(testName, true, err != nil, t)
 }
-
 
 func Test_separator_set_if_no_last_elem(t *testing.T) {
 	funName := "Test_separator_set_if_no_last_elem"
 	testName := funName + "_base"
 
 	sep := ","
-	elems := []int{0,1,2}
+	elems := []int{0, 1, 2}
 
-	separator := separator_set_if_no_last_elem(3, len(elems), sep)
+	separator := base__separator_set_if_no_last_elem(3, len(elems), sep)
 	compare_str_str(testName, "", separator, t)
 
-	separator = separator_set_if_no_last_elem(2, len(elems), sep)
+	separator = base__separator_set_if_no_last_elem(2, len(elems), sep)
 	compare_str_str(testName, "", separator, t)
 
-	separator = separator_set_if_no_last_elem(1, len(elems), sep)
+	separator = base__separator_set_if_no_last_elem(1, len(elems), sep)
 	compare_str_str(testName, ",", separator, t)
 }
