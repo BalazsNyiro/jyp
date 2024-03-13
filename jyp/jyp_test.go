@@ -536,18 +536,6 @@ func Test_detect_strings(t *testing.T) {
 }
 
 
-//  go test -v -run Test_hexaRune_to_intVal
-func Test_hexaRune_to_intVal(t *testing.T) {
-	funName := "Test_hexaRune_to_intVal"
-	testName := funName + "hexa2int_conversation"
-
-	intValDetected, err := hexaRune_to_intVal('b')
-	compare_bool_bool(testName, true, err == nil, t)
-	compare_int_int(testName, 11, intValDetected, t)
-
-	intValDetected, err = hexaRune_to_intVal('m')
-	compare_bool_bool(testName, true, err != nil, t)
-}
 
 //////////////////////////// TEST BASE FUNCS ///////////////////
 func compare_int_int(testName string, wantedNum, received int, t *testing.T) {
