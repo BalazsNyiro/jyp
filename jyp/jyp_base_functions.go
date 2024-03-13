@@ -15,6 +15,17 @@ import (
 	"unicode"
 )
 
+
+// create a separated copy about original rune Slice into a new variable (deepcopy)
+func base__runes_copy(runes []rune) []rune {  // TESTED
+	runesNew := []rune{}
+	for _, r := range runes {
+		runesNew = append(runesNew, r)
+	}
+	return runesNew
+}
+
+
 // the string has whitespace chars only
 func base__is_whitespace_string(src string) bool { // TESTED
 	for _, runeFromStr := range src {

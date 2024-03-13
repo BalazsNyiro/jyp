@@ -630,7 +630,7 @@ func elem_number_value_validate_and_set(token token, errorsCollected []error) (t
 	// in case of 12.3: divider = 10^-1
 	// in case of 1.23: divider = 10^-2
 
-	numberRunes := runes_copy(token.runes)
+	numberRunes := base__runes_copy(token.runes)
 
 	// example number: -1234.567e-8
 	isNegative := numberRunes[0] == '-'
@@ -844,14 +844,6 @@ func runes_split_at_pattern(runes []rune, splitterRune rune) ([]rune, []rune) {
 	return runesBefore, runesAfter
 }
 
-// create a separated copy about original rune Slice
-func runes_copy(runes []rune) []rune {
-	runesNew := []rune{}
-	for _, r := range runes {
-		runesNew = append(runesNew, r)
-	}
-	return runesNew
-}
 
 ////////////////////// BASE FUNCTIONS ///////////////////////////////////////////////
 func json_detect_strings________(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
@@ -1107,4 +1099,3 @@ func tokenTable_position_keys_sorted(tokens tokenTable_startPositionIndexed) []i
 }
 
 
-/////////////////////// base functions /////////////////

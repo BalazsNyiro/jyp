@@ -12,6 +12,18 @@ package jyp
 
 import "testing"
 
+
+func Test_runes_copy(t *testing.T) {
+	funName := "Test_runes_copy"
+	testName := funName + "_base"
+
+	sample := "broken_mirror"
+	runesCopy := []rune(sample)
+	compare_runes_runes(testName, []rune(sample), runesCopy, t)
+}
+
+
+
 func Test_is_whitespace_string_rune(t *testing.T) {
 	funName := "Test_is_whitespace_string_rune"
 
