@@ -20,6 +20,9 @@ func Test_digitIntegerValue(t *testing.T) {
 	val10Based, err := base__digit10BasedRune_integer_value('0')
 	compare_bool_bool(testName, true, err==nil, t)
 	compare_int_int(testName, 0, val10Based, t)
+
+	val10Based, err = base__digit10BasedRune_integer_value('X')
+	compare_bool_bool(testName,false, err==nil, t)
 }
 
 
