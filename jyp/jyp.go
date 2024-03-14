@@ -25,7 +25,6 @@ package jyp
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -223,29 +222,6 @@ func (v JSON_value) ObjPath(keysMerged string) (JSON_value, error) {
 	keys, _ := ObjPath_merged_expand__split_with_first_char(keysMerged)
 	// fmt.Println("KEYS:", keys, len(keys))
 	return v.ObjPathKeys(keys)
-}
-
-func ObjPath_merged_expand__split_with_first_char(path string) ([]string, error){
-	if len(path) < 1 {
-		return []string{}, errors.New("separator is NOT defined")
-	}
-	if len(path) < 2 { // minimum one path elem is necessary, that we want to read or write
-		// if there is nothing after the separator, the path is empty
-		return []string{}, errors.New("separator and minimum one path elem are NOT defined")
-	}
-	separatorChar := path[0]
-	return strings.Split(path, string(separatorChar))[1:], nil
-	// so the first empty elem has to be removed (empty string), this is the reason of [1:]
-	/*
-		if you try to use this:  '/embedded/level2' then before the first separator, an empty string will be in elems
-		separator: /
-		>>> ''           // EMPTY STRING
-		>>> 'embedded'
-		>>> 'level2'
-		for _, key := range keys {
-			print(fmt.Sprintf(">>> '%s' \n", key))
-		}
-	*/
 }
 
 func (v JSON_value) Arr(index int) (JSON_value, error) {
@@ -457,11 +433,6 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 		}
 		containers[idParent] = parent // save back the updated parent
 
-		// if isCloserToken {
-		// 	idParent = parent.idParent // the new parent is the current parent's parent
-		//}
-
-
 	} // for, tokenNum, tokenPositionKey
 	return elemRoot, errorsCollected
 }
@@ -470,11 +441,11 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 ////////////////////// VALUE setter FUNCTIONS ///////////////////////////////////////////////
 func tokens_validations_value_settings(tokens tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) {
 	tokensUpdated := tokenTable_startPositionIndexed{}
-	for _, token := range tokens {
-		token, errorsCollected = elem_string_value_validate_and_set(token, errorsCollected)
-		token, errorsCollected = elem_number_value_validate_and_set(token, errorsCollected)
+	for _, tokenOne := range tokens {
+		tokenOne, errorsCollected = elem_string_value_validate_and_set(tokenOne, errorsCollected)
+		tokenOne, errorsCollected = elem_number_value_validate_and_set(tokenOne, errorsCollected)
 		// TODO: elem true|false|null value set?
-		tokensUpdated[token.charPositionFirstInSourceCode] = token
+		tokensUpdated[tokenOne.charPositionFirstInSourceCode] = tokenOne
 	}
 	return tokensUpdated, errorsCollected
 }
@@ -951,19 +922,7 @@ func json_detect_numbers________(src []rune, tokensStartPositions tokenTable_sta
 }
 
 
-
-
-////////////////////////////////////
-////////////////////////////////////
-
-func TokensDisplay_startingCoords(tokens tokenTable_startPositionIndexed) {
-	keys := tokenTable_position_keys_sorted(tokens)
-
-	fmt.Println("== Tokens Table display ==")
-	for _, key := range keys{
-		fmt.Println(string(tokens[key].runes), key, tokens[key])
-	}
-}
+/////////////////////////// local tools /////////////////////////////
 
 // tokenTable keys are character positions in JSON source code (positive integers)
 func tokenTable_position_keys_sorted(tokens tokenTable_startPositionIndexed) []int {

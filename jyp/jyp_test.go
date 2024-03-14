@@ -184,12 +184,12 @@ func Test_object_hierarchy_building(t *testing.T) {
 	compare_str_str(testName, `"stringAtEnd"`, valThird.repr(), t)
 	fmt.Println(elemRoot.repr())
 
-	elemRoot.addKeyVal("newKey", newString("newVal"))
+	elemRoot.AddKeyVal_into_object("newKey", NewString_JSON_value("newVal"))
 	jsonVal3, _ := elemRoot.ObjPath("/newKey")
 	compare_str_str(testName, `"newVal"`, jsonVal3.repr(), t)
 	fmt.Println(elemRoot.repr(4))
 
-	elemRoot.addKeyVal_path("/embedded/level2", newString("overwritten"))
+	elemRoot.AddKeyVal_path_into_object("/embedded/level2", NewString_JSON_value("overwritten"))
 	jsonVal4, _ := elemRoot.ObjPath("/embedded/level2")
 	compare_str_str(testName, `"overwritten"`, jsonVal4.repr(), t)
 	fmt.Println(elemRoot.repr(4))
@@ -517,3 +517,12 @@ func compare_rune_rune(callerInfo string, runeWanted, runeReceived rune, t *test
 	}
 }
 
+// test/Debug Helper - display Tokens table
+func TokensDisplay_startingCoords(tokens tokenTable_startPositionIndexed) {
+	keys := tokenTable_position_keys_sorted(tokens)
+
+	fmt.Println("== Tokens Table display ==")
+	for _, key := range keys{
+		fmt.Println(string(tokens[key].runes), key, tokens[key])
+	}
+}

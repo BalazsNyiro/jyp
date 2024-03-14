@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-func (v JSON_value) addKeyVal_path(keysMerged string, value JSON_value) error {
+func (v JSON_value) AddKeyVal_path_into_object(keysMerged string, value JSON_value) error {
 	if v.ValType == "object" {
 		keys, err:= ObjPath_merged_expand__split_with_first_char(keysMerged)
 		if err != nil {
@@ -23,7 +23,7 @@ func (v JSON_value) addKeyVal_path(keysMerged string, value JSON_value) error {
 		}
 
 		if len(keys) == 1 {
-			return v.addKeyVal(keys[0], value)
+			return v.AddKeyVal_into_object(keys[0], value)
 		}
 
 		if len(keys) > 1 {
@@ -31,7 +31,7 @@ func (v JSON_value) addKeyVal_path(keysMerged string, value JSON_value) error {
 
 			separator := string(keysMerged[0])
 			pathAfterFirstKey := separator+strings.Join(keys[1:], separator)
-			err2 := object.addKeyVal_path(pathAfterFirstKey, value)
+			err2 := object.AddKeyVal_path_into_object(pathAfterFirstKey, value)
 			if err2 != nil {
 				return err2
 			}
@@ -45,7 +45,7 @@ func (v JSON_value) addKeyVal_path(keysMerged string, value JSON_value) error {
 }
 
 
-func (v JSON_value) addKeyVal(key string, value JSON_value) error {
+func (v JSON_value) AddKeyVal_into_object(key string, value JSON_value) error {
 	if v.ValType == "object" {
 		objects := v.ValObject
 		objects[key] = value
@@ -57,7 +57,8 @@ func (v JSON_value) addKeyVal(key string, value JSON_value) error {
 	return errors.New(errorPrefix + "add value into non-object")
 }
 
-func (v JSON_value) addVal_key(value JSON_value) error {
+// add value into an ARRAY
+func (v JSON_value) AddVal_into_array(value JSON_value) error {
 	if v.ValType == "array" {
 		elems := v.ValArray
 		elems = append(elems, value)
@@ -70,7 +71,7 @@ func (v JSON_value) addVal_key(value JSON_value) error {
 }
 
 // TODO: newArray, newObject, newInt, newFloat, newBool....
-func newString(str string) JSON_value {
+func NewString_JSON_value(str string) JSON_value {
 	return JSON_value{ValType: "string",
 		CharPositionFirstInSourceCode: -1,
 		CharPositionLastInSourceCode:  -1,
@@ -78,3 +79,27 @@ func newString(str string) JSON_value {
 		AddedInGoCode:                 true,                 // because in the Json source code the container is "..."
 	}
 }
+
+func ObjPath_merged_expand__split_with_first_char(path string) ([]string, error){
+	if len(path) < 1 {
+		return []string{}, errors.New("separator is NOT defined")
+	}
+	if len(path) < 2 { // minimum one path elem is necessary, that we want to read or write
+		// if there is nothing after the separator, the path is empty
+		return []string{}, errors.New("separator and minimum one path elem are NOT defined")
+	}
+	separatorChar := path[0]
+	return strings.Split(path, string(separatorChar))[1:], nil
+	// so the first empty elem has to be removed (empty string), this is the reason of [1:]
+	/*
+		if you try to use this:  '/embedded/level2' then before the first separator, an empty string will be in elems
+		separator: /
+		>>> ''           // EMPTY STRING
+		>>> 'embedded'
+		>>> 'level2'
+		for _, key := range keys {
+			print(fmt.Sprintf(">>> '%s' \n", key))
+		}
+	*/
+}
+
