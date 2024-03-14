@@ -12,8 +12,8 @@ package jyp
 
 import "testing"
 
-func Test_digitIntegerValue(t *testing.T) {
-	funName := "Test_digitIntegerValue"
+func Test_base__digit10BasedRune_integer_value(t *testing.T) {
+	funName := "Test_base__digit10BasedRune_integer_value"
 	testName := funName + "_base"
 
 	val10Based, err := base__digit10BasedRune_integer_value('0')
