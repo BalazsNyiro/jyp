@@ -505,9 +505,9 @@ func elem_string_value_validate_and_set(token token, errorsCollected []error) (t
 
 	for pos := 0; pos < len(src); pos++ {
 
-		runeActual := src_get_char(src, pos)
+		runeActual := base__src_get_char__safeOverindexing(src, pos)
 		//fmt.Println("rune actual (string value set):", pos, string(runeActual), runeActual)
-		runeNext1 := src_get_char(src, pos+1)
+		runeNext1 := base__src_get_char__safeOverindexing(src, pos+1)
 
 		if runeActual != runeBackSlash {  // a non-backSlash char
 			valueFromRawSrcParsing = append(valueFromRawSrcParsing, runeActual)
@@ -519,10 +519,10 @@ func elem_string_value_validate_and_set(token token, errorsCollected []error) (t
 				// this is \u.... unicode code point - special situation,
 				// because after the \u four other chars has to be handled
 
-				runeNext2 := src_get_char(src, pos+2)
-				runeNext3 := src_get_char(src, pos+3)
-				runeNext4 := src_get_char(src, pos+4)
-				runeNext5 := src_get_char(src, pos+5)
+				runeNext2 := base__src_get_char__safeOverindexing(src, pos+2)
+				runeNext3 := base__src_get_char__safeOverindexing(src, pos+3)
+				runeNext4 := base__src_get_char__safeOverindexing(src, pos+4)
+				runeNext5 := base__src_get_char__safeOverindexing(src, pos+5)
 
 
 				base10_val_2, err2 := base__hexaRune_to_intVal(runeNext2)
@@ -996,9 +996,9 @@ func src_get_whitespace_separated_words_posFirst_posLast(src []rune) []word { //
 	// with this solution, the last word detection can be closed with the last boundary space, in one
 	// case, and I don't have to handle that later, in a second if/else condition
 
-	// src_get_char() handles the overindexing
+	// base__src_get_char__safeOverindexing() handles the overindexing
 	for posActual := -1; posActual < len(src)+1; posActual++ {
-		runeActual := src_get_char(src, posActual)
+		runeActual := base__src_get_char__safeOverindexing(src, posActual)
 
 		// the first and last chars, because of overindexing, are spaces, this is guaranteed!
 		if base__is_whitespace_rune(runeActual) {
@@ -1029,30 +1029,6 @@ func src_get_whitespace_separated_words_posFirst_posLast(src []rune) []word { //
 	return words
 }
 ////////////////////////////////////
-
-// get the rune IF the index is really in the range of the src.
-// return with ' ' space, IF the index is NOT in the range.
-// reason: avoid never ending index checking, so do it only once
-// the space can be answered because this func is used when a real char wanted to be detected,
-// and if a space is returned, this has NO MEANING in that parse section
-// this fun is NOT used in string detection - and other places whitespaces can be neglected, too
-func src_get_char(src []rune, pos int) rune {  // TESTED
-	posPossibleMax := len(src)-1
-	posPossibleMin := 0
-	if len(src)	== 0 { // if the src is empty, posPossibleMax == -1, min cannot be bigger than max
-		posPossibleMin = -1
-	}
-	if (pos >= posPossibleMin) && (pos <= posPossibleMax) {
-		charSelected := src[pos]
-		if base__is_whitespace_rune(charSelected) {
-			charSelected = ' '
-			// simplify everything. if the char is a whitespace, return with SPACE
-		}
-		return charSelected
-	}
-	return ' '
-}
-
 
 func TokensDisplay_startingCoords(tokens tokenTable_startPositionIndexed) {
 	keys := tokenTable_position_keys_sorted(tokens)

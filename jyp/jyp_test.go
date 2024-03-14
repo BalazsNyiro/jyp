@@ -341,28 +341,6 @@ func Test_src_get_words(t *testing.T) {
 	compare_str_str(testName, "-1.2", words[2].word,     t)
 }
 
-func Test_src_get_char(t *testing.T) {
-	funName := "Test_src_get_char"
-
-	src:= []rune("abc\t\n12 -1.2")
-
-	testName := funName + "_overindexNegative"
-	charSelected := src_get_char(src, -2)
-	compare_rune_rune(testName, ' ', charSelected, t)
-
-	testName = funName + "_overindexPositive"
-	charSelected = src_get_char(src, 9999999)
-	compare_rune_rune(testName, ' ', charSelected, t)
-
-	testName = funName + "_whitespaceConversion"
-	charSelected = src_get_char(src, 3)
-	compare_rune_rune(testName, ' ', charSelected, t)
-
-	testName = funName + "_normalSelection"
-	charSelected = src_get_char(src, 2)
-	compare_rune_rune(testName, 'c', charSelected, t)
-}
-
 
 
 

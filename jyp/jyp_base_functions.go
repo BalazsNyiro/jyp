@@ -14,16 +14,39 @@ import (
 	"errors"
 	"unicode"
 )
+
+// get the rune IF the index is really in the range of the src.
+// return with ' ' space, IF the index is NOT in the range.
+// reason: avoid never ending index checking, so do it only once
+// the space can be answered because this func is used when a real char wanted to be detected,
+// and if a space is returned, this has NO MEANING in that parse section
+// this fun is NOT used in string detection - and other places whitespaces can be neglected, too
+func base__src_get_char__safeOverindexing(src []rune, pos int) rune { // TESTED
+	posPossibleMax := len(src) - 1
+	posPossibleMin := 0
+	if len(src) == 0 { // if the src is empty, posPossibleMax == -1, min cannot be bigger than max
+		posPossibleMin = -1
+	}
+	if (pos >= posPossibleMin) && (pos <= posPossibleMax) {
+		charSelected := src[pos]
+		if base__is_whitespace_rune(charSelected) {
+			charSelected = ' ' // simplify everything. if the char is ANY whitespace char,
+			// return with SPACE, this is not important in the source code parsing
+		}
+		return charSelected
+	}
+	return ' '
+}
+
 // are the Runes in the set?
 func base__validate_runes_are_in_allowed_set(runesToValidate, runesAllowed []rune) bool {
 	for _, r := range runesToValidate {
-		if ! base__validate_rune_are_in_allowed_set(r, runesAllowed) {
+		if !base__validate_rune_are_in_allowed_set(r, runesAllowed) {
 			return false
 		}
 	}
 	return true
 }
-
 
 // is the rune in allowed set?
 func base__validate_rune_are_in_allowed_set(runeValidated rune, runesAllowed []rune) bool {
@@ -38,22 +61,41 @@ func base__validate_rune_are_in_allowed_set(runeValidated rune, runesAllowed []r
 // runesSections were checked against illegal chars, so here digitRune is in 0123456789
 // TODO: maybe can be removed if not used in the future in exponent number detection section
 func base__digit10BasedRune_integer_value(digit10based rune) (int, error) {
-	if digit10based == '0' { return 0, nil }
-	if digit10based == '1' { return 1, nil }
-	if digit10based == '2' { return 2, nil }
-	if digit10based == '3' { return 3, nil }
-	if digit10based == '4' { return 4, nil }
-	if digit10based == '5' { return 5, nil }
-	if digit10based == '6' { return 6, nil }
-	if digit10based == '7' { return 7, nil }
-	if digit10based == '8' { return 8, nil }
-	if digit10based == '9' { return 9, nil }
-	return 0, errors.New(errorPrefix + "rune ("+string(digit10based)+")")
+	if digit10based == '0' {
+		return 0, nil
+	}
+	if digit10based == '1' {
+		return 1, nil
+	}
+	if digit10based == '2' {
+		return 2, nil
+	}
+	if digit10based == '3' {
+		return 3, nil
+	}
+	if digit10based == '4' {
+		return 4, nil
+	}
+	if digit10based == '5' {
+		return 5, nil
+	}
+	if digit10based == '6' {
+		return 6, nil
+	}
+	if digit10based == '7' {
+		return 7, nil
+	}
+	if digit10based == '8' {
+		return 8, nil
+	}
+	if digit10based == '9' {
+		return 9, nil
+	}
+	return 0, errors.New(errorPrefix + "rune (" + string(digit10based) + ")")
 }
 
-
 // create a separated copy about original rune Slice into a new variable (deepcopy)
-func base__runes_copy(runes []rune) []rune {  // TESTED
+func base__runes_copy(runes []rune) []rune { // TESTED
 	runesNew := []rune{}
 	for _, r := range runes {
 		runesNew = append(runesNew, r)
@@ -61,11 +103,10 @@ func base__runes_copy(runes []rune) []rune {  // TESTED
 	return runesNew
 }
 
-
 // the string has whitespace chars only
 func base__is_whitespace_string(src string) bool { // TESTED
 	for _, runeFromStr := range src {
-		if ! base__is_whitespace_rune(runeFromStr) {
+		if !base__is_whitespace_rune(runeFromStr) {
 			return false
 		}
 	}

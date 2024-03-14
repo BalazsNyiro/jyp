@@ -12,6 +12,29 @@ package jyp
 
 import "testing"
 
+func Test_base__src_get_char__safeOverindexing(t *testing.T) {
+	funName := "Test_base__src_get_char__safeOverindexing"
+
+	src:= []rune("abc\t\n12 -1.2")
+
+	testName := funName + "_overindexNegative"
+	charSelected := base__src_get_char__safeOverindexing(src, -2)
+	compare_rune_rune(testName, ' ', charSelected, t)
+
+	testName = funName + "_overindexPositive"
+	charSelected = base__src_get_char__safeOverindexing(src, 9999999)
+	compare_rune_rune(testName, ' ', charSelected, t)
+
+	testName = funName + "_whitespaceConversion"
+	charSelected = base__src_get_char__safeOverindexing(src, 3)
+	compare_rune_rune(testName, ' ', charSelected, t)
+
+	testName = funName + "_normalSelection"
+	charSelected = base__src_get_char__safeOverindexing(src, 2)
+	compare_rune_rune(testName, 'c', charSelected, t)
+}
+
+
 func Test_rune_runes_in_allowed_set(t *testing.T) {
 	funName := "Test_rune_runes_in_allowed_set"
 	testName := funName + "_base"
