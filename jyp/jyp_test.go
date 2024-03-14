@@ -6,6 +6,13 @@ This source code (all file in this repo) is licensed
 under the Apache-2 style license found in the
 LICENSE file in the root directory of this source tree.
 
+
+
+TODO, tests:
+non-closed string error detection
+incorrect numbers test (start with 0)
+incorrect atoms test (something else than true/false/null)
+
 */
 
 package jyp

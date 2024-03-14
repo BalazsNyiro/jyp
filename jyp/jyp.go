@@ -577,23 +577,31 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 	for posInSrc, runeActual := range src {
 
 		if runeActual == '"' {
-			if !inStringDetection {
-				tokenNow = token{valType: "string"}
+			if !inStringDetection { // if at " char handling, we are NOT in string
 				inStringDetection = true
+
+				tokenNow = token{valType: "string"}
 				tokenNow.charPositionFirstInSourceCode = posInSrc
 				tokenNow.runes = append(tokenNow.runes, runeActual)
+
 				srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
 				continue
-			} else { // in string detection
-				if !isEscaped() {
-					inStringDetection = false
-					tokenNow.charPositionLastInSourceCode = posInSrc
-					tokenNow.runes = append(tokenNow.runes, runeActual)
-					tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
-					srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
-					continue
-				}
 			}
+			if inStringDetection && !isEscaped() { // a non-escaped " char in a string detection
+				inStringDetection = false          // is the end of the string
+
+				tokenNow.charPositionLastInSourceCode = posInSrc
+				tokenNow.runes = append(tokenNow.runes, runeActual)
+				tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow // save token
+
+				srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
+				continue
+			}
+
+			// BE CAREFUL, there is a 3rd option!
+			// if inStringDetection && isEscaped() -- which is handled as part of a string: inStringDetection
+			// and this is different from the previous two, so don't change the structure!
+
 		} // if " is detected, everything is handled in the conditions
 
 		if inStringDetection {
@@ -612,14 +620,14 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, runeActual)
 		}
 
-	} // for
+	} // for, runeActual
 
 	if inStringDetection {
 		errorsCollected = append(errorsCollected, errors.New("non-closed string detected:"))
 	}
 
 	return srcDetectedTokensRemoved, tokensStartPositions, errorsCollected
-}
+} // detect strings
 
 func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
 	srcDetectedTokensRemoved := []rune{}
