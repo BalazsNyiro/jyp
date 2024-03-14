@@ -127,7 +127,7 @@ func Test_speed(t *testing.T) {
 	time_num := time.Since(startNum)
 
 	startValid := time.Now()
-	tokens, errorsCollected = tokens_validations_value_settings(tokens, errorsCollected)
+	tokens, errorsCollected = value_validations_and_settings_in_tokens(tokens, errorsCollected)
 	time_valid := time.Since(startValid)
 
 	startHierarchy := time.Now()
@@ -212,7 +212,7 @@ func Test_parse_number_integer(t *testing.T) {
 	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
 	src, tokens, errorsCollected = json_detect_numbers________(src, tokens, errorsCollected)
 
-	tokens, errorsCollected = tokens_validations_value_settings(tokens, errorsCollected)
+	tokens, errorsCollected = value_validations_and_settings_in_tokens(tokens, errorsCollected)
 	TokensDisplay_startingCoords(tokens)
 
 	compare_int_int(testName, 17,     len(tokens),               t)
@@ -239,7 +239,7 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
 	src, tokens, errorsCollected = json_detect_numbers________(src, tokens, errorsCollected)
 
-	tokens, errorsCollected = tokens_validations_value_settings(tokens, errorsCollected)
+	tokens, errorsCollected = value_validations_and_settings_in_tokens(tokens, errorsCollected)
 	// at this point, string tokens' real value is parsed - but there are no embedded structures yet
 	// TokensDisplay_startingCoords(tokens)
 
@@ -273,7 +273,7 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
 	src, tokens, errorsCollected = json_detect_numbers________(src, tokens, errorsCollected)
 
-	tokens, errorsCollected = tokens_validations_value_settings(tokens, errorsCollected)
+	tokens, errorsCollected = value_validations_and_settings_in_tokens(tokens, errorsCollected)
 	// TokensDisplay_startingCoords(tokens)
 	compare_str_str(testName, `" text"`,            tokens[19].valString,  t)
 	compare_str_str(testName, "\\ reverseSolidus",  tokens[63].valString,  t)

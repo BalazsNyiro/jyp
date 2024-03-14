@@ -12,6 +12,7 @@ package jyp
 
 import (
 	"errors"
+	"strconv"
 	"strings"
 )
 
@@ -101,5 +102,63 @@ func ObjPath_merged_expand__split_with_first_char(path string) ([]string, error)
 			print(fmt.Sprintf(">>> '%s' \n", key))
 		}
 	*/
+}
+
+
+func (v JSON_value) ObjPath(keysMerged string) (JSON_value, error) {
+	// object reader with merged string keys (first character is the key elem separator
+	// elem_root.ObjPath("/personal/list")     separator: /
+	// elem_root.ObjPath("|personal|list")     separator: |
+	// elem_root.ObjPath(">personal>list")     separator: |
+	// the separator can be any character.
+	var valueEmpty JSON_value
+
+	if len(keysMerged) < 2 {
+		return valueEmpty, errors.New(errorPrefix + "missing separator and key(s) in merged ObjPath")
+	}
+	// possible errors are handled with len(...)<2
+	keys, _ := ObjPath_merged_expand__split_with_first_char(keysMerged)
+	// fmt.Println("KEYS:", keys, len(keys))
+	return v.ObjPathKeys(keys)
+}
+
+func (v JSON_value) ObjPathKeys(keysEmbedded []string) (JSON_value, error) {
+	// object reader with separated string keys:  elem_root.ObjPathKeys([]string{"personal", "list"})
+	var valueEmpty JSON_value
+
+	if len(keysEmbedded) < 1 {
+		return valueEmpty, errors.New(errorPrefix + "missing object keys (no keys are passed)")
+	}
+
+	// minimum 1 key is received
+	valueCollected, keyFirstIsKnownInObject := v.ValObject[keysEmbedded[0]]
+	if ! keyFirstIsKnownInObject {
+		return valueEmpty, errors.New(errorPrefix + "unknown object key (key:"+keysEmbedded[0]+")")
+	}
+
+	if len(keysEmbedded) == 1 {
+		if keyFirstIsKnownInObject {
+			return valueCollected, nil
+		}
+	}
+
+	// len(keys) > 1
+	if valueCollected.ValType != "object" {
+		return valueEmpty, errors.New(errorPrefix + keysEmbedded[0] + "-> child is not object, key cannot be used")
+	}
+	return valueCollected.ObjPathKeys(keysEmbedded[1:])
+}
+
+func (v JSON_value) Arr(index int) (JSON_value, error) {
+	// ask ONE indexed elem from an array
+
+	var valueEmpty JSON_value
+	indexMax := len(v.ValArray) - 1
+	if index > indexMax {
+		return valueEmpty, errors.New(errorPrefix + "index ("+strconv.Itoa(index)+") is not in array")
+	}
+
+	valueCollected := v.ValArray[index]
+	return valueCollected, nil
 }
 

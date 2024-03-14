@@ -180,63 +180,6 @@ func (v JSON_value) repr(indentationByUser ...int) string {
 
 
 
-func (v JSON_value) ObjPathKeys(keysEmbedded []string) (JSON_value, error) {
-	// object reader with separated string keys:  elem_root.ObjPathKeys([]string{"personal", "list"})
-	var valueEmpty JSON_value
-
-	if len(keysEmbedded) < 1 {
-		return valueEmpty, errors.New(errorPrefix + "missing object keys (no keys are passed)")
-	}
-
-	// minimum 1 key is received
-	valueCollected, keyFirstIsKnownInObject := v.ValObject[keysEmbedded[0]]
-	if ! keyFirstIsKnownInObject {
-		return valueEmpty, errors.New(errorPrefix + "unknown object key (key:"+keysEmbedded[0]+")")
-	}
-
-	if len(keysEmbedded) == 1 {
-		if keyFirstIsKnownInObject {
-			return valueCollected, nil
-		}
-	}
-
-	// len(keys) > 1
-	if valueCollected.ValType != "object" {
-		return valueEmpty, errors.New(errorPrefix + keysEmbedded[0] + "-> child is not object, key cannot be used")
-	}
-	return valueCollected.ObjPathKeys(keysEmbedded[1:])
-}
-
-func (v JSON_value) ObjPath(keysMerged string) (JSON_value, error) {
-	// object reader with merged string keys (first character is the key elem separator
-	// elem_root.ObjPath("/personal/list")     separator: /
-	// elem_root.ObjPath("|personal|list")     separator: |
-	// elem_root.ObjPath(">personal>list")     separator: |
-	// the separator can be any character.
-	var valueEmpty JSON_value
-
-	if len(keysMerged) < 2 {
-		return valueEmpty, errors.New(errorPrefix + "missing separator and key(s) in merged ObjPath")
-	}
-	// possible errors are handled with len(...)<2
-	keys, _ := ObjPath_merged_expand__split_with_first_char(keysMerged)
-	// fmt.Println("KEYS:", keys, len(keys))
-	return v.ObjPathKeys(keys)
-}
-
-func (v JSON_value) Arr(index int) (JSON_value, error) {
-	// ask ONE indexed elem from an array
-
-	var valueEmpty JSON_value
-	indexMax := len(v.ValArray) - 1
-	if index > indexMax {
-		return valueEmpty, errors.New(errorPrefix + "index ("+strconv.Itoa(index)+") is not in array")
-	}
-
-	valueCollected := v.ValArray[index]
-	return valueCollected, nil
-}
-
 
 type tokenTable_startPositionIndexed map[int]token
 
@@ -272,7 +215,7 @@ func JsonParse(srcStr string) (JSON_value, []error) {
 	// set correct string values, based on raw rune src.
 	// example: "\u0022quote\u0022"'s real form: `"quote"`,
 	// so the raw source has to be interpreted (escaped chars, unicode chars)
-	tokens, errorsCollected = tokens_validations_value_settings(tokens, errorsCollected)
+	tokens, errorsCollected = value_validations_and_settings_in_tokens(tokens, errorsCollected)
 
 	elemRoot, errorsCollected := object_hierarchy_building(tokens, errorsCollected)
 
@@ -439,11 +382,11 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 
 
 ////////////////////// VALUE setter FUNCTIONS ///////////////////////////////////////////////
-func tokens_validations_value_settings(tokens tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) {
+func value_validations_and_settings_in_tokens(tokens tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) {
 	tokensUpdated := tokenTable_startPositionIndexed{}
 	for _, tokenOne := range tokens {
-		tokenOne, errorsCollected = elem_string_value_validate_and_set(tokenOne, errorsCollected)
-		tokenOne, errorsCollected = elem_number_value_validate_and_set(tokenOne, errorsCollected)
+		tokenOne, errorsCollected = value_validate_and_set__elem_string(tokenOne, errorsCollected)
+		tokenOne, errorsCollected = value_validate_and_set__elem_number(tokenOne, errorsCollected)
 		// TODO: elem true|false|null value set?
 		tokensUpdated[tokenOne.charPositionFirstInSourceCode] = tokenOne
 	}
@@ -452,7 +395,7 @@ func tokens_validations_value_settings(tokens tokenTable_startPositionIndexed, e
 
 
 // set the string value from raw strings
-func elem_string_value_validate_and_set(token token, errorsCollected []error) (token, []error) { // TESTED
+func value_validate_and_set__elem_string(token token, errorsCollected []error) (token, []error) { // TESTED
 
 	if token.valType != "string" {
 		return token, errorsCollected
@@ -570,7 +513,7 @@ func elem_string_value_validate_and_set(token token, errorsCollected []error) (t
 
 
 
-func elem_number_value_validate_and_set(token token, errorsCollected []error) (token, []error) {
+func value_validate_and_set__elem_number(token token, errorsCollected []error) (token, []error) {
 
 	if token.valType != "number" { return token, errorsCollected } // don't modify non-number elems
 
