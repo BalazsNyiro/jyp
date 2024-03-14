@@ -519,7 +519,7 @@ func compare_rune_rune(callerInfo string, runeWanted, runeReceived rune, t *test
 
 // test/Debug Helper - display Tokens table
 func TokensDisplay_startingCoords(tokens tokenTable_startPositionIndexed) {
-	keys := tokenTable_position_keys_sorted(tokens)
+	keys := local_tool__tokenTable_position_keys_sorted(tokens)
 
 	fmt.Println("== Tokens Table display ==")
 	for _, key := range keys{

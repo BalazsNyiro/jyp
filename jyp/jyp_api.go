@@ -6,15 +6,57 @@ This source code (all file in this repo) is licensed
 under the Apache-2 style license found in the
 LICENSE file in the root directory of this source tree.
 
+
+api functions: the often called user supporter functions from the importer program
 */
 
 package jyp
 
 import (
 	"errors"
+	"sort"
 	"strconv"
 	"strings"
 )
+
+// if the src can be parsed, return with the JSON root object with nested elems, and err is nil.
+func JsonParse(srcStr string) (JSON_value, []error) {
+
+	var errorsCollected []error
+	tokens := tokenTable_startPositionIndexed{}
+	src := []rune(srcStr)
+
+	// a simple rule - inputs:  src, tokens, errors are inputs,
+	//                 outputs: src, tokens, errors
+	// the src is always less and less, as tokens are detected
+	// the tokens table has more and more elems, as the src sections are parsed
+	// at the end, src is total empty (if everything goes well) - and we don't have errors, too
+
+	// only strings can have errors at this parsing step, but the src|tokens|errors are
+	// lead through every fun, as a standard solution - so the possibility is open to throw an error everywhere.
+
+	// here maybe the tokens|errorsCollected ret val handling could be removed,
+	// but with this, it is clearer what is happening in the fun - so I use this form.
+	// in other words: represent if the structure is changed in the function.
+	src, tokens, errorsCollected = json_detect_strings________(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_separators_____(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = json_detect_numbers________(src, tokens, errorsCollected)
+
+	// at this point, Numbers are not validated - the ruins are collected only,
+	// and the lists/objects doesn't have embedded structures - it has to be built, too.
+	// src has to be empty, or contain only whitespaces.
+
+
+	// set correct string values, based on raw rune src.
+	// example: "\u0022quote\u0022"'s real form: `"quote"`,
+	// so the raw source has to be interpreted (escaped chars, unicode chars)
+	tokens, errorsCollected = value_validations_and_settings_in_tokens(tokens, errorsCollected)
+
+	elemRoot, errorsCollected := object_hierarchy_building(tokens, errorsCollected)
+
+	return elemRoot, errorsCollected
+}
 
 func (v JSON_value) AddKeyVal_path_into_object(keysMerged string, value JSON_value) error {
 	if v.ValType == "object" {
@@ -39,7 +81,7 @@ func (v JSON_value) AddKeyVal_path_into_object(keysMerged string, value JSON_val
 			v.ValObject[keys[0]] = object
 		}
 
-		v.updateLevelForChildren()
+		v.local_tool__updateLevelForChildren()
 		return nil
 	}
 	return errors.New(errorPrefix + "add value into non-object")
@@ -52,7 +94,7 @@ func (v JSON_value) AddKeyVal_into_object(key string, value JSON_value) error {
 		objects[key] = value
 		v.ValObject = objects
 
-		v.updateLevelForChildren()
+		v.local_tool__updateLevelForChildren()
 		return nil
 	}
 	return errors.New(errorPrefix + "add value into non-object")
@@ -65,7 +107,7 @@ func (v JSON_value) AddVal_into_array(value JSON_value) error {
 		elems = append(elems, value)
 		v.ValArray = elems
 
-		v.updateLevelForChildren()
+		v.local_tool__updateLevelForChildren()
 		return nil
 	}
 	return errors.New(errorPrefix + "add value into non-array")
@@ -162,3 +204,73 @@ func (v JSON_value) Arr(index int) (JSON_value, error) {
 	return valueCollected, nil
 }
 
+// an ALWAYS string representation of the value
+// if indentation > 0: pretty print, with passed indentation per level
+// if indentation <= 0, inline print
+// zero or one param is accepted. repr() means repr(0), when there is NO indentation (for simple values that is fine)
+func (v JSON_value) repr(indentationByUser ...int) string {
+	prefix := ""      // dense/inline mode is default, so no prefix
+	prefixChildOfObj := ""      // dense/inline mode is default, so no prefix
+	lineEnd := ""     // no line ending
+	objectKeyValSeparator := ":"  // and tight separator
+
+	indentation := 0
+	if len(indentationByUser) > 0 {
+		indentation = indentationByUser[0]
+	}
+
+
+	if indentation >= 1 {
+		lineEnd = "\n"  // inline print if no indentaion
+
+		prefixFiller := " "
+		prefix = strings.Repeat(prefixFiller, v.LevelInObjectStructure*indentation)
+		prefixChildOfObj = strings.Repeat(prefixFiller, (v.LevelInObjectStructure+1)*indentation)
+		objectKeyValSeparator = ": " // separator with space
+	}
+
+	if v.ValType == "object" || v.ValType == "array" {
+		var charOpen  string
+		var charClose string
+		var reprValue string
+
+		if v.ValType == "object" {
+			charOpen = "{"
+			charClose = "}"
+
+			counter := 0
+			for _, childKey := range v.ValObject_keys_sorted() {
+				childVal := v.ValObject[childKey]
+				comma := base__separator_set_if_no_last_elem(counter, len(v.ValObject), ",")
+				reprValue += prefixChildOfObj + "\"" + childKey + "\"" + objectKeyValSeparator + childVal.repr(indentation) + comma + lineEnd
+				counter ++
+			}
+		} else {
+			charOpen = "["
+			charClose = "]"
+			for counter, childVal := range v.ValArray {
+				comma := base__separator_set_if_no_last_elem(counter, len(v.ValArray), ",")
+				reprValue += prefixChildOfObj + childVal.repr(indentation) + comma + lineEnd
+			}
+		}
+
+		extraNewlineAfterRootElemPrint := ""
+		if v.idSelf == 0 {
+			extraNewlineAfterRootElemPrint = "\n"
+		}
+		return prefix + charOpen + lineEnd + reprValue + prefix + charClose + extraNewlineAfterRootElemPrint
+
+	} else {
+		// simple value, not a container
+		return string(v.Runes)
+	}
+}
+
+func (v JSON_value) ValObject_keys_sorted() []string{
+	keys := make([]string, 0, len(v.ValObject))
+	for k, _ := range v.ValObject {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
