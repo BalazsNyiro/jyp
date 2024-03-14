@@ -709,7 +709,7 @@ func json_detect_true_false_null(src []rune, tokensStartPositions tokenTable_sta
 func json_detect_numbers________(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
 	srcDetectedTokensRemoved := []rune(string(src)) // copy the original structure, not use the same variable
 
-	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast([]rune(src)) {
+	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
 
 		tokenNow := token{valType: "number"} // only numbers can be in the src now.
 		tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
