@@ -38,10 +38,10 @@ func JsonParse(srcStr string) (JSON_value, []error) {
 	// here maybe the tokens|errorsCollected ret val handling could be removed,
 	// but with this, it is clearer what is happening in the fun - so I use this form.
 	// in other words: represent if the structure is changed in the function.
-	src, tokens, errorsCollected = json_detect_strings________(src, tokens, errorsCollected)
-	src, tokens, errorsCollected = json_detect_separators_____(src, tokens, errorsCollected)
-	src, tokens, errorsCollected = json_detect_true_false_null(src, tokens, errorsCollected)
-	src, tokens, errorsCollected = json_detect_numbers________(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = jsonDetect_strings______(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = jsonDetect_separators___(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = jsonDetect_trueFalseNull(src, tokens, errorsCollected)
+	src, tokens, errorsCollected = jsonDetect_numbers______(src, tokens, errorsCollected)
 
 	// at this point, Numbers are not validated - the ruins are collected only,
 	// and the lists/objects doesn't have embedded structures - it has to be built, too.
@@ -51,9 +51,9 @@ func JsonParse(srcStr string) (JSON_value, []error) {
 	// set correct string values, based on raw rune src.
 	// example: "\u0022quote\u0022"'s real form: `"quote"`,
 	// so the raw source has to be interpreted (escaped chars, unicode chars)
-	tokens, errorsCollected = value_validations_and_settings_in_tokens(tokens, errorsCollected)
+	tokens, errorsCollected = valueValidationsSettings_inTokens(tokens, errorsCollected)
 
-	elemRoot, errorsCollected := object_hierarchy_building(tokens, errorsCollected)
+	elemRoot, errorsCollected := objectHierarchyBuilding(tokens, errorsCollected)
 
 	return elemRoot, errorsCollected
 }

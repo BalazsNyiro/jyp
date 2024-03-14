@@ -82,7 +82,7 @@ type JSON_value struct {
 
 type tokenTable_startPositionIndexed map[int]token
 
-func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCollected []error) (JSON_value, []error) {
+func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsCollected []error) (JSON_value, []error) {
 	var elemRoot JSON_value
 
 	positionKeys_of_tokens := local_tool__tokenTable_position_keys_sorted(tokens)
@@ -236,7 +236,7 @@ func object_hierarchy_building(tokens tokenTable_startPositionIndexed, errorsCol
 }
 
 // //////////////////// VALUE setter FUNCTIONS ///////////////////////////////////////////////
-func value_validations_and_settings_in_tokens(tokens tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) {
+func valueValidationsSettings_inTokens(tokens tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) {
 	tokensUpdated := tokenTable_startPositionIndexed{}
 	for _, tokenOne := range tokens {
 		tokenOne, errorsCollected = value_validate_and_set__elem_string(tokenOne, errorsCollected)
@@ -560,7 +560,7 @@ func value_validate_and_set__elem_number(token token, errorsCollected []error) (
 }
 
 // //////////////////// BASE FUNCTIONS ///////////////////////////////////////////////
-func json_detect_strings________(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
+func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
 
 	srcDetectedTokensRemoved := []rune{}
 	// to find escaped \" \\\" sections in strings
@@ -621,7 +621,7 @@ func json_detect_strings________(src []rune, tokensStartPositions tokenTable_sta
 	return srcDetectedTokensRemoved, tokensStartPositions, errorsCollected
 }
 
-func json_detect_separators_____(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
+func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
 	srcDetectedTokensRemoved := []rune{}
 	var tokenNow token
 
@@ -669,7 +669,7 @@ func json_detect_separators_____(src []rune, tokensStartPositions tokenTable_sta
 		because the strings/separators are removed and replaced with space in the src, as placeholders,
 	    the true/false/null words are surrounded with spaces, as separators.
 */
-func json_detect_true_false_null(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
+func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
 	srcDetectedTokensRemoved := []rune(string(src)) // copy the original structure, not use the same variable
 
 	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
@@ -706,7 +706,7 @@ func json_detect_true_false_null(src []rune, tokensStartPositions tokenTable_sta
 }
 
 // words are detected here, and I can hope only that they are numbers - later they will be validated
-func json_detect_numbers________(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
+func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
 	srcDetectedTokensRemoved := []rune(string(src)) // copy the original structure, not use the same variable
 
 	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
