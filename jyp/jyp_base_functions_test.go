@@ -12,6 +12,26 @@ package jyp
 
 import "testing"
 
+func Test_rune_runes_in_allowed_set(t *testing.T) {
+	funName := "Test_rune_runes_in_allowed_set"
+	testName := funName + "_base"
+
+	allowedRunes := []rune("abc")
+	runeInAllowedSet := base__validate_rune_are_in_allowed_set('a', allowedRunes)
+	compare_bool_bool(testName, true, runeInAllowedSet, t)
+
+	runeInAllowedSet = base__validate_rune_are_in_allowed_set('x', allowedRunes)
+	compare_bool_bool(testName, false, runeInAllowedSet, t)
+
+	runesInAllowedSet := base__validate_runes_are_in_allowed_set([]rune("cab"), allowedRunes)
+	compare_bool_bool(testName, true, runesInAllowedSet , t)
+
+	runesInAllowedSet = base__validate_runes_are_in_allowed_set([]rune("abba"), allowedRunes)
+	compare_bool_bool(testName, true, runesInAllowedSet , t)
+
+	runesInAllowedSet = base__validate_runes_are_in_allowed_set([]rune("notinset"), allowedRunes)
+	compare_bool_bool(testName, false, runesInAllowedSet , t)
+}
 
 func Test_digitIntegerValue(t *testing.T) {
 	funName := "Test_digitIntegerValue"

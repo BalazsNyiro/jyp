@@ -14,6 +14,26 @@ import (
 	"errors"
 	"unicode"
 )
+// are the Runes in the set?
+func base__validate_runes_are_in_allowed_set(runesToValidate, runesAllowed []rune) bool {
+	for _, r := range runesToValidate {
+		if ! base__validate_rune_are_in_allowed_set(r, runesAllowed) {
+			return false
+		}
+	}
+	return true
+}
+
+
+// is the rune in allowed set?
+func base__validate_rune_are_in_allowed_set(runeValidated rune, runesAllowed []rune) bool {
+	for _, r := range runesAllowed {
+		if r == runeValidated {
+			return true
+		}
+	}
+	return false
+}
 
 // runesSections were checked against illegal chars, so here digitRune is in 0123456789
 // TODO: maybe can be removed if not used in the future in exponent number detection section

@@ -680,16 +680,16 @@ func elem_number_value_validate_and_set(token token, errorsCollected []error) (t
 
 
 	var digits09 = []rune("0123456789")
-	if ! validate_runes_are_in_allowed_set(runesSectionInteger, digits09) {
+	if ! base__validate_runes_are_in_allowed_set(runesSectionInteger, digits09) {
 		errorsCollected = append(errorsCollected, errors.New("illegal char in integer part: " + string(runesSectionInteger)))
 	}
 
-	if ! validate_runes_are_in_allowed_set(runesSectionFraction, digits09) {
+	if ! base__validate_runes_are_in_allowed_set(runesSectionFraction, digits09) {
 		errorsCollected = append(errorsCollected, errors.New("illegal char in fraction part: " + string(runesSectionFraction)))
 	}
 
 	if len(runesSectionExponent) > 0 { // validate the first char in exponent section
-		if ! validate_rune_are_in_allowed_set(runesSectionExponent[0], []rune{'+', '-'}) {
+		if ! base__validate_rune_are_in_allowed_set(runesSectionExponent[0], []rune{'+', '-'}) {
 			errorsCollected = append(errorsCollected, errors.New("exponent part's first char is not +-: " + string(runesSectionExponent)))
 		}
 	}
@@ -699,7 +699,7 @@ func elem_number_value_validate_and_set(token token, errorsCollected []error) (t
 	}
 
 	if len(runesSectionExponent) > 1 { // validate other chars in exponent section
-		if ! validate_runes_are_in_allowed_set(runesSectionExponent[1:], digits09) {
+		if ! base__validate_runes_are_in_allowed_set(runesSectionExponent[1:], digits09) {
 			errorsCollected = append(errorsCollected, errors.New("illegal char after first char of exponent section: " + string(runesSectionExponent)))
 		}
 	}
@@ -798,26 +798,6 @@ func elem_number_value_validate_and_set(token token, errorsCollected []error) (t
 }
 
 
-// are the Runes in the set?
-func validate_runes_are_in_allowed_set(runes []rune, runesAllowed []rune) bool {
-	for _, r := range runes {
-		if ! validate_rune_are_in_allowed_set(r, runesAllowed) {
-			return false
-		}
-	}
-	return true
-}
-
-
-// is the rune in allowed set?
-func validate_rune_are_in_allowed_set(runeValidated rune, runesAllowed []rune) bool {
-	for _, r := range runesAllowed {
-		if r == runeValidated {
-			return true
-		}
-	}
-	return false
-}
 
 
 // split once, at first occurance
