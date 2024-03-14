@@ -322,25 +322,6 @@ func Test_detect_numbers(t *testing.T) {
 
 
 
-func Test_src_get_words(t *testing.T) {
-	funName := "Test_src_get_words"
-	testName := funName + "_basic"
-
-	whitepaceSeparatedString := "abc\t\n12 -1.2"
-	words := src_get_whitespace_separated_words_posFirst_posLast([]rune(whitepaceSeparatedString))
-
-	// how many words are detected?
-	compare_int_int(testName, 3, len(words), t)
-
-	compare_int_int(testName,    5, words[1].posFirst, t)
-	compare_int_int(testName,    6, words[1].posLast,  t)
-	compare_str_str(testName, "12", words[1].word,     t)
-
-	compare_int_int(testName,      8, words[2].posFirst, t)
-	compare_int_int(testName,     11, words[2].posLast,  t)
-	compare_str_str(testName, "-1.2", words[2].word,     t)
-}
-
 
 
 

@@ -18,7 +18,7 @@ LICENSE file in the root directory of this source tree.
 /* in the code I intentionally avoid direct pointer usage - I think that is safer:
 	- for goroutines
 	- if json blocks are read and inserted into other json block, pointers are not useful,
-      because they can have side-effects. Every value has to be COPIED.
+      because they can have side effects. Every value has to be COPIED.
 */
 
 package jyp
@@ -903,7 +903,7 @@ func json_detect_separators_____(src []rune, tokensStartPositions tokenTable_sta
 func json_detect_true_false_null(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
 	srcDetectedTokensRemoved := []rune(string(src)) // copy the original structure, not use the same variable
 
-	for _, wordOne := range src_get_whitespace_separated_words_posFirst_posLast(src) {
+	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
 
 		detectedType := "" // 3 types of word can be detected in this fun
 		if wordOne.word == "true"  { detectedType = "bool"  }
@@ -933,7 +933,7 @@ func json_detect_true_false_null(src []rune, tokensStartPositions tokenTable_sta
 func json_detect_numbers________(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
 	srcDetectedTokensRemoved := []rune(string(src)) // copy the original structure, not use the same variable
 
-	for _, wordOne := range src_get_whitespace_separated_words_posFirst_posLast([]rune(src)) {
+	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast([]rune(src)) {
 
 		tokenNow := token{valType: "number"} // only numbers can be in the src now.
 		tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
@@ -954,60 +954,6 @@ func json_detect_numbers________(src []rune, tokensStartPositions tokenTable_sta
 
 
 ////////////////////////////////////
-type word struct {
-	word string
-	posFirst int
-	posLast int
-}
-
-
-// give back words (plus posFirst/posLast info)
-func src_get_whitespace_separated_words_posFirst_posLast(src []rune) []word { // TESTED
-
-	words := []word{}
-
-	wordChars := []rune{}
-	posFirst  := -1
-	posLast   := -1
-
-	// posActual := -1, len(src) + 1: overindexing!
-	// with this, I can be sure that minimum one space is detected first,
-	// and minimum one space detected after the source code's normal chars!
-	// with this solution, the last word detection can be closed with the last boundary space, in one
-	// case, and I don't have to handle that later, in a second if/else condition
-
-	// base__src_get_char__safeOverindexing() handles the overindexing
-	for posActual := -1; posActual < len(src)+1; posActual++ {
-		runeActual := base__src_get_char__safeOverindexing(src, posActual)
-
-		// the first and last chars, because of overindexing, are spaces, this is guaranteed!
-		if base__is_whitespace_rune(runeActual) {
-			if len(wordChars) > 0 {
-				word := word{
-					word    : string(wordChars),
-					posFirst: posFirst,
-					posLast : posLast,
-				}
-				words = append(words, word)
-			}
-			wordChars = []rune{}
-			posFirst  = -1
-			posLast   = -1
-
-		} else {
-			// save posFirst, posLast, and word-builder chars ///
-			if len(wordChars) == 0 {
-				posFirst = posActual
-			}
-			posLast = posActual
-			wordChars = append(wordChars, runeActual)
-		}
-
-	}
-
-
-	return words
-}
 ////////////////////////////////////
 
 func TokensDisplay_startingCoords(tokens tokenTable_startPositionIndexed) {
