@@ -15,6 +15,22 @@ import (
 	"unicode"
 )
 
+// runesSections were checked against illegal chars, so here digitRune is in 0123456789
+// TODO: maybe can be removed if not used in the future in exponent number detection section
+func base__digit10BasedRune_integer_value(digit10based rune) (int, error) {
+	if digit10based == '0' { return 0, nil }
+	if digit10based == '1' { return 1, nil }
+	if digit10based == '2' { return 2, nil }
+	if digit10based == '3' { return 3, nil }
+	if digit10based == '4' { return 4, nil }
+	if digit10based == '5' { return 5, nil }
+	if digit10based == '6' { return 6, nil }
+	if digit10based == '7' { return 7, nil }
+	if digit10based == '8' { return 8, nil }
+	if digit10based == '9' { return 9, nil }
+	return 0, errors.New(errorPrefix + "rune ("+string(digit10based)+")")
+}
+
 
 // create a separated copy about original rune Slice into a new variable (deepcopy)
 func base__runes_copy(runes []rune) []rune {  // TESTED

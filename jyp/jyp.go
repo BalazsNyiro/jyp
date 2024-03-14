@@ -797,11 +797,6 @@ func elem_number_value_validate_and_set(token token, errorsCollected []error) (t
 	return token, errorsCollected
 }
 
-// runesSections were checked against illegal chars, so here digitRune is in 0123456789
-func digitIntegerValue(digit rune) int {
-	unicode_code_point_zero_shift := '0' // '9' -> 9
-	return int(digit - unicode_code_point_zero_shift)
-}
 
 // are the Runes in the set?
 func validate_runes_are_in_allowed_set(runes []rune, runesAllowed []rune) bool {

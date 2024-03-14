@@ -13,6 +13,16 @@ package jyp
 import "testing"
 
 
+func Test_digitIntegerValue(t *testing.T) {
+	funName := "Test_digitIntegerValue"
+	testName := funName + "_base"
+
+	val10Based, err := base__digit10BasedRune_integer_value('0')
+	compare_bool_bool(testName, true, err==nil, t)
+	compare_int_int(testName, 0, val10Based, t)
+}
+
+
 func Test_runes_copy(t *testing.T) {
 	funName := "Test_runes_copy"
 	testName := funName + "_base"
@@ -21,8 +31,6 @@ func Test_runes_copy(t *testing.T) {
 	runesCopy := []rune(sample)
 	compare_runes_runes(testName, []rune(sample), runesCopy, t)
 }
-
-
 
 func Test_is_whitespace_string_rune(t *testing.T) {
 	funName := "Test_is_whitespace_string_rune"
