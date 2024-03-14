@@ -15,6 +15,27 @@ import (
 	"unicode"
 )
 
+// split once, at first occurance
+func base__runes_split_at_pattern(runes []rune, splitterRune rune) ([]rune, []rune) {
+	runesBefore := []rune{}
+	runesAfter := []rune{}
+	splitterDetected := false
+	for _, r := range runes {
+		if !splitterDetected && r == splitterRune { // split only at the first occurance
+			splitterDetected = true
+			continue
+		}
+		if splitterDetected {
+			runesAfter = append(runesAfter, r)
+		} else {
+			runesBefore = append(runesBefore, r)
+		}
+	}
+	return runesBefore, runesAfter
+}
+
+
+
 // get the rune IF the index is really in the range of the src.
 // return with ' ' space, IF the index is NOT in the range.
 // reason: avoid never ending index checking, so do it only once

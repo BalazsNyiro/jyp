@@ -651,15 +651,15 @@ func elem_number_value_validate_and_set(token token, errorsCollected []error) (t
 
 	/////////// go from back to forward: remove exponent part first
 	if isExponent_e_used {
-		numberRunes, runesSectionExponent = runes_split_at_pattern(numberRunes, 'e')
+		numberRunes, runesSectionExponent = base__runes_split_at_pattern(numberRunes, 'e')
 	}
 	if isExponent_E_used {
-		numberRunes, runesSectionExponent = runes_split_at_pattern(numberRunes, 'E')
+		numberRunes, runesSectionExponent = base__runes_split_at_pattern(numberRunes, 'E')
 	} /////////// if exponent is used, that is filled into the runeSectionExponentPart
 
 
 	if isFractionDotUsed{
-		numberRunes, runesSectionFraction = runes_split_at_pattern(numberRunes, '.')
+		numberRunes, runesSectionFraction = base__runes_split_at_pattern(numberRunes, '.')
 		// after this, numberRunes lost the integer part.
 	} // if FractionDot is used, split the Runes :-)
 
@@ -798,26 +798,6 @@ func elem_number_value_validate_and_set(token token, errorsCollected []error) (t
 }
 
 
-
-
-// split once, at first occurance
-func runes_split_at_pattern(runes []rune, splitterRune rune) ([]rune, []rune) {
-	runesBefore := []rune{}
-	runesAfter := []rune{}
-	splitterDetected := false
-	for _, r := range runes {
-		if r == splitterRune {
-			splitterDetected = true
-			continue
-		}
-		if splitterDetected {
-			runesAfter = append(runesAfter, r)
-		} else {
-			runesBefore = append(runesBefore, r)
-		}
-	}
-	return runesBefore, runesAfter
-}
 
 
 ////////////////////// BASE FUNCTIONS ///////////////////////////////////////////////

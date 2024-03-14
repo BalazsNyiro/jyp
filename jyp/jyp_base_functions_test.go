@@ -12,6 +12,24 @@ package jyp
 
 import "testing"
 
+
+func Test_base__runes_split_at_pattern(t *testing.T) {
+	funName := "Test_base__runes_split_at_pattern"
+	testName := funName + "_base"
+
+	setA, setB := base__runes_split_at_pattern([]rune("a,b,c,d"), ',')
+	compare_runes_runes(testName, []rune{'a'}, setA, t)
+	compare_runes_runes(testName, []rune("b,c,d"), setB, t)
+
+	setA, setB = base__runes_split_at_pattern([]rune("a,b,c,d"), 'X')
+	// splitter is not detected, everything is in setA
+	compare_runes_runes(testName, []rune("a,b,c,d"), setA, t)
+	compare_runes_runes(testName, []rune{}, setB, t)
+}
+
+
+
+
 func Test_base__src_get_char__safeOverindexing(t *testing.T) {
 	funName := "Test_base__src_get_char__safeOverindexing"
 
