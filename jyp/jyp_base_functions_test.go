@@ -25,6 +25,11 @@ func Test_base__runes_split_at_pattern(t *testing.T) {
 	// splitter is not detected, everything is in setA
 	compare_runes_runes(testName, []rune("a,b,c,d"), setA, t)
 	compare_runes_runes(testName, []rune{}, setB, t)
+
+	setA, setB = base__runes_split_at_pattern([]rune("a,b,c,d"), 'a')
+	// splitter is not detected, everything is in setA
+	compare_runes_runes(testName, []rune{}, setA, t) // the first char was the splitter, everything -> setB
+	compare_runes_runes(testName, []rune(",b,c,d"), setB, t)
 }
 
 
