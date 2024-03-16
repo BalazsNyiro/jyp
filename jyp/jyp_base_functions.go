@@ -209,12 +209,13 @@ func base__src_get_whitespace_separated_words_posFirst_posLast(src []rune) []wor
 					posLast:  posLast,
 				}
 				words = append(words, word)
-			}
-			wordChars = []rune{}
-			posFirst = -1
-			posLast = -1
 
-		} else {
+				wordChars = []rune{}
+				posFirst = -1
+				posLast = -1
+			}
+
+		} else { // non-space rune:
 			// save posFirst, posLast, and word-builder chars ///
 			if len(wordChars) == 0 {
 				posFirst = posActual

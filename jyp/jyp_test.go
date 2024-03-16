@@ -112,7 +112,7 @@ func Test_speed(t *testing.T) {
 	testName := funName + "_basic"
 	_ = testName
 
-	srcStr := strings.Repeat(srcEverything, 11)
+	srcStr := strings.Repeat(srcEverything, 4000)
 	src := []rune(srcStr)
 	tokens := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}

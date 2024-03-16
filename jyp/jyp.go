@@ -262,14 +262,19 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 
 // //////////////////// VALUE setter FUNCTIONS ///////////////////////////////////////////////
 func valueValidationsSettings_inTokens(tokens tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) {
-	tokensUpdated := tokenTable_startPositionIndexed{}
 	for _, tokenOne := range tokens {
-		tokenOne, errorsCollected = valueValidateAndSetElemString(tokenOne, errorsCollected)
-		tokenOne, errorsCollected = valueValidateAndSetElemNumber(tokenOne, errorsCollected)
+		if tokenOne.valType == typeString {
+			tokenOne, errorsCollected = valueValidateAndSetElemString(tokenOne, errorsCollected)
+			tokens[tokenOne.charPositionFirstInSourceCode] = tokenOne
+			// save the elem only if change happened, so if the type == true
+		} else
+		if tokenOne.valType == typeNumber_exactTypeIsNotSet {
+			tokenOne, errorsCollected = valueValidateAndSetElemNumber(tokenOne, errorsCollected)
+			tokens[tokenOne.charPositionFirstInSourceCode] = tokenOne
+		}
 		// TODO: elem true|false|null value set?
-		tokensUpdated[tokenOne.charPositionFirstInSourceCode] = tokenOne
 	}
-	return tokensUpdated, errorsCollected
+	return tokens, errorsCollected
 }
 
 // set the string value from raw strings
@@ -287,19 +292,18 @@ func valueValidateAndSetElemString(token token, errorsCollected []error) (token,
 	but sometime with 6: \u0123, so I need to look forward for the next 5 chars
 	*/
 
-	src := token.runesInSrc
-	src = src[1 : len(src)-1] // "remove opening/closing quotes from the string value"
-
 	valueFromRawSrcParsing := []rune{}
 
 	// fmt.Println("string token value detection:", src)
 	runeBackSlash := '\\' // be careful: this is ONE \ char, only written with this expression
 
-	for pos := 0; pos < len(src); pos++ {
+	// pos := 1: strings has initial " in runes
+	// len(src)-1  closing " after string content
+	for pos := 1; pos < len(token.runesInSrc)-1; pos++ {
 
-		runeActual := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos)
+		runeActual := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(token.runesInSrc, pos)
 		//fmt.Println("rune actual (string value set):", pos, string(runeActual), runeActual)
-		runeNext1 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+1)
+		runeNext1 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(token.runesInSrc, pos+1)
 
 		if runeActual != runeBackSlash { // a non-backSlash char
 			valueFromRawSrcParsing = append(valueFromRawSrcParsing, runeActual)
@@ -311,10 +315,10 @@ func valueValidateAndSetElemString(token token, errorsCollected []error) (token,
 				// this is \u.... unicode code point - special situation,
 				// because after the \u four other chars has to be handled
 
-				runeNext2 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+2)
-				runeNext3 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+3)
-				runeNext4 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+4)
-				runeNext5 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+5)
+				runeNext2 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(token.runesInSrc, pos+2)
+				runeNext3 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(token.runesInSrc, pos+3)
+				runeNext4 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(token.runesInSrc, pos+4)
+				runeNext5 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(token.runesInSrc, pos+5)
 
 				base10_val_2, err2 := base__hexaRune_to_intVal(runeNext2)
 				if err2 != nil {
@@ -387,7 +391,7 @@ func valueValidateAndSetElemString(token token, errorsCollected []error) (token,
 
 	// fmt.Println("value from raw src parsing:", string(valueFromRawSrcParsing))
 	token.valString = string(valueFromRawSrcParsing) // first I tried to remove this string conversion
-	// and use runes only, but it didnt help to get higher speed.
+	// and use runes only, but it didn't help to get higher speed.
 	return token, errorsCollected
 }
 
@@ -773,8 +777,8 @@ func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startP
 		for posDetected := wordOne.posFirst; posDetected <= wordOne.posLast; posDetected++ {
 			// save all detected positions:
 			tokenNow.runesInSrc = append(tokenNow.runesInSrc, (src)[posDetected])
-			// clear detected positions from the src:
 
+			// clear detected positions from the src:
 			/////////////////////////////////////////
 			//// don't use this, nobody reads src later
 			// srcDetectedTokensRemoved[posDetected] = ' '
