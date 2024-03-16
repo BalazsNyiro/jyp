@@ -294,9 +294,9 @@ func value_validate_and_set__elem_string(token token, errorsCollected []error) (
 
 	for pos := 0; pos < len(src); pos++ {
 
-		runeActual := base__src_get_char__safeOverindexing(src, pos)
+		runeActual := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos)
 		//fmt.Println("rune actual (string value set):", pos, string(runeActual), runeActual)
-		runeNext1 := base__src_get_char__safeOverindexing(src, pos+1)
+		runeNext1 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+1)
 
 		if runeActual != runeBackSlash { // a non-backSlash char
 			valueFromRawSrcParsing = append(valueFromRawSrcParsing, runeActual)
@@ -308,10 +308,10 @@ func value_validate_and_set__elem_string(token token, errorsCollected []error) (
 				// this is \u.... unicode code point - special situation,
 				// because after the \u four other chars has to be handled
 
-				runeNext2 := base__src_get_char__safeOverindexing(src, pos+2)
-				runeNext3 := base__src_get_char__safeOverindexing(src, pos+3)
-				runeNext4 := base__src_get_char__safeOverindexing(src, pos+4)
-				runeNext5 := base__src_get_char__safeOverindexing(src, pos+5)
+				runeNext2 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+2)
+				runeNext3 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+3)
+				runeNext4 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+4)
+				runeNext5 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+5)
 
 				base10_val_2, err2 := base__hexaRune_to_intVal(runeNext2)
 				if err2 != nil {

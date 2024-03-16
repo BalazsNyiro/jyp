@@ -154,12 +154,9 @@ type wordInSrc struct {
 // the space can be answered because this func is used when a real char wanted to be detected,
 // and if a space is returned, this has NO MEANING in that parse section
 // this fun is NOT used in string detection - and other places whitespaces can be neglected, too
-func base__src_get_char__safeOverindexing(src []rune, pos int) rune { // TESTED
-	posPossibleMax := len(src) - 1
-	posPossibleMin := 0
-	if len(src) == 0 { // if the src is empty, posPossibleMax == -1, min cannot be bigger than max
-		posPossibleMin = -1
-	}
+func base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src []rune, pos int) rune { // TESTED
+	posPossibleMax := len(src) - 1  // if src is empty, max is -1,
+	posPossibleMin := 0             // and the condition cannot be true here:
 	if (pos >= posPossibleMin) && (pos <= posPossibleMax) {
 		if base__is_whitespace_rune(src[pos]) {
 			return ' ' // simplify everything. if the char is ANY whitespace char,
@@ -185,12 +182,12 @@ func base__src_get_whitespace_separated_words_posFirst_posLast(src []rune) []wor
 	// with this solution, the last word detection can be closed with the last boundary space, in one
 	// case, and I don't have to handle that later, in a second if/else condition
 
-	// base__src_get_char__safeOverindexing() handles the overindexing
+	// base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces() handles the overindexing
 	for posActual := -1; posActual < len(src)+1; posActual++ {
-		runeActual := base__src_get_char__safeOverindexing(src, posActual)
+		runeActual := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, posActual)
 
 		// the first and last chars, because of overindexing, are spaces, this is guaranteed!
-		if base__is_whitespace_rune(runeActual) {
+		if runeActual == ' ' {  // means IF WHITESPACE: every whitespace is replaced to simple space in srcGetChar
 			if len(wordChars) > 0 {
 				word := wordInSrc{
 					word:     string(wordChars),
