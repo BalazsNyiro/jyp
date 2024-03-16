@@ -757,7 +757,12 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 
 // words are detected here, and I can hope only that they are numbers - later they will be validated
 func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
-	srcDetectedTokensRemoved := base__runes_copy(src) // copy the original structure, not use the same variable
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// there is no reason to give back the cleaned src, because this is the last function and src is NOT USED IN THE PROCESS ANYMORE
+	// srcDetectedTokensRemoved := base__runes_copy(src) // copy the original structure, not use the same variable
+	srcDetectedTokensRemoved := []rune{} // I would like to keep the standard return structure, so return with an empty struct
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
 
@@ -769,7 +774,13 @@ func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startP
 			// save all detected positions:
 			tokenNow.runes = append(tokenNow.runes, (src)[posDetected])
 			// clear detected positions from the src:
-			srcDetectedTokensRemoved[posDetected] = ' '
+
+			/////////////////////////////////////////
+			//// don't use this, nobody reads src later
+			// srcDetectedTokensRemoved[posDetected] = ' '
+			/////////////////////////////////////////
+
+
 		}
 		tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
 	}
