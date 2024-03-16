@@ -19,7 +19,7 @@ package jyp
 
 import (
 	"fmt"
-	"strings"
+	"os"
 	"testing"
 	"time"
 )
@@ -106,13 +106,21 @@ var srcEverything string = `{
 // TODO: test json src with errors!
 
 
+
 //  go test -v -run Test_speed
 func Test_speed(t *testing.T) {
 	funName := "Test_speed"
 	testName := funName + "_basic"
 	_ = testName
 
-	srcStr := strings.Repeat(srcEverything, 4000)
+	// srcStr := strings.Repeat(srcEverything, 100)
+	// https://raw.githubusercontent.com/json-iterator/test-data/master/large-file.json
+	srcStr := file_read_for_tests("large-file.json")
+	// python3 json.loads() speed: 0.24469351768493652 sec
+	// my speed: 3.82s (2024 Marc 16)
+
+
+
 	src := []rune(srcStr)
 	tokens := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
@@ -526,4 +534,12 @@ func TokensDisplay_startingCoords(tokens tokenTable_startPositionIndexed) {
 	for _, key := range keys{
 		fmt.Println(string(tokens[key].runesInSrc), key, tokens[key])
 	}
+}
+
+func file_read_for_tests(fn string) string {
+	dat, err := os.ReadFile(fn)
+	if err != nil {
+		panic(err)
+	}
+	return string(dat)
 }

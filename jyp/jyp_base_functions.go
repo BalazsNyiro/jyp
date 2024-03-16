@@ -258,3 +258,4 @@ func base__runeInRunes(runeWanted rune, runesToValidate []rune) bool {
 	}
 	return false
 }
+
