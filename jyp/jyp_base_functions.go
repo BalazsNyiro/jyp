@@ -161,12 +161,11 @@ func base__src_get_char__safeOverindexing(src []rune, pos int) rune { // TESTED
 		posPossibleMin = -1
 	}
 	if (pos >= posPossibleMin) && (pos <= posPossibleMax) {
-		charSelected := src[pos]
-		if base__is_whitespace_rune(charSelected) {
-			charSelected = ' ' // simplify everything. if the char is ANY whitespace char,
+		if base__is_whitespace_rune(src[pos]) {
+			return ' ' // simplify everything. if the char is ANY whitespace char,
 			// return with SPACE, this is not important in the source code parsing
 		}
-		return charSelected
+		return src[pos]
 	}
 	return ' '
 }
