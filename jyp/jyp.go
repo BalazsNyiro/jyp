@@ -710,15 +710,15 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
 	srcDetectedTokensRemoved := []rune(string(src)) // copy the original structure, not use the same variable
 
+	detectedType := typeIsUnknown // 3 types of word can be detected in this fun
 	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
 
-		detectedType := typeIsUnknown // 3 types of word can be detected in this fun
 		if wordOne.word == "true" {
 			detectedType = typeBool
-		}
+		} else
 		if wordOne.word == "false" {
 			detectedType = typeBool
-		}
+		} else
 		if wordOne.word == "null" {
 			detectedType = typeNull
 		}
@@ -738,7 +738,10 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 				srcDetectedTokensRemoved[posDetected] = ' '
 			}
 			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
+
+			detectedType = typeIsUnknown // set the default value again ONLY if it was not unknown, in this case
 		}
+		/*	 it can be a number too, in case of else - so it is not an error, if typeIsUnknown */
 	}
 	return srcDetectedTokensRemoved, tokensStartPositions, errorsCollected
 }
