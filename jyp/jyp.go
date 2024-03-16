@@ -261,8 +261,8 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 func valueValidationsSettings_inTokens(tokens tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) {
 	tokensUpdated := tokenTable_startPositionIndexed{}
 	for _, tokenOne := range tokens {
-		tokenOne, errorsCollected = value_validate_and_set__elem_string(tokenOne, errorsCollected)
-		tokenOne, errorsCollected = value_validate_and_set__elem_number(tokenOne, errorsCollected)
+		tokenOne, errorsCollected = valueValidateAndSetElemString(tokenOne, errorsCollected)
+		tokenOne, errorsCollected = valueValidateAndSetElemNumber(tokenOne, errorsCollected)
 		// TODO: elem true|false|null value set?
 		tokensUpdated[tokenOne.charPositionFirstInSourceCode] = tokenOne
 	}
@@ -270,7 +270,7 @@ func valueValidationsSettings_inTokens(tokens tokenTable_startPositionIndexed, e
 }
 
 // set the string value from raw strings
-func value_validate_and_set__elem_string(token token, errorsCollected []error) (token, []error) { // TESTED
+func valueValidateAndSetElemString(token token, errorsCollected []error) (token, []error) { // TESTED
 
 	if token.valType != typeString {
 		return token, errorsCollected
@@ -351,29 +351,25 @@ func value_validate_and_set__elem_string(token token, errorsCollected []error) (
 				runeReal := '?'
 				if runeNext1 == '"' { // \" -> is a " char in a string
 					runeReal = '"' // in a string, this is an escaped " double quote char
-				}
+				} else
 				if runeNext1 == runeBackSlash { // in reality, these are the 2 chars: \\
 					runeReal = '\\' // reverse solidus
-				}
+				} else
 				if runeNext1 == '/' { // a very special escaping: \/
 					runeReal = '/' // solidus
-				}
+				} else
 				if runeNext1 == 'b' { // This is the first good example for escaping:
 					runeReal = '\b' // in the src there were 2 chars: \ and b,
-				} //  (backspace)    // and one char is inserted into the stringVal
-
+				} else //  (backspace)    // and one char is inserted into the stringVal
 				if runeNext1 == 'f' { // formfeed
 					runeReal = '\f'
-				}
-
+				} else
 				if runeNext1 == 'n' { // linefeed
 					runeReal = '\n'
-				}
-
+				} else
 				if runeNext1 == 'r' { // carriage return
 					runeReal = '\r' //
-				}
-
+				} else
 				if runeNext1 == 't' { // horizontal tab
 					runeReal = '\t' //
 				}
@@ -391,7 +387,7 @@ func value_validate_and_set__elem_string(token token, errorsCollected []error) (
 	return token, errorsCollected
 }
 
-func value_validate_and_set__elem_number(token token, errorsCollected []error) (token, []error) {
+func valueValidateAndSetElemNumber(token token, errorsCollected []error) (token, []error) {
 
 	if token.valType != typeNumber_exactTypeIsNotSet {
 		return token, errorsCollected
@@ -779,7 +775,6 @@ func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startP
 			//// don't use this, nobody reads src later
 			// srcDetectedTokensRemoved[posDetected] = ' '
 			/////////////////////////////////////////
-
 
 		}
 		tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow

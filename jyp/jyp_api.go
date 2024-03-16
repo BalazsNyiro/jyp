@@ -41,7 +41,7 @@ func JsonParse(srcStr string) (JSON_value, []error) {
 	src, tokens, errorsCollected = jsonDetect_strings______(src, tokens, errorsCollected)
 	src, tokens, errorsCollected = jsonDetect_separators___(src, tokens, errorsCollected)
 	src, tokens, errorsCollected = jsonDetect_trueFalseNull(src, tokens, errorsCollected)
-	src, tokens, errorsCollected = jsonDetect_numbers______(src, tokens, errorsCollected)
+	_,   tokens, errorsCollected = jsonDetect_numbers______(src, tokens, errorsCollected)
 
 	// at this point, Numbers are not validated - the ruins are collected only,
 	// and the lists/objects doesn't have embedded structures - it has to be built, too.
