@@ -708,7 +708,10 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 	    the true/false/null words are surrounded with spaces, as separators.
 */
 func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
-	srcDetectedTokensRemoved := []rune(string(src)) // copy the original structure, not use the same variable
+
+	srcDetectedTokensRemoved := []rune(string(src))
+	// copy the original structure, not use the same variable
+	// the detected word runes will be deleted from here.
 
 	detectedType := typeIsUnknown // 3 types of word can be detected in this fun
 	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
@@ -736,6 +739,8 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 				tokenNow.runes = append(tokenNow.runes, (src)[posDetected])
 				// clear detected positions from the src:
 				srcDetectedTokensRemoved[posDetected] = ' '
+				// only detected word runes are removed from the storage, where ALL original src is inserted in the first step
+
 			}
 			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
 
