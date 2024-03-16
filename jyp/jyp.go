@@ -709,7 +709,7 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 */
 func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
 
-	srcDetectedTokensRemoved := []rune(string(src))
+	srcDetectedTokensRemoved := base__runes_copy(src)
 	// copy the original structure, not use the same variable
 	// the detected word runes will be deleted from here.
 
@@ -753,7 +753,7 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 
 // words are detected here, and I can hope only that they are numbers - later they will be validated
 func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
-	srcDetectedTokensRemoved := []rune(string(src)) // copy the original structure, not use the same variable
+	srcDetectedTokensRemoved := base__runes_copy(src) // copy the original structure, not use the same variable
 
 	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
 
