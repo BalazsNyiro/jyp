@@ -656,10 +656,12 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 	srcDetectedTokensRemoved := []rune{}
 	var tokenNow token
 
-
+	detectedType := typeIsUnknown
 	for posInSrc, runeActual := range src {
-		detectedType := typeIsUnknown
 
+		if runeActual == ' ' {           // space is a very often filler after string detection.
+			detectedType = typeIsUnknown // so the program doesn't have to check everything,
+		} else                           // if a string is detected (other cases are not checked
 		if runeActual == '{' {
 			detectedType = typeObjectOpen
 		} else
@@ -689,6 +691,9 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 			tokenNow.runes = append(tokenNow.runes, runeActual)
 			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
 			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
+
+			detectedType = typeIsUnknown
+			// set back the type to unknown, if token is handled
 		}
 	} // for runeActual
 	return srcDetectedTokensRemoved, tokensStartPositions, errorsCollected
