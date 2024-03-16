@@ -714,22 +714,26 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 	// the detected word runes will be deleted from here.
 
 	detectedType := typeIsUnknown // 3 types of word can be detected in this fun
+
+	charsTrue := []rune("true")
+	charsFalse := []rune("false")
+	charsNull := []rune("null")
 	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
 
-		if wordOne.word == "true" {
+		if base__compare_runes_are_equal(wordOne.wordChars, charsTrue) {
 			detectedType = typeBool
 		} else
-		if wordOne.word == "false" {
+		if base__compare_runes_are_equal(wordOne.wordChars, charsFalse) {
 			detectedType = typeBool
 		} else
-		if wordOne.word == "null" {
+		if base__compare_runes_are_equal(wordOne.wordChars, charsNull) {
 			detectedType = typeNull
 		}
 
 		if detectedType != typeIsUnknown {
 			tokenNow := token{valType: detectedType}
 			if detectedType == typeBool {
-				tokenNow.valBool = wordOne.word == "true"
+				tokenNow.valBool = base__compare_runes_are_equal(wordOne.wordChars, charsTrue)
 			}
 			tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
 			tokenNow.charPositionLastInSourceCode = wordOne.posLast

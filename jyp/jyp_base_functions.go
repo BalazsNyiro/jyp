@@ -104,6 +104,20 @@ func base__is_whitespace_string(src string) bool { // TESTED
 	return true
 }
 
+// TODO: TEST
+func base__compare_runes_are_equal(a, b []rune) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for pos, runeA := range a {
+		runeB := b[pos]
+		if runeA != runeB {
+			return false
+		}
+	}
+	return true
+}
+
 // create a separated copy about original rune Slice into a new variable (deepcopy)
 func base__runes_copy(runes []rune) []rune { // TESTED
 	runesNew := []rune{}
@@ -143,9 +157,9 @@ func base__separator_set_if_no_last_elem(position, length_numOfAllElems int, sep
 }
 
 type wordInSrc struct {
-	word     string
-	posFirst int
-	posLast  int
+	wordChars []rune
+	posFirst  int
+	posLast   int
 }
 
 // get the rune IF the index is really in the range of the src.
@@ -190,7 +204,7 @@ func base__src_get_whitespace_separated_words_posFirst_posLast(src []rune) []wor
 		if runeActual == ' ' {  // means IF WHITESPACE: every whitespace is replaced to simple space in srcGetChar
 			if len(wordChars) > 0 {
 				word := wordInSrc{
-					word:     string(wordChars),
+					wordChars: wordChars,
 					posFirst: posFirst,
 					posLast:  posLast,
 				}

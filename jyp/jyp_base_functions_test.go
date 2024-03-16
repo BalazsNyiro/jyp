@@ -143,11 +143,11 @@ func Test_base__src_get_whitespace_separated_words_posFirst_posLast(t *testing.T
 
 	compare_int_int(testName, 5, words[1].posFirst, t)
 	compare_int_int(testName, 6, words[1].posLast, t)
-	compare_str_str(testName, "12", words[1].word, t)
+	compare_runes_runes(testName, []rune("12"), words[1].wordChars, t)
 
 	compare_int_int(testName, 8, words[2].posFirst, t)
 	compare_int_int(testName, 11, words[2].posLast, t)
-	compare_str_str(testName, "-1.2", words[2].word, t)
+	compare_runes_runes(testName, []rune("-1.2"), words[2].wordChars, t)
 }
 
 func Test_rune_runes_in_allowed_set(t *testing.T) {
