@@ -225,13 +225,13 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 
 			if tokenActual.valType == typeBool {
 				value.ValBool = tokenActual.valBool
-			}
+			} else
 			if tokenActual.valType == typeString {
 				value.ValStringChars = tokenActual.valStringChars
-			}
+			} else
 			if tokenActual.valType == typeNumberInt {
 				value.ValNumberInt = tokenActual.valNumberInt
-			}
+			} else
 			if tokenActual.valType == typeNumberFloat64 {
 				value.ValNumberFloat = tokenActual.valNumberFloat
 			}
@@ -242,17 +242,17 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 		parent := containers[idParent]
 		parent.CharPositionLastInSourceCode = value.CharPositionLastInSourceCode
 		// ^^^ the tokenCloser's last position is saved with this!
-		if parent.ValType == typeArray {
-			elems := parent.ValArray
-			elems = append(elems, value)
-			parent.ValArray = elems
-		}
-		if parent.ValType == typeObject {
+		if parent.ValType == typeObject { // objects are the typical containers, so this is the first in the checklist
 			parent_valObjects := parent.ValObject
 			// here the string conversation is necessary, because string keys are stored in the Objects
 			parent_valObjects[string(lastDetectedStringKey__inObject)] = value
 			lastDetectedStringKey__inObject = []rune{} // clear the keyName, we used that for the current object
 			parent.ValObject = parent_valObjects
+		} else
+		if parent.ValType == typeArray {
+			elems := parent.ValArray
+			elems = append(elems, value)
+			parent.ValArray = elems
 		}
 		containers[idParent] = parent // save back the updated parent
 
