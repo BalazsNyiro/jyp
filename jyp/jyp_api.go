@@ -118,7 +118,7 @@ func NewString_JSON_value(str string) JSON_value {
 	return JSON_value{ValType: typeString,
 		CharPositionFirstInSourceCode: -1,
 		CharPositionLastInSourceCode:  -1,
-		Runes:                         []rune(`"`+str+`"`),  // strings have "..." boundaries in runes,
+		Runes:                         []rune(`"`+str+`"`),  // strings have "..." boundaries in runesInSrc,
 		AddedInGoCode:                 true,                 // because in the Json source code the container is "..."
 	}
 }

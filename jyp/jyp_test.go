@@ -223,7 +223,7 @@ func Test_parse_number_integer(t *testing.T) {
 	TokensDisplay_startingCoords(tokens)
 
 	compare_int_int(testName, 17,     len(tokens),               t)
-	compare_str_str(testName, "int",  tokens[ 1].valString,      t)
+	compare_str_str(testName, "int",  tokens[ 1].valStringChars,      t)
 	compare_int_int(testName, 123,    tokens[ 7].valNumberInt,   t)
 	compare_flt_flt(testName, 456.78, tokens[21].valNumberFloat, t)
 	compare_int_int(testName, -9,     tokens[44].valNumberInt,   t)
@@ -251,9 +251,9 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 	// TokensDisplay_startingCoords(tokens)
 
 	compare_int_int(testName, 9, len(tokens), t)
-	compare_str_str(testName, "quote",  tokens[1].valString, t)
-	compare_str_str(testName, `"Assume a virtue, if you have it not."`+"\nShakespeare",    tokens[9].valString,  t)
-	compare_str_str(testName, "http://www.quotationspage.com/quotes/William_Shakespeare/", tokens[76].valString, t)
+	compare_str_str(testName, "quote",  tokens[1].valStringChars, t)
+	compare_str_str(testName, `"Assume a virtue, if you have it not."`+"\nShakespeare",    tokens[9].valStringChars,  t)
+	compare_str_str(testName, "http://www.quotationspage.com/quotes/William_Shakespeare/", tokens[76].valStringChars, t)
 
 
 
@@ -282,17 +282,17 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 
 	tokens, errorsCollected = valueValidationsSettings_inTokens(tokens, errorsCollected)
 	// TokensDisplay_startingCoords(tokens)
-	compare_str_str(testName, `" text"`,            tokens[19].valString,  t)
-	compare_str_str(testName, "\\ reverseSolidus",  tokens[63].valString,  t)
-	compare_str_str(testName, "/ solidus",          tokens[115].valString, t)
-	compare_str_str(testName, "\b backspace",       tokens[160].valString, t)
-	compare_str_str(testName, "\f formFeed",        tokens[207].valString, t)
-	compare_str_str(testName, "\n lineFeed",        tokens[253].valString, t)
+	compare_str_str(testName, `" text"`,            tokens[19].valStringChars,  t)
+	compare_str_str(testName, "\\ reverseSolidus",  tokens[63].valStringChars,  t)
+	compare_str_str(testName, "/ solidus",          tokens[115].valStringChars, t)
+	compare_str_str(testName, "\b backspace",       tokens[160].valStringChars, t)
+	compare_str_str(testName, "\f formFeed",        tokens[207].valStringChars, t)
+	compare_str_str(testName, "\n lineFeed",        tokens[253].valStringChars, t)
 
-	compare_str_str(testName, "\r carriageReturn",  tokens[299].valString, t)
-	compare_str_str(testName, "\t horizontalTab",   tokens[351].valString, t)
-	compare_str_str(testName, "\"",                 tokens[392].valString, t)
-	compare_str_str(testName, "ä",                  tokens[422].valString, t)
+	compare_str_str(testName, "\r carriageReturn",  tokens[299].valStringChars, t)
+	compare_str_str(testName, "\t horizontalTab",   tokens[351].valStringChars, t)
+	compare_str_str(testName, "\"",                 tokens[392].valStringChars, t)
+	compare_str_str(testName, "ä",                  tokens[422].valStringChars, t)
 }
 
 
@@ -320,11 +320,11 @@ func Test_detect_numbers(t *testing.T) {
 	// TokensDisplay_startingCoords(tokens)
 	compare_int_int(testName, 21, len(tokens), t)
 
-	compare_str_str(testName, "123",     string(tokens[7].runes), t)
-	compare_str_str(testName, "-456.78", string(tokens[23].runes), t)
-	compare_str_str(testName, "0",       string(tokens[44].runes), t)
-	compare_str_str(testName, "-1.2E+3", string(tokens[55].runes), t)
-	compare_str_str(testName, "0.1e-4",  string(tokens[76].runes), t)
+	compare_str_str(testName, "123",     string(tokens[7].runesInSrc), t)
+	compare_str_str(testName, "-456.78", string(tokens[23].runesInSrc), t)
+	compare_str_str(testName, "0",       string(tokens[44].runesInSrc), t)
+	compare_str_str(testName, "-1.2E+3", string(tokens[55].runesInSrc), t)
+	compare_str_str(testName, "0.1e-4",  string(tokens[76].runesInSrc), t)
 }
 
 
@@ -378,8 +378,8 @@ func Test_separators_detect(t *testing.T) {
 		tokenNow := tokensSep[positionInSrc]
 		compare_int_int(    testName, positionInSrc,         tokenNow.charPositionFirstInSourceCode,  t)
 		compare_int_int(    testName, positionInSrc,         tokenNow.charPositionLastInSourceCode,   t)
-		compare_int_int(    testName, 1,      len(tokenNow.runes), t)
-		compare_runes_runes(testName, []rune(srcWanted),     tokenNow.runes,  t)
+		compare_int_int(    testName, 1,      len(tokenNow.runesInSrc), t)
+		compare_runes_runes(testName, []rune(srcWanted),     tokenNow.runesInSrc,  t)
 	}
 
 	testOneElem("{", 0  )
@@ -424,8 +424,8 @@ func Test_detect_strings(t *testing.T) {
 	compare_int_int(testName, len(tokensEmpty), 2, t) // 3 strings were detected
 	compare_int_int(testName, 1, tokensEmpty[1].charPositionFirstInSourceCode,  t)
 	compare_int_int(testName, 7, tokensEmpty[1].charPositionLastInSourceCode,  t)
-	compare_runes_runes(testName, []rune(`"empty"`), tokensEmpty[1].runes, t)
-	compare_runes_runes(testName, []rune(`""`), tokensEmpty[9].runes, t)
+	compare_runes_runes(testName, []rune(`"empty"`), tokensEmpty[1].runesInSrc, t)
+	compare_runes_runes(testName, []rune(`""`), tokensEmpty[9].runesInSrc, t)
 
 	compare_int_int(testName, len(errorsCollectedEmpty), 0, t)
 
@@ -450,7 +450,7 @@ func Test_detect_strings(t *testing.T) {
 	compare_int_int(testName, 3, len(tokens2), t) // 3 strings were detected
 	compare_int_int(testName, 1, tokens2[1].charPositionFirstInSourceCode,  t)
 	compare_int_int(testName, 6, tokens2[1].charPositionLastInSourceCode, t)
-	compare_runes_runes(testName, []rune(`"name"`), tokens2[1].runes, t)
+	compare_runes_runes(testName, []rune(`"name"`), tokens2[1].runesInSrc, t)
 	compare_int_int(testName, len(errorsCollected2), 0, t)
 
 
@@ -530,6 +530,6 @@ func TokensDisplay_startingCoords(tokens tokenTable_startPositionIndexed) {
 
 	fmt.Println("== Tokens Table display ==")
 	for _, key := range keys{
-		fmt.Println(string(tokens[key].runes), key, tokens[key])
+		fmt.Println(string(tokens[key].runesInSrc), key, tokens[key])
 	}
 }

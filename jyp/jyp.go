@@ -63,13 +63,16 @@ type token struct {
 	valType byte
 
 	valBool        bool
-	valString      string
+	valStringChars string // real string characters. \u1234 from src is converted here into one char for example,
+                           // and \u1234 has 6 runes in runesInSrc.
+						   // originally it was string, but in extremely long JSONS, nobody reads them.
+						   // convert runes to string ONLY if user wants to read something
 	valNumberInt   int
 	valNumberFloat float64
 
 	charPositionFirstInSourceCode int // 0: the first char in source code, 1: 2nd...
 	charPositionLastInSourceCode  int // 0: the first char in source code, 1: 2nd...
-	runes                         []rune
+	runesInSrc []rune  // raw runes in src, without interpretation.
 }
 
 type JSON_value struct {
@@ -139,7 +142,7 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 			if lastDetectedStringKey__inObject == "" {
 				if containers[idParent].ValType == typeObject {
 					if tokenActual.valType == typeString {
-						lastDetectedStringKey__inObject = tokenActual.valString
+						lastDetectedStringKey__inObject = tokenActual.valStringChars
 						continue
 					} // == string
 				} // == object
@@ -210,7 +213,7 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 			value = JSON_value{ValType: tokenActual.valType,
 				CharPositionFirstInSourceCode: tokenActual.charPositionFirstInSourceCode,
 				CharPositionLastInSourceCode:  tokenActual.charPositionLastInSourceCode,
-				Runes:                         tokenActual.runes,
+				Runes:                         tokenActual.runesInSrc,
 				idParent:                      idParent,
 				LevelInObjectStructure:        containers[idParent].LevelInObjectStructure + 1,
 				// idSelf is not filled, the whole id conception is used ONLY to find parents
@@ -225,7 +228,7 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 				value.ValBool = tokenActual.valBool
 			}
 			if tokenActual.valType == typeString {
-				value.ValString = tokenActual.valString
+				value.ValString = tokenActual.valStringChars
 			}
 			if tokenActual.valType == typeNumberInt {
 				value.ValNumberInt = tokenActual.valNumberInt
@@ -284,7 +287,7 @@ func valueValidateAndSetElemString(token token, errorsCollected []error) (token,
 	but sometime with 6: \u0123, so I need to look forward for the next 5 chars
 	*/
 
-	src := token.runes
+	src := token.runesInSrc
 	src = src[1 : len(src)-1] // "remove opening/closing quotes from the string value"
 
 	valueFromRawSrcParsing := []rune{}
@@ -383,7 +386,7 @@ func valueValidateAndSetElemString(token token, errorsCollected []error) (token,
 	} // for
 
 	// fmt.Println("value from raw src parsing:", string(valueFromRawSrcParsing))
-	token.valString = string(valueFromRawSrcParsing)
+	token.valStringChars = string(valueFromRawSrcParsing)
 	return token, errorsCollected
 }
 
@@ -420,7 +423,7 @@ func valueValidateAndSetElemNumber(token token, errorsCollected []error) (token,
 	// in case of 12.3: divider = 10^-1
 	// in case of 1.23: divider = 10^-2
 
-	numberRunes := base__runes_copy(token.runes)
+	numberRunes := base__runes_copy(token.runesInSrc)
 
 	// example number: -1234.567e-8
 	isNegative := numberRunes[0] == '-'
@@ -601,7 +604,7 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 
 				tokenNow = token{valType: typeString}
 				tokenNow.charPositionFirstInSourceCode = posInSrc
-				tokenNow.runes = append(tokenNow.runes, runeActual)
+				tokenNow.runesInSrc = append(tokenNow.runesInSrc, runeActual)
 
 				srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
 				continue
@@ -610,7 +613,7 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 				inStringDetection = false          // is the end of the string
 
 				tokenNow.charPositionLastInSourceCode = posInSrc
-				tokenNow.runes = append(tokenNow.runes, runeActual)
+				tokenNow.runesInSrc = append(tokenNow.runesInSrc, runeActual)
 				tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow // save token
 
 				srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
@@ -624,7 +627,7 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 		} // if " is detected, everything is handled in the conditions
 
 		if inStringDetection {
-			tokenNow.runes = append(tokenNow.runes, runeActual)
+			tokenNow.runesInSrc = append(tokenNow.runesInSrc, runeActual)
 
 			if runeActual == '\\' {
 				escapeBackSlashCounterBeforeCurrentChar++
@@ -684,7 +687,7 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 			tokenNow = token{valType: detectedType}
 			tokenNow.charPositionFirstInSourceCode = posInSrc
 			tokenNow.charPositionLastInSourceCode = posInSrc
-			tokenNow.runes = append(tokenNow.runes, runeActual)
+			tokenNow.runesInSrc = append(tokenNow.runesInSrc, runeActual)
 			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
 			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
 
@@ -707,7 +710,7 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 
 	srcDetectedTokensRemoved := base__runes_copy(src)
 	// copy the original structure, not use the same variable
-	// the detected word runes will be deleted from here.
+	// the detected word runesInSrc will be deleted from here.
 
 	detectedType := typeIsUnknown // 3 types of word can be detected in this fun
 
@@ -736,10 +739,10 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 
 			for posDetected := wordOne.posFirst; posDetected <= wordOne.posLast; posDetected++ {
 				// save all detected positions:
-				tokenNow.runes = append(tokenNow.runes, (src)[posDetected])
+				tokenNow.runesInSrc = append(tokenNow.runesInSrc, (src)[posDetected])
 				// clear detected positions from the src:
 				srcDetectedTokensRemoved[posDetected] = ' '
-				// only detected word runes are removed from the storage, where ALL original src is inserted in the first step
+				// only detected word runesInSrc are removed from the storage, where ALL original src is inserted in the first step
 
 			}
 			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
@@ -768,7 +771,7 @@ func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startP
 
 		for posDetected := wordOne.posFirst; posDetected <= wordOne.posLast; posDetected++ {
 			// save all detected positions:
-			tokenNow.runes = append(tokenNow.runes, (src)[posDetected])
+			tokenNow.runesInSrc = append(tokenNow.runesInSrc, (src)[posDetected])
 			// clear detected positions from the src:
 
 			/////////////////////////////////////////
