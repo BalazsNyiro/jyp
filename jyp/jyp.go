@@ -104,20 +104,20 @@ type JSON_value struct {
 
 type tokenTable_startPositionIndexed map[int]token
 
-func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsCollected []error) (JSON_value, []error) {
+func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsCollected []error) JSON_value {
 	var elemRoot JSON_value
 
 	positionKeys_of_tokens := local_tool__tokenTable_position_keys_sorted(tokens)
 
 	if len(positionKeys_of_tokens) < 1 {
 		errorsCollected = append(errorsCollected, errors.New("emtpy source code, no tokens"))
-		return elemRoot, errorsCollected
+		return elemRoot
 	}
 
 	keyFirst := positionKeys_of_tokens[0]
 	if tokens[keyFirst].valType != typeObjectOpen {
 		errorsCollected = append(errorsCollected, errors.New("the first token has to be 'objectOpen' in JSON source code"))
-		return elemRoot, errorsCollected
+		return elemRoot
 	}
 	///////////////////////////////////////////////////////////////
 
@@ -257,7 +257,7 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 		containers[idParent] = parent // save back the updated parent
 
 	} // for, tokenNum, tokenPositionKey
-	return elemRoot, errorsCollected
+	return elemRoot
 }
 
 // //////////////////// VALUE setter FUNCTIONS ///////////////////////////////////////////////
@@ -587,7 +587,7 @@ func valueValidateAndSetElemNumber(token token, errorsCollected []error) (token,
 
 // ////////////////////  DETECTIONS  ///////////////////////////////////////////////
 // Documented in program plan
-func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) []error { // TESTED
+func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) { // TESTED
 
 	// to find escaped \" \\\" sections in strings
 	escapeBackSlashCounterBeforeCurrentChar := 0
@@ -650,11 +650,9 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 	if inStringDetection {
 		errorsCollected = append(errorsCollected, errors.New("non-closed string detected:"))
 	}
-
-	return errorsCollected
 } // detect strings
 
-func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) []error { // TESTED
+func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) { // TESTED
 	var tokenNow token
 
 	detectedType := typeIsUnknown
@@ -696,7 +694,6 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 			// set back the type to unknown, if token is handled
 		}
 	} // for runeActual
-	return errorsCollected
 } // separators....
 
 
@@ -707,7 +704,7 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 		because the strings/separators are removed and replaced with space in the src, as placeholders,
 	    the true/false/null words are surrounded with spaces, as separators.
 */
-func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) []error { // TESTED
+func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) { // TESTED
 
 	// copy the original structure, not use the same variable
 	// the detected word runesInSrc will be deleted from here.
@@ -751,11 +748,10 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 		}
 		/*	 it can be a number too, in case of else - so it is not an error, if typeIsUnknown */
 	}
-	return errorsCollected
 }
 
 // words are detected here, and I can hope only that they are numbers - later they will be validated
-func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) []error { // TESTED
+func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) { // TESTED
 
 	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
 
@@ -769,7 +765,6 @@ func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startP
 		}
 		tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
 	}
-	return errorsCollected
 }
 
 /////////////////////////// local tools: supporter funcs, not for main logic /////////////////////////////
