@@ -62,7 +62,7 @@ type token struct {
 	valType byte
 
 	valBool        bool
-	valStringChars []rune  // real string characters. \u1234 from src is converted here into one char for example,
+	valStringChars string // real string characters. \u1234 from src is converted here into one char for example,
                            // and \u1234 has 6 runes in runesInSrc.
 						   // originally it was string, but in extremely long JSONS, nobody reads them.
 						   // convert runes to string ONLY if user wants to read something
@@ -84,7 +84,7 @@ type JSON_value struct {
 
 	ValBool bool // true, false
 
-	ValStringChars []rune  // a string JSON value is stored here (filled ONLY if ValType is string)
+	ValString      string  // a string JSON value is stored here (filled ONLY if ValType is string)
 	ValNumberInt   int     // an integer JSON value is stored here
 	ValNumberFloat float64 // a float JSON value is saved here
 	// ...............................................................................................
@@ -123,8 +123,8 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 
 	idParent := -1 // id can be 0 or bigger, so -1 is a non-existing parent id (root elem doesn't have parent
 	containers := map[int]JSON_value{}
-	keyStrings_of_collectors__filledIfObjectKey_emptyIfParentIsArray := map[int][]rune{} // if the parent is an object, elems can be inserted with keys.
-	lastDetectedStringKey__inObject := []rune{}
+	keyStrings_of_collectors__filledIfObjectKey_emptyIfParentIsArray := map[int]string{} // if the parent is an object, elems can be inserted with keys.
+	lastDetectedStringKey__inObject := ""
 
 	// tokenKeys are charPosition based numbers, they are not continuous.
 	for _, tokenPositionKey := range positionKeys_of_tokens {
@@ -138,7 +138,7 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 		// in json objects, the first string is always the key. then the next elem is the value
 		// detect this situation: string key in an object:
 		if idParent >= 0 { // the first root elem doesn't have parents, so idParent == -1
-			if len(lastDetectedStringKey__inObject) == 0 { // so empty...
+			if lastDetectedStringKey__inObject == "" {
 				if containers[idParent].ValType == typeObject {
 					if tokenActual.valType == typeString {
 						lastDetectedStringKey__inObject = tokenActual.valStringChars
@@ -183,7 +183,7 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 				if the container is an 'array' then keywords are not used, so they are empty
 			*/
 			keyStrings_of_collectors__filledIfObjectKey_emptyIfParentIsArray[id] = lastDetectedStringKey__inObject // save the key (it can be empty, or filled!)
-			lastDetectedStringKey__inObject = []rune{}
+			lastDetectedStringKey__inObject = ""
 			idParent = id // this new array is the new parent for the next elems
 			continue
 		} // openers
@@ -227,7 +227,7 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 				value.ValBool = tokenActual.valBool
 			} else
 			if tokenActual.valType == typeString {
-				value.ValStringChars = tokenActual.valStringChars
+				value.ValString = tokenActual.valStringChars
 			} else
 			if tokenActual.valType == typeNumberInt {
 				value.ValNumberInt = tokenActual.valNumberInt
@@ -246,7 +246,7 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 			parent_valObjects := parent.ValObject
 			// here the string conversation is necessary, because string keys are stored in the Objects
 			parent_valObjects[string(lastDetectedStringKey__inObject)] = value
-			lastDetectedStringKey__inObject = []rune{} // clear the keyName, we used that for the current object
+			lastDetectedStringKey__inObject = "" // clear the keyName, we used that for the current object
 			parent.ValObject = parent_valObjects
 		} else
 		if parent.ValType == typeArray {
@@ -386,7 +386,8 @@ func valueValidateAndSetElemString(token token, errorsCollected []error) (token,
 	} // for
 
 	// fmt.Println("value from raw src parsing:", string(valueFromRawSrcParsing))
-	token.valStringChars = valueFromRawSrcParsing
+	token.valStringChars = string(valueFromRawSrcParsing) // first I tried to remove this string conversion
+	// and use runes only, but it didnt help to get higher speed.
 	return token, errorsCollected
 }
 

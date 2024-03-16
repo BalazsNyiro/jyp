@@ -223,7 +223,7 @@ func Test_parse_number_integer(t *testing.T) {
 	TokensDisplay_startingCoords(tokens)
 
 	compare_int_int(testName, 17,     len(tokens),               t)
-	compare_runes_runes(testName, []rune("int"),  tokens[ 1].valStringChars,      t)
+	compare_str_str(testName, "int",  tokens[ 1].valStringChars,      t)
 	compare_int_int(testName, 123,    tokens[ 7].valNumberInt,   t)
 	compare_flt_flt(testName, 456.78, tokens[21].valNumberFloat, t)
 	compare_int_int(testName, -9,     tokens[44].valNumberInt,   t)
@@ -251,9 +251,9 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 	// TokensDisplay_startingCoords(tokens)
 
 	compare_int_int(testName, 9, len(tokens), t)
-	compare_runes_runes(testName, []rune("quote"),  tokens[1].valStringChars, t)
-	compare_runes_runes(testName, []rune(`"Assume a virtue, if you have it not."`+"\nShakespeare"),    tokens[9].valStringChars,  t)
-	compare_runes_runes(testName, []rune("http://www.quotationspage.com/quotes/William_Shakespeare/"), tokens[76].valStringChars, t)
+	compare_str_str(testName, "quote",  tokens[1].valStringChars, t)
+	compare_str_str(testName, `"Assume a virtue, if you have it not."`+"\nShakespeare",    tokens[9].valStringChars,  t)
+	compare_str_str(testName, "http://www.quotationspage.com/quotes/William_Shakespeare/", tokens[76].valStringChars, t)
 
 
 
@@ -282,17 +282,17 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 
 	tokens, errorsCollected = valueValidationsSettings_inTokens(tokens, errorsCollected)
 	// TokensDisplay_startingCoords(tokens)
-	compare_runes_runes(testName, []rune(`" text"`),            tokens[19].valStringChars,  t)
-	compare_runes_runes(testName, []rune("\\ reverseSolidus"),  tokens[63].valStringChars,  t)
-	compare_runes_runes(testName, []rune("/ solidus"),          tokens[115].valStringChars, t)
-	compare_runes_runes(testName, []rune("\b backspace"),       tokens[160].valStringChars, t)
-	compare_runes_runes(testName, []rune("\f formFeed"),        tokens[207].valStringChars, t)
-	compare_runes_runes(testName, []rune("\n lineFeed"),        tokens[253].valStringChars, t)
+	compare_str_str(testName, `" text"`,            tokens[19].valStringChars,  t)
+	compare_str_str(testName, "\\ reverseSolidus",  tokens[63].valStringChars,  t)
+	compare_str_str(testName, "/ solidus",          tokens[115].valStringChars, t)
+	compare_str_str(testName, "\b backspace",       tokens[160].valStringChars, t)
+	compare_str_str(testName, "\f formFeed",        tokens[207].valStringChars, t)
+	compare_str_str(testName, "\n lineFeed",        tokens[253].valStringChars, t)
 
-	compare_runes_runes(testName, []rune("\r carriageReturn"),  tokens[299].valStringChars, t)
-	compare_runes_runes(testName, []rune("\t horizontalTab"),   tokens[351].valStringChars, t)
-	compare_runes_runes(testName, []rune("\""),                 tokens[392].valStringChars, t)
-	compare_runes_runes(testName, []rune("ä"),                  tokens[422].valStringChars, t)
+	compare_str_str(testName, "\r carriageReturn",  tokens[299].valStringChars, t)
+	compare_str_str(testName, "\t horizontalTab",   tokens[351].valStringChars, t)
+	compare_str_str(testName, "\"",                 tokens[392].valStringChars, t)
+	compare_str_str(testName, "ä",                  tokens[422].valStringChars, t)
 }
 
 
