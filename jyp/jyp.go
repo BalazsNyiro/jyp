@@ -29,7 +29,6 @@ import (
 	"errors"
 	"sort"
 	"strconv"
-	"strings"
 )
 
 var errorPrefix = "Error: "
@@ -438,9 +437,9 @@ func valueValidateAndSetElemNumber(token token, errorsCollected []error) (token,
 	////////////////// the main sections of the number
 
 	///////////////// the main markers of the number
-	isFractionDotUsed := strings.ContainsRune(string(numberRunes), '.')
-	isExponent_E_used := strings.ContainsRune(string(numberRunes), 'E')
-	isExponent_e_used := strings.ContainsRune(string(numberRunes), 'e')
+	isFractionDotUsed := base__runeInRunes('.', numberRunes)
+	isExponent_E_used := base__runeInRunes('E', numberRunes)
+	isExponent_e_used := base__runeInRunes('e', numberRunes)
 
 	/////////// go from back to forward: remove exponent part first
 	if isExponent_e_used {

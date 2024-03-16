@@ -247,3 +247,13 @@ func base__validate_runes_are_in_allowed_set(runesToValidate, runesAllowed []run
 	}
 	return true
 }
+
+// TODO: test
+func base__runeInRunes(runeWanted rune, runesToValidate []rune) bool {
+	for _, r := range runesToValidate {
+		if r == runeWanted {
+			return true
+		}
+	}
+	return false
+}

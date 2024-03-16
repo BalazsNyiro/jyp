@@ -58,6 +58,14 @@ func JsonParse(srcStr string) (JSON_value, []error) {
 	return elemRoot, errorsCollected
 }
 
+/* in extremely long JSONs (kubernetes manifests, for example with 300.000 lines or more)
+   you can find extremely huge amount of strings, but the user typically wants to read a few of them.
+   so runes-> string conversation is done ONLY if the user really ask it, and uses that value
+*/
+func (v JSON_value) ValString() string {
+	return string(v.ValStringChars)
+}
+
 func (v JSON_value) AddKeyVal_path_into_object(keysMerged string, value JSON_value) error {
 	if v.ValType == typeObject {
 		keys, err:= ObjPath_merged_expand__split_with_first_char(keysMerged)
