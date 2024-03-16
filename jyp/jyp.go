@@ -591,14 +591,12 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 
 	// to find escaped \" \\\" sections in strings
 	escapeBackSlashCounterBeforeCurrentChar := 0
-
 	inStringDetection := false
+	var tokenNow token
 
 	isEscaped := func() bool {
 		return escapeBackSlashCounterBeforeCurrentChar%2 != 0
 	}
-
-	var tokenNow token
 
 	for posInSrc, runeActual := range src {
 
@@ -623,7 +621,6 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 				src[posInSrc] = ' '
 				continue
 			}
-
 			// BE CAREFUL, there is a 3rd option!
 			// if inStringDetection && isEscaped() -- which is handled as part of a string: inStringDetection
 			// and this is different from the previous two, so don't change the structure!
@@ -638,15 +635,10 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 			} else { // the escape series ended :-)
 				escapeBackSlashCounterBeforeCurrentChar = 0
 			}
-
-			// add empty placeholder where the token was detected
-			src[posInSrc] = ' '
-		} else {
-			// keep the original rune, if it was not in a string
+			src[posInSrc] = ' ' // remove detected char from src
 		}
 
 	} // for, runeActual
-
 	if inStringDetection {
 		errorsCollected = append(errorsCollected, errors.New("non-closed string detected:"))
 	}

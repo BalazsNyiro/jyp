@@ -113,7 +113,7 @@ func Test_speed(t *testing.T) {
 	testName := funName + "_basic"
 	_ = testName
 
-	// srcStr := strings.Repeat(srcEverything, 100)
+	// 	srcStr := strings.Repeat(srcEverything, 100)
 	// https://raw.githubusercontent.com/json-iterator/test-data/master/large-file.json
 	srcStr := file_read_for_tests("large-file.json")
 	// python3 json.loads() speed: 0.24469351768493652 sec
