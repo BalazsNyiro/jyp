@@ -168,14 +168,21 @@ type wordInSrc struct {
 // the space can be answered because this func is used when a real char wanted to be detected,
 // and if a space is returned, this has NO MEANING in that parse section
 // this fun is NOT used in string detection - and other places whitespaces can be neglected, too
+// getChar, with whitespace replace
 func base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src []rune, pos int) rune { // TESTED
+	char := base__srcGetChar__safeOverindexing(src, pos)
+	if base__is_whitespace_rune(char) {
+		return ' ' // simplify everything. if the char is ANY whitespace char,
+		// return with SPACE, this is not important in the source code parsing
+	}
+	return char
+}
+
+// getChar, no whitespace replace
+func base__srcGetChar__safeOverindexing(src []rune, pos int) rune { // TESTED
 	posPossibleMax := len(src) - 1  // if src is empty, max is -1,
 	posPossibleMin := 0             // and the condition cannot be true here:
 	if (pos >= posPossibleMin) && (pos <= posPossibleMax) {
-		if base__is_whitespace_rune(src[pos]) {
-			return ' ' // simplify everything. if the char is ANY whitespace char,
-			// return with SPACE, this is not important in the source code parsing
-		}
 		return src[pos]
 	}
 	return ' '

@@ -596,30 +596,44 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 
 	isEscaped := func() bool {
 		return escapeBackSlashCounterBeforeCurrentChar%2 != 0
+		/* another version, if src is copied, because the current src is modified, so we cannot look back.
+
+			isEscaped := false // look back, and see if " is escaped or not
+			for posBack := posInSrc-1; posBack>=0; posBack-- {
+				charBack := base__srcGetChar__safeOverindexing(srcOrig, posBack)
+				if charBack == '\\' {
+					isEscaped = ! isEscaped
+				} else {
+					break
+				}
+			}
+		*/
 	}
 
 	for posInSrc, runeActual := range src {
 
 		if runeActual == '"' {
 			if !inStringDetection { // if at " char handling, we are NOT in string
-				inStringDetection = true
+					inStringDetection = true
 
-				tokenNow = token{valType: typeString}
-				tokenNow.charPositionFirstInSourceCode = posInSrc
-				tokenNow.runesInSrc = append(tokenNow.runesInSrc, runeActual)
+					tokenNow = token{valType: typeString}
+					tokenNow.charPositionFirstInSourceCode = posInSrc
+					tokenNow.runesInSrc = append(tokenNow.runesInSrc, runeActual)
 
-				src[posInSrc] = ' '
-				continue
-			}
-			if inStringDetection && !isEscaped() { // a non-escaped " char in a string detection
-				inStringDetection = false          // is the end of the string
+					src[posInSrc] = ' '
+					continue
 
-				tokenNow.charPositionLastInSourceCode = posInSrc
-				tokenNow.runesInSrc = append(tokenNow.runesInSrc, runeActual)
-				tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow // save token
+			} else { // inStringDetection
+				if !isEscaped() { // a non-escaped " char in a string detection
+					inStringDetection = false          // is the end of the string
 
-				src[posInSrc] = ' '
-				continue
+					tokenNow.charPositionLastInSourceCode = posInSrc
+					tokenNow.runesInSrc = append(tokenNow.runesInSrc, runeActual)
+					tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow // save token
+
+					src[posInSrc] = ' '
+					continue
+				}
 			}
 			// BE CAREFUL, there is a 3rd option!
 			// if inStringDetection && isEscaped() -- which is handled as part of a string: inStringDetection
