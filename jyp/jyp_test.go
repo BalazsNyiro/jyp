@@ -118,23 +118,23 @@ func Test_speed(t *testing.T) {
 	errorsCollected := []error{}
 
 	start1 := time.Now()
-	tokens, errorsCollected = jsonDetect_strings______(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_strings______(src, tokens, errorsCollected)
 	time_str := time.Since(start1)
 
 	startSep := time.Now()
-	tokens, errorsCollected = jsonDetect_separators___(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_separators___(src, tokens, errorsCollected)
 	time_separators := time.Since(startSep)
 
 	startBool := time.Now()
-	tokens, errorsCollected = jsonDetect_trueFalseNull(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_trueFalseNull(src, tokens, errorsCollected)
 	time_bool := time.Since(startBool)
 
 	startNum := time.Now()
-	tokens, errorsCollected = jsonDetect_numbers______(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_numbers______(src, tokens, errorsCollected)
 	time_num := time.Since(startNum)
 
 	startValid := time.Now()
-	tokens, errorsCollected = valueValidationsSettings_inTokens(tokens, errorsCollected)
+	errorsCollected = valueValidationsSettings_inTokens(tokens, errorsCollected)
 	time_valid := time.Since(startValid)
 
 	startHierarchy := time.Now()
@@ -214,12 +214,12 @@ func Test_parse_number_integer(t *testing.T) {
 	tokens := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 
-	tokens, errorsCollected = jsonDetect_strings______(src, tokens, errorsCollected)
-	tokens, errorsCollected = jsonDetect_separators___(src, tokens, errorsCollected)
-	tokens, errorsCollected = jsonDetect_trueFalseNull(src, tokens, errorsCollected)
-	tokens, errorsCollected = jsonDetect_numbers______(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_strings______(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_separators___(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_trueFalseNull(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_numbers______(src, tokens, errorsCollected)
 
-	tokens, errorsCollected = valueValidationsSettings_inTokens(tokens, errorsCollected)
+	errorsCollected = valueValidationsSettings_inTokens(tokens, errorsCollected)
 	TokensDisplay_startingCoords(tokens)
 
 	compare_int_int(testName, 17,     len(tokens),               t)
@@ -241,12 +241,12 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 	tokens := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 
-	tokens, errorsCollected = jsonDetect_strings______(src, tokens, errorsCollected)
-	tokens, errorsCollected = jsonDetect_separators___(src, tokens, errorsCollected)
-	tokens, errorsCollected = jsonDetect_trueFalseNull(src, tokens, errorsCollected)
-	tokens, errorsCollected = jsonDetect_numbers______(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_strings______(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_separators___(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_trueFalseNull(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_numbers______(src, tokens, errorsCollected)
 
-	tokens, errorsCollected = valueValidationsSettings_inTokens(tokens, errorsCollected)
+	errorsCollected = valueValidationsSettings_inTokens(tokens, errorsCollected)
 	// at this point, string tokens' real value is parsed - but there are no embedded structures yet
 	// TokensDisplay_startingCoords(tokens)
 
@@ -275,12 +275,12 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 	tokens = tokenTable_startPositionIndexed{}
 	errorsCollected = []error{}
 
-	tokens, errorsCollected = jsonDetect_strings______(src, tokens, errorsCollected)
-	tokens, errorsCollected = jsonDetect_separators___(src, tokens, errorsCollected)
-	tokens, errorsCollected = jsonDetect_trueFalseNull(src, tokens, errorsCollected)
-	tokens, errorsCollected = jsonDetect_numbers______(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_strings______(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_separators___(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_trueFalseNull(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_numbers______(src, tokens, errorsCollected)
 
-	tokens, errorsCollected = valueValidationsSettings_inTokens(tokens, errorsCollected)
+	errorsCollected = valueValidationsSettings_inTokens(tokens, errorsCollected)
 	// TokensDisplay_startingCoords(tokens)
 	compare_str_str(testName, `" text"`,            tokens[19].valString,  t)
 	compare_str_str(testName, "\\ reverseSolidus",  tokens[63].valString,  t)
@@ -313,10 +313,10 @@ func Test_detect_numbers(t *testing.T) {
 	tokens := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 
-	tokens, errorsCollected = jsonDetect_strings______(src, tokens, errorsCollected)
-	tokens, errorsCollected = jsonDetect_separators___(src, tokens, errorsCollected)
-	tokens, errorsCollected = jsonDetect_trueFalseNull(src, tokens, errorsCollected)
-	tokens, errorsCollected = jsonDetect_numbers______(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_strings______(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_separators___(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_trueFalseNull(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_numbers______(src, tokens, errorsCollected)
 	// TokensDisplay_startingCoords(tokens)
 	compare_int_int(testName, 21, len(tokens), t)
 
@@ -343,9 +343,9 @@ func Test_true_false_null(t *testing.T) {
 	tokens := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 
-	tokens, errorsCollected = jsonDetect_strings______(src, tokens, errorsCollected)
-	tokens, errorsCollected = jsonDetect_separators___(src, tokens, errorsCollected)
-	tokens, errorsCollected = jsonDetect_trueFalseNull(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_strings______(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_separators___(src, tokens, errorsCollected)
+	errorsCollected = jsonDetect_trueFalseNull(src, tokens, errorsCollected)
 
 	// the orig src len has to be equal with the cleaned/received one's length:
 	compare_int_int(testName, srcLenOrig, len(src), t)
@@ -367,15 +367,15 @@ func Test_separators_detect(t *testing.T) {
 	tokensStartPositions := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 
-	tokensSep, errorsCollectedSep := jsonDetect_separators___(src, tokensStartPositions, errorsCollected)
+	errorsCollectedSep := jsonDetect_separators___(src, tokensStartPositions, errorsCollected)
 	//                              `{"students":[{"name":"Bob", "age":12}{"name": "Eve", "age":34.56}]}`
 	compare_runes_runes(testName, []rune(` "students"   "name" "Bob"  "age" 12  "name"  "Eve"  "age" 34.56   `), src, t)
-	compare_int_int(testName, 15, len(tokensSep), t)
+	compare_int_int(testName, 15, len(tokensStartPositions), t)
 
 	/* because the separators are one char long elems, the start position and end position
 	   are ALWAYS same, and the length of Runes are 1, too. */
 	testOneElem := func (srcWanted string, positionInSrc int) {
-		tokenNow := tokensSep[positionInSrc]
+		tokenNow := tokensStartPositions[positionInSrc]
 		compare_int_int(    testName, positionInSrc,         tokenNow.charPositionFirstInSourceCode,  t)
 		compare_int_int(    testName, positionInSrc,         tokenNow.charPositionLastInSourceCode,   t)
 		compare_int_int(    testName, 1,      len(tokenNow.runesInSrc), t)
@@ -415,17 +415,17 @@ func Test_detect_strings(t *testing.T) {
 	errorsCollected := []error{}
 
 
-	tokensEmpty, errorsCollectedEmpty := jsonDetect_strings______(src, tokensStartPositions, errorsCollected)
+	errorsCollectedEmpty := jsonDetect_strings______(src, tokensStartPositions, errorsCollected)
 	// after token detection, the parsed section is removed;
 	//                                       `{"empty":""}`, t)
 	compare_runes_runes(testName, []rune(`{       :  }`), src, t)
 	compare_int_int(testName, srcLenOrig, len(src), t)
 
-	compare_int_int(testName, len(tokensEmpty), 2, t) // 3 strings were detected
-	compare_int_int(testName, 1, tokensEmpty[1].charPositionFirstInSourceCode,  t)
-	compare_int_int(testName, 7, tokensEmpty[1].charPositionLastInSourceCode,  t)
-	compare_runes_runes(testName, []rune(`"empty"`), tokensEmpty[1].runesInSrc, t)
-	compare_runes_runes(testName, []rune(`""`), tokensEmpty[9].runesInSrc, t)
+	compare_int_int(testName, len(tokensStartPositions), 2, t) // 3 strings were detected
+	compare_int_int(testName, 1, tokensStartPositions[1].charPositionFirstInSourceCode,  t)
+	compare_int_int(testName, 7, tokensStartPositions[1].charPositionLastInSourceCode,  t)
+	compare_runes_runes(testName, []rune(`"empty"`), tokensStartPositions[1].runesInSrc, t)
+	compare_runes_runes(testName, []rune(`""`), tokensStartPositions[9].runesInSrc, t)
 
 	compare_int_int(testName, len(errorsCollectedEmpty), 0, t)
 
@@ -441,16 +441,16 @@ func Test_detect_strings(t *testing.T) {
 	errorsCollected = []error{}
 
 	// tokens are indexed by the first char where they were detected
-	tokens2, errorsCollected2 := jsonDetect_strings______(src, tokensStartPositions, errorsCollected)
+	errorsCollected2 := jsonDetect_strings______(src, tokensStartPositions, errorsCollected)
 	//                              `{"name":"Bob", "age": 42}`
 	// after token detection, the parsed section is removed;
 	compare_runes_runes(testName, []rune(`{      :     ,      : 42}`), src, t)
 	compare_int_int(testName, srcLenOrig, len(src), t)
 
-	compare_int_int(testName, 3, len(tokens2), t) // 3 strings were detected
-	compare_int_int(testName, 1, tokens2[1].charPositionFirstInSourceCode,  t)
-	compare_int_int(testName, 6, tokens2[1].charPositionLastInSourceCode, t)
-	compare_runes_runes(testName, []rune(`"name"`), tokens2[1].runesInSrc, t)
+	compare_int_int(testName, 3, len(tokensStartPositions), t) // 3 strings were detected
+	compare_int_int(testName, 1, tokensStartPositions[1].charPositionFirstInSourceCode,  t)
+	compare_int_int(testName, 6, tokensStartPositions[1].charPositionLastInSourceCode, t)
+	compare_runes_runes(testName, []rune(`"name"`), tokensStartPositions[1].runesInSrc, t)
 	compare_int_int(testName, len(errorsCollected2), 0, t)
 
 
@@ -463,15 +463,14 @@ func Test_detect_strings(t *testing.T) {
 	errorsCollected = []error{}
 
 	// tokens are indexed by the first char where they were detected
-	tokensEsc, errorsCollectedEsc := jsonDetect_strings______(srcEsc, tokensStartPositions, errorsCollected)
-	_ = tokensEsc
+	errorsCollectedEsc := jsonDetect_strings______(srcEsc, tokensStartPositions, errorsCollected)
 	_ = errorsCollectedEsc
 
 	//                              `{"name \"of\" the \t\\\"rose\n\"":"red"}`
 	compare_runes_runes(testName, []rune(`{                                :     }`), srcEsc, t)
 	compare_int_int(testName, srcLenOrig, len(srcEsc), t)
-	compare_int_int(testName, 1, tokensEsc[1].charPositionFirstInSourceCode, t)
-	compare_int_int(testName, 32, tokensEsc[1].charPositionLastInSourceCode, t)
+	compare_int_int(testName, 1, tokensStartPositions[1].charPositionFirstInSourceCode, t)
+	compare_int_int(testName, 32, tokensStartPositions[1].charPositionLastInSourceCode, t)
 }
 
 

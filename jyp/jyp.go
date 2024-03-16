@@ -261,7 +261,7 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 }
 
 // //////////////////// VALUE setter FUNCTIONS ///////////////////////////////////////////////
-func valueValidationsSettings_inTokens(tokens tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) {
+func valueValidationsSettings_inTokens(tokens tokenTable_startPositionIndexed, errorsCollected []error) []error {
 	for _, tokenOne := range tokens {
 		if tokenOne.valType == typeString {
 			tokenOne, errorsCollected = valueValidateAndSetElemString(tokenOne, errorsCollected)
@@ -274,7 +274,7 @@ func valueValidationsSettings_inTokens(tokens tokenTable_startPositionIndexed, e
 		}
 		// TODO: elem true|false|null value set?
 	}
-	return tokens, errorsCollected
+	return errorsCollected
 }
 
 // set the string value from raw strings
@@ -587,7 +587,7 @@ func valueValidateAndSetElemNumber(token token, errorsCollected []error) (token,
 
 // ////////////////////  DETECTIONS  ///////////////////////////////////////////////
 // Documented in program plan
-func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) { // TESTED
+func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) []error { // TESTED
 
 	// to find escaped \" \\\" sections in strings
 	escapeBackSlashCounterBeforeCurrentChar := 0
@@ -651,10 +651,10 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 		errorsCollected = append(errorsCollected, errors.New("non-closed string detected:"))
 	}
 
-	return tokensStartPositions, errorsCollected
+	return errorsCollected
 } // detect strings
 
-func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) { // TESTED
+func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) []error { // TESTED
 	var tokenNow token
 
 	detectedType := typeIsUnknown
@@ -696,7 +696,7 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 			// set back the type to unknown, if token is handled
 		}
 	} // for runeActual
-	return tokensStartPositions, errorsCollected
+	return errorsCollected
 } // separators....
 
 
@@ -707,7 +707,7 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 		because the strings/separators are removed and replaced with space in the src, as placeholders,
 	    the true/false/null words are surrounded with spaces, as separators.
 */
-func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) { // TESTED
+func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) []error { // TESTED
 
 	// copy the original structure, not use the same variable
 	// the detected word runesInSrc will be deleted from here.
@@ -751,11 +751,11 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 		}
 		/*	 it can be a number too, in case of else - so it is not an error, if typeIsUnknown */
 	}
-	return tokensStartPositions, errorsCollected
+	return errorsCollected
 }
 
 // words are detected here, and I can hope only that they are numbers - later they will be validated
-func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) { // TESTED
+func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) []error { // TESTED
 
 	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
 
@@ -769,7 +769,7 @@ func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startP
 		}
 		tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
 	}
-	return tokensStartPositions, errorsCollected
+	return errorsCollected
 }
 
 /////////////////////////// local tools: supporter funcs, not for main logic /////////////////////////////
