@@ -590,28 +590,9 @@ func valueValidateAndSetElemNumber(token token, errorsCollected []error) (token,
 func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) { // TESTED
 
 	// to find escaped \" \\\" sections in strings
-	escapeBackSlashCounterBeforeCurrentChar := 0
+	isEscaped := false
 	inStringDetection := false
 	var tokenNow token
-
-	isEscaped := func() bool {
-		return escapeBackSlashCounterBeforeCurrentChar%2 != 0
-		/* another version, if src is copied, because the current src is modified, so we cannot look back.
-
-			isEscaped := func(prevRunesInToken []rune) bool {
-				isEscaped := false // look back, and see if " is escaped or not
-				for posBack := len(prevRunesInToken)-1; posBack>=0; posBack-- {
-					charBack := base__srcGetChar__safeOverindexing(prevRunesInToken, posBack)
-					if charBack == '\\' {
-						isEscaped = ! isEscaped
-					} else {
-						break
-					}
-				}
-				return isEscaped
-			}
-		*/
-	}
 
 	for posInSrc, runeActual := range src {
 
@@ -627,7 +608,7 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 					continue
 
 			} else { // inStringDetection
-				if !isEscaped() { // a non-escaped " char in a string detection
+				if !isEscaped { // a non-escaped " char in a string detection
 					inStringDetection = false          // is the end of the string
 
 					tokenNow.charPositionLastInSourceCode = posInSrc
@@ -649,9 +630,9 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 			// later runesInSrc will be interpreted and converted to be a real ValString
 
 			if runeActual == '\\' {
-				escapeBackSlashCounterBeforeCurrentChar++
+				isEscaped = ! isEscaped
 			} else { // the escape series ended :-)
-				escapeBackSlashCounterBeforeCurrentChar = 0
+				isEscaped = false
 			}
 			src[posInSrc] = ' ' // remove detected char from src
 		}
