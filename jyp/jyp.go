@@ -61,11 +61,11 @@ const typeNumber_exactTypeIsNotSet byte = 14
 type token struct {
 	valType byte
 
-	valBool        bool
-	valStringChars string // real string characters. \u1234 from src is converted here into one char for example,
-                           // and \u1234 has 6 runes in runesInSrc.
-						   // originally it was string, but in extremely long JSONS, nobody reads them.
-						   // convert runes to string ONLY if user wants to read something
+	valBool   bool
+	valString string // real string characters. \u1234 from src is converted here into one char for example,
+	                 // and \u1234 has 6 runes in runesInSrc.
+					 // originally it was string, but in extremely long JSONS, nobody reads them.
+					 // convert runes to string ONLY if user wants to read something
 	valNumberInt   int
 	valNumberFloat float64
 
@@ -141,7 +141,7 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 			if lastDetectedStringKey__inObject == "" {
 				if containers[idParent].ValType == typeObject {
 					if tokenActual.valType == typeString {
-						lastDetectedStringKey__inObject = tokenActual.valStringChars
+						lastDetectedStringKey__inObject = tokenActual.valString
 						continue
 					} // == string
 				} // == object
@@ -227,7 +227,7 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 				value.ValBool = tokenActual.valBool
 			} else
 			if tokenActual.valType == typeString {
-				value.ValString = tokenActual.valStringChars
+				value.ValString = tokenActual.valString
 			} else
 			if tokenActual.valType == typeNumberInt {
 				value.ValNumberInt = tokenActual.valNumberInt
@@ -386,7 +386,7 @@ func valueValidateAndSetElemString(token token, errorsCollected []error) (token,
 	} // for
 
 	// fmt.Println("value from raw src parsing:", string(valueFromRawSrcParsing))
-	token.valStringChars = string(valueFromRawSrcParsing) // first I tried to remove this string conversion
+	token.valString = string(valueFromRawSrcParsing) // first I tried to remove this string conversion
 	// and use runes only, but it didnt help to get higher speed.
 	return token, errorsCollected
 }
