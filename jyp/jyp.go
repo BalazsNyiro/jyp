@@ -613,7 +613,7 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 
 					tokenNow.charPositionLastInSourceCode = posInSrc
 					tokenNow.runesInSrc = append(tokenNow.runesInSrc, runeActual)
-					tokensStartPositions[posInSrc] = tokenNow // save token
+					tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow // save token
 
 					src[posInSrc] = ' '
 					continue
