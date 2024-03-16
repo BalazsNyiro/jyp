@@ -34,12 +34,33 @@ import (
 
 var errorPrefix = "Error: "
 
+
+
+// the type... constants are simple flags for tokens/JSON_values, to know what is stored in them
+const typeIsUnknown byte = 0
+
+const typeObjectOpen byte = 1
+const typeObjectClose byte = 2
+const typeObject byte = 3
+
+const typeArrayOpen byte = 4
+const typeArrayClose byte = 5
+const typeArray byte = 6
+
+const typeComma byte = 7
+const typeColon byte = 8
+
+const typeString byte = 9
+const typeNull byte = 10
+const typeBool byte = 11
+
+const typeNumberInt byte = 12
+const typeNumberFloat64 byte = 13
+const typeNumber_exactTypeIsNotSet byte = 14
+
 // token: a structural elem of the source code, maybe without real meaning (comma separator, for example)
 type token struct {
-	valType string
-	// possible token types:
-	// objectOpen, objectClose, arrayOpen, arrayClose, comma, colon
-	// bool null, string, number_int, number_float,
+	valType byte
 
 	valBool        bool
 	valString      string
@@ -52,8 +73,7 @@ type token struct {
 }
 
 type JSON_value struct {
-	ValType string // possible value types:
-	// object, array, bool, null, string, number_int, number_float
+	ValType byte // the type of the value
 
 	// ...............................................................................................
 	// ...... these values represent a Json elem's value - and one of them is filled only.. ..........
@@ -93,7 +113,7 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 	}
 
 	keyFirst := positionKeys_of_tokens[0]
-	if tokens[keyFirst].valType != "objectOpen" {
+	if tokens[keyFirst].valType != typeObjectOpen {
 		errorsCollected = append(errorsCollected, errors.New("the first token has to be 'objectOpen' in JSON source code"))
 		return elemRoot, errorsCollected
 	}
@@ -109,16 +129,16 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 
 		tokenActual := tokens[tokenPositionKey]
 
-		if tokenActual.valType == "comma" { continue } // placeholders
-		if tokenActual.valType == "colon" { continue }
+		if tokenActual.valType == typeComma { continue } // placeholders
+		if tokenActual.valType == typeColon { continue }
 
 		///////////////// SIMPLE JSON VALUES ARE SAVED DIRECTLY INTO THEIR PARENT /////////////////////////
 		// in json objects, the first string is always the key. then the next elem is the value
 		// detect this situation: string key in an object:
 		if idParent >= 0 { // the first root elem doesn't have parents, so idParent == -1
 			if lastDetectedStringKey__inObject == "" {
-				if containers[idParent].ValType == "object" {
-					if tokenActual.valType == "string" {
+				if containers[idParent].ValType == typeObject {
+					if tokenActual.valType == typeString {
 						lastDetectedStringKey__inObject = tokenActual.valString
 						continue
 					} // == string
@@ -127,7 +147,7 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 		} // >= 0
 
 		//////////////////////////////////////////////////////////////////////
-		if tokenActual.valType == "objectOpen" || tokenActual.valType == "arrayOpen" {
+		if tokenActual.valType == typeObjectOpen || tokenActual.valType == typeArrayOpen {
 			// the id is important ONLY for the children - when they are inserted
 			// into the parent containers. So when the container elem is parsed,
 			// the id can be re-used later.
@@ -144,11 +164,11 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 				CharPositionFirstInSourceCode: tokenActual.charPositionFirstInSourceCode,
 				LevelInObjectStructure:        levelInObjectStructure,
 			}
-			if tokenActual.valType == "objectOpen" {
-				containerNew.ValType = "object"
+			if tokenActual.valType == typeObjectOpen {
+				containerNew.ValType = typeObject
 				containerNew.ValObject = map[string]JSON_value{}
 			} else { // arrayOpen
-				containerNew.ValType = "array"
+				containerNew.ValType = typeArray
 				containerNew.ValArray = []JSON_value{}
 			}
 
@@ -170,7 +190,7 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 		/////////////////// SIMPLE VALUES or container-closers ////////////////////////////////////////
 		// 	"bool", "null", "string", "number_integer", "number_float64", "objectClose", "arrayClose"
 
-		isCloserToken := tokenActual.valType == "objectClose" || tokenActual.valType == "arrayClose"
+		isCloserToken := tokenActual.valType == typeObjectClose || tokenActual.valType == typeArrayClose
 
 		var value JSON_value
 
@@ -196,19 +216,21 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 				// idSelf is not filled, the whole id conception is used ONLY to find parents
 				// during parsing.
 			}
-			if tokenActual.valType == "null" {
-				_ = "null type has no value, don't store it"
-			}
-			if tokenActual.valType == "bool" {
+
+			//if tokenActual.valType == typeNull {
+			//	_ = "null type has no value, don't store it"
+			// }
+
+			if tokenActual.valType == typeBool {
 				value.ValBool = tokenActual.valBool
 			}
-			if tokenActual.valType == "string" {
+			if tokenActual.valType == typeString {
 				value.ValString = tokenActual.valString
 			}
-			if tokenActual.valType == "number_integer" {
+			if tokenActual.valType == typeNumberInt {
 				value.ValNumberInt = tokenActual.valNumberInt
 			}
-			if tokenActual.valType == "number_float64" {
+			if tokenActual.valType == typeNumberFloat64 {
 				value.ValNumberFloat = tokenActual.valNumberFloat
 			}
 
@@ -218,12 +240,12 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 		parent := containers[idParent]
 		parent.CharPositionLastInSourceCode = value.CharPositionLastInSourceCode
 		// ^^^ the tokenCloser's last position is saved with this!
-		if parent.ValType == "array" {
+		if parent.ValType == typeArray {
 			elems := parent.ValArray
 			elems = append(elems, value)
 			parent.ValArray = elems
 		}
-		if parent.ValType == "object" {
+		if parent.ValType == typeObject {
 			parent_valObjects := parent.ValObject
 			parent_valObjects[lastDetectedStringKey__inObject] = value
 			lastDetectedStringKey__inObject = "" // clear the keyName, we used that for the current object
@@ -250,7 +272,7 @@ func valueValidationsSettings_inTokens(tokens tokenTable_startPositionIndexed, e
 // set the string value from raw strings
 func value_validate_and_set__elem_string(token token, errorsCollected []error) (token, []error) { // TESTED
 
-	if token.valType != "string" {
+	if token.valType != typeString {
 		return token, errorsCollected
 	} // don't modify non-string tokens
 
@@ -371,7 +393,7 @@ func value_validate_and_set__elem_string(token token, errorsCollected []error) (
 
 func value_validate_and_set__elem_number(token token, errorsCollected []error) (token, []error) {
 
-	if token.valType != "number" {
+	if token.valType != typeNumber_exactTypeIsNotSet {
 		return token, errorsCollected
 	} // don't modify non-number elems
 
@@ -491,7 +513,7 @@ func value_validate_and_set__elem_number(token token, errorsCollected []error) (
 					numBase10 = -numBase10
 				}
 				token.valNumberInt = numBase10
-				token.valType = "number_integer"
+				token.valType = typeNumberInt
 			}
 		}
 
@@ -505,7 +527,7 @@ func value_validate_and_set__elem_number(token token, errorsCollected []error) (
 					numBase10 = -numBase10
 				}
 				token.valNumberFloat = numBase10
-				token.valType = "number_float64"
+				token.valType = typeNumberFloat64
 			}
 		}
 
@@ -559,7 +581,8 @@ func value_validate_and_set__elem_number(token token, errorsCollected []error) (
 	return token, errorsCollected
 }
 
-// //////////////////// BASE FUNCTIONS ///////////////////////////////////////////////
+// ////////////////////  DETECTIONS  ///////////////////////////////////////////////
+// Documented in program plan
 func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
 
 	srcDetectedTokensRemoved := []rune{}
@@ -580,7 +603,7 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 			if !inStringDetection { // if at " char handling, we are NOT in string
 				inStringDetection = true
 
-				tokenNow = token{valType: "string"}
+				tokenNow = token{valType: typeString}
 				tokenNow.charPositionFirstInSourceCode = posInSrc
 				tokenNow.runes = append(tokenNow.runes, runeActual)
 
@@ -633,29 +656,30 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 	srcDetectedTokensRemoved := []rune{}
 	var tokenNow token
 
+
 	for posInSrc, runeActual := range src {
-		detectedType := ""
+		detectedType := typeIsUnknown
 
 		if runeActual == '{' {
-			detectedType = "objectOpen"
-		}
+			detectedType = typeObjectOpen
+		} else
 		if runeActual == '}' {
-			detectedType = "objectClose"
-		}
+			detectedType = typeObjectClose
+		} else
 		if runeActual == '[' {
-			detectedType = "arrayOpen"
-		}
+			detectedType = typeArrayOpen
+		} else
 		if runeActual == ']' {
-			detectedType = "arrayClose"
-		}
+			detectedType = typeArrayClose
+		} else
 		if runeActual == ',' {
-			detectedType = "comma"
-		}
+			detectedType = typeComma
+		} else
 		if runeActual == ':' {
-			detectedType = "colon"
+			detectedType = typeColon
 		}
 
-		if detectedType == "" {
+		if detectedType == typeIsUnknown {
 			// save the original rune, if it was not a detected char
 			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, runeActual)
 		} else { // save token, if something important is detected
@@ -668,7 +692,8 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 		}
 	} // for runeActual
 	return srcDetectedTokensRemoved, tokensStartPositions, errorsCollected
-}
+} // separators....
+
 
 /*
 	 this detection is AFTER string+separator detection.
@@ -682,20 +707,20 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 
 	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
 
-		detectedType := "" // 3 types of word can be detected in this fun
+		detectedType := typeIsUnknown // 3 types of word can be detected in this fun
 		if wordOne.word == "true" {
-			detectedType = "bool"
+			detectedType = typeBool
 		}
 		if wordOne.word == "false" {
-			detectedType = "bool"
+			detectedType = typeBool
 		}
 		if wordOne.word == "null" {
-			detectedType = "null"
+			detectedType = typeNull
 		}
 
-		if detectedType != "" {
+		if detectedType != typeIsUnknown {
 			tokenNow := token{valType: detectedType}
-			if detectedType == "bool" {
+			if detectedType == typeBool {
 				tokenNow.valBool = wordOne.word == "true"
 			}
 			tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
@@ -719,7 +744,7 @@ func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startP
 
 	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
 
-		tokenNow := token{valType: "number"} // only numbers can be in the src now.
+		tokenNow := token{valType: typeNumber_exactTypeIsNotSet} // only numbers can be in the src now.
 		tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
 		tokenNow.charPositionLastInSourceCode = wordOne.posLast
 
@@ -750,7 +775,7 @@ func (v JSON_value) local_tool__updateLevelForChildren() {
 	// when new elems are added dynamically, the level of the objects needs to be synchronised,
 	// because the newly inserted object level can be determined ONLY when they are inserted
 
-	if v.ValType == "array" {
+	if v.ValType == typeArray {
 		arrayUpdated := []JSON_value{}
 		for _, elem := range v.ValArray {
 			elem.LevelInObjectStructure = v.LevelInObjectStructure + 1
@@ -758,7 +783,7 @@ func (v JSON_value) local_tool__updateLevelForChildren() {
 		}
 		v.ValArray = arrayUpdated
 	}
-	if v.ValType == "object" {
+	if v.ValType == typeObject {
 		objectsUpdated := map[string]JSON_value{}
 
 		for key, elem := range v.ValObject {

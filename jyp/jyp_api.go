@@ -59,7 +59,7 @@ func JsonParse(srcStr string) (JSON_value, []error) {
 }
 
 func (v JSON_value) AddKeyVal_path_into_object(keysMerged string, value JSON_value) error {
-	if v.ValType == "object" {
+	if v.ValType == typeObject {
 		keys, err:= ObjPath_merged_expand__split_with_first_char(keysMerged)
 		if err != nil {
 			return err
@@ -89,7 +89,7 @@ func (v JSON_value) AddKeyVal_path_into_object(keysMerged string, value JSON_val
 
 
 func (v JSON_value) AddKeyVal_into_object(key string, value JSON_value) error {
-	if v.ValType == "object" {
+	if v.ValType == typeObject {
 		objects := v.ValObject
 		objects[key] = value
 		v.ValObject = objects
@@ -102,7 +102,7 @@ func (v JSON_value) AddKeyVal_into_object(key string, value JSON_value) error {
 
 // add value into an ARRAY
 func (v JSON_value) AddVal_into_array(value JSON_value) error {
-	if v.ValType == "array" {
+	if v.ValType == typeArray {
 		elems := v.ValArray
 		elems = append(elems, value)
 		v.ValArray = elems
@@ -115,7 +115,7 @@ func (v JSON_value) AddVal_into_array(value JSON_value) error {
 
 // TODO: newArray, newObject, newInt, newFloat, newBool....
 func NewString_JSON_value(str string) JSON_value {
-	return JSON_value{ValType: "string",
+	return JSON_value{ValType: typeString,
 		CharPositionFirstInSourceCode: -1,
 		CharPositionLastInSourceCode:  -1,
 		Runes:                         []rune(`"`+str+`"`),  // strings have "..." boundaries in runes,
@@ -185,7 +185,7 @@ func (v JSON_value) ObjPathKeys(keysEmbedded []string) (JSON_value, error) {
 	}
 
 	// len(keys) > 1
-	if valueCollected.ValType != "object" {
+	if valueCollected.ValType != typeObject {
 		return valueEmpty, errors.New(errorPrefix + keysEmbedded[0] + "-> child is not object, key cannot be used")
 	}
 	return valueCollected.ObjPathKeys(keysEmbedded[1:])
@@ -229,12 +229,12 @@ func (v JSON_value) repr(indentationByUser ...int) string {
 		objectKeyValSeparator = ": " // separator with space
 	}
 
-	if v.ValType == "object" || v.ValType == "array" {
+	if v.ValType == typeObject || v.ValType == typeArray {
 		var charOpen  string
 		var charClose string
 		var reprValue string
 
-		if v.ValType == "object" {
+		if v.ValType == typeObject {
 			charOpen = "{"
 			charClose = "}"
 
