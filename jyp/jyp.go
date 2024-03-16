@@ -587,9 +587,8 @@ func valueValidateAndSetElemNumber(token token, errorsCollected []error) (token,
 
 // ////////////////////  DETECTIONS  ///////////////////////////////////////////////
 // Documented in program plan
-func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
+func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) { // TESTED
 
-	srcDetectedTokensRemoved := []rune{}
 	// to find escaped \" \\\" sections in strings
 	escapeBackSlashCounterBeforeCurrentChar := 0
 
@@ -611,7 +610,7 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 				tokenNow.charPositionFirstInSourceCode = posInSrc
 				tokenNow.runesInSrc = append(tokenNow.runesInSrc, runeActual)
 
-				srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
+				src[posInSrc] = ' '
 				continue
 			}
 			if inStringDetection && !isEscaped() { // a non-escaped " char in a string detection
@@ -621,7 +620,7 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 				tokenNow.runesInSrc = append(tokenNow.runesInSrc, runeActual)
 				tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow // save token
 
-				srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
+				src[posInSrc] = ' '
 				continue
 			}
 
@@ -641,10 +640,9 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 			}
 
 			// add empty placeholder where the token was detected
-			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
+			src[posInSrc] = ' '
 		} else {
-			// save the original rune, if it was not in a string
-			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, runeActual)
+			// keep the original rune, if it was not in a string
 		}
 
 	} // for, runeActual
@@ -653,11 +651,10 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 		errorsCollected = append(errorsCollected, errors.New("non-closed string detected:"))
 	}
 
-	return srcDetectedTokensRemoved, tokensStartPositions, errorsCollected
+	return tokensStartPositions, errorsCollected
 } // detect strings
 
-func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
-	srcDetectedTokensRemoved := []rune{}
+func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) { // TESTED
 	var tokenNow token
 
 	detectedType := typeIsUnknown
@@ -686,21 +683,20 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 		}
 
 		if detectedType == typeIsUnknown {
-			// save the original rune, if it was not a detected char
-			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, runeActual)
+			// keep the original rune, if it was not a detected char
 		} else { // save token, if something important is detected
 			tokenNow = token{valType: detectedType}
 			tokenNow.charPositionFirstInSourceCode = posInSrc
 			tokenNow.charPositionLastInSourceCode = posInSrc
 			tokenNow.runesInSrc = append(tokenNow.runesInSrc, runeActual)
-			srcDetectedTokensRemoved = append(srcDetectedTokensRemoved, ' ')
+			src[posInSrc] = ' '
 			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
 
 			detectedType = typeIsUnknown
 			// set back the type to unknown, if token is handled
 		}
 	} // for runeActual
-	return srcDetectedTokensRemoved, tokensStartPositions, errorsCollected
+	return tokensStartPositions, errorsCollected
 } // separators....
 
 
@@ -711,9 +707,8 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 		because the strings/separators are removed and replaced with space in the src, as placeholders,
 	    the true/false/null words are surrounded with spaces, as separators.
 */
-func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
+func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) { // TESTED
 
-	srcDetectedTokensRemoved := base__runes_copy(src)
 	// copy the original structure, not use the same variable
 	// the detected word runesInSrc will be deleted from here.
 
@@ -746,7 +741,7 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 				// save all detected positions:
 				tokenNow.runesInSrc = append(tokenNow.runesInSrc, (src)[posDetected])
 				// clear detected positions from the src:
-				srcDetectedTokensRemoved[posDetected] = ' '
+				src[posDetected] = ' '
 				// only detected word runesInSrc are removed from the storage, where ALL original src is inserted in the first step
 
 			}
@@ -756,17 +751,11 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 		}
 		/*	 it can be a number too, in case of else - so it is not an error, if typeIsUnknown */
 	}
-	return srcDetectedTokensRemoved, tokensStartPositions, errorsCollected
+	return tokensStartPositions, errorsCollected
 }
 
 // words are detected here, and I can hope only that they are numbers - later they will be validated
-func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) ([]rune, tokenTable_startPositionIndexed, []error) { // TESTED
-
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	// there is no reason to give back the cleaned src, because this is the last function and src is NOT USED IN THE PROCESS ANYMORE
-	// srcDetectedTokensRemoved := base__runes_copy(src) // copy the original structure, not use the same variable
-	srcDetectedTokensRemoved := []rune{} // I would like to keep the standard return structure, so return with an empty struct
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) (tokenTable_startPositionIndexed, []error) { // TESTED
 
 	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
 
@@ -777,17 +766,10 @@ func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startP
 		for posDetected := wordOne.posFirst; posDetected <= wordOne.posLast; posDetected++ {
 			// save all detected positions:
 			tokenNow.runesInSrc = append(tokenNow.runesInSrc, (src)[posDetected])
-
-			// clear detected positions from the src:
-			/////////////////////////////////////////
-			//// don't use this, nobody reads src later
-			// srcDetectedTokensRemoved[posDetected] = ' '
-			/////////////////////////////////////////
-
 		}
 		tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
 	}
-	return srcDetectedTokensRemoved, tokensStartPositions, errorsCollected
+	return tokensStartPositions, errorsCollected
 }
 
 /////////////////////////// local tools: supporter funcs, not for main logic /////////////////////////////
