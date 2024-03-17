@@ -33,7 +33,6 @@ import (
 
 var errorPrefix = "Error: "
 
-var tokensStartPositions tokenTable_startPositionIndexed
 
 
 // the type... constants are simple flags for tokens/JSON_values, to know what is stored in them
@@ -105,10 +104,10 @@ type JSON_value struct {
 
 type tokenTable_startPositionIndexed map[int]token
 
-func objectHierarchyBuilding(errorsCollected []error) JSON_value {
+func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsCollected []error) JSON_value {
 	var elemRoot JSON_value
 
-	positionKeys_of_tokens := local_tool__tokenTable_position_keys_sorted()
+	positionKeys_of_tokens := local_tool__tokenTable_position_keys_sorted(tokens)
 
 	if len(positionKeys_of_tokens) < 1 {
 		errorsCollected = append(errorsCollected, errors.New("emtpy source code, no tokens"))
@@ -116,7 +115,7 @@ func objectHierarchyBuilding(errorsCollected []error) JSON_value {
 	}
 
 	keyFirst := positionKeys_of_tokens[0]
-	if tokensStartPositions[keyFirst].valType != typeObjectOpen {
+	if tokens[keyFirst].valType != typeObjectOpen {
 		errorsCollected = append(errorsCollected, errors.New("the first token has to be 'objectOpen' in JSON source code"))
 		return elemRoot
 	}
@@ -130,7 +129,7 @@ func objectHierarchyBuilding(errorsCollected []error) JSON_value {
 	// tokenKeys are charPosition based numbers, they are not continuous.
 	for _, tokenPositionKey := range positionKeys_of_tokens {
 
-		tokenActual := tokensStartPositions[tokenPositionKey]
+		tokenActual := tokens[tokenPositionKey]
 
 		if tokenActual.valType == typeComma { continue } // placeholders
 		if tokenActual.valType == typeColon { continue }
@@ -262,16 +261,16 @@ func objectHierarchyBuilding(errorsCollected []error) JSON_value {
 }
 
 // //////////////////// VALUE setter FUNCTIONS ///////////////////////////////////////////////
-func valueValidationsSettings_inTokens(errorsCollected []error) []error {
-	for _, tokenOne := range tokensStartPositions {
+func valueValidationsSettings_inTokens(tokens tokenTable_startPositionIndexed, errorsCollected []error) []error {
+	for _, tokenOne := range tokens {
 		if tokenOne.valType == typeString {
 			tokenOne, errorsCollected = valueValidateAndSetElemString(tokenOne, errorsCollected)
-			tokensStartPositions[tokenOne.charPositionFirstInSourceCode] = tokenOne
+			tokens[tokenOne.charPositionFirstInSourceCode] = tokenOne
 			// save the elem only if change happened, so if the type == true
 		} else
 		if tokenOne.valType == typeNumber_exactTypeIsNotSet {
 			tokenOne, errorsCollected = valueValidateAndSetElemNumber(tokenOne, errorsCollected)
-			tokensStartPositions[tokenOne.charPositionFirstInSourceCode] = tokenOne
+			tokens[tokenOne.charPositionFirstInSourceCode] = tokenOne
 		}
 		// TODO: elem true|false|null value set?
 	}
@@ -588,7 +587,7 @@ func valueValidateAndSetElemNumber(token token, errorsCollected []error) (token,
 
 // ////////////////////  DETECTIONS  ///////////////////////////////////////////////
 // Documented in program plan
-func jsonDetect_strings______(src []rune, errorsCollected []error) { // TESTED
+func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) { // TESTED
 
 	// to find escaped \" \\\" sections in strings
 	isEscaped := false
@@ -644,7 +643,7 @@ func jsonDetect_strings______(src []rune, errorsCollected []error) { // TESTED
 	}
 } // detect strings
 
-func jsonDetect_separators___(src []rune, errorsCollected []error) { // TESTED
+func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) { // TESTED
 	var tokenNow token
 
 	detectedType := typeIsUnknown
@@ -696,7 +695,7 @@ func jsonDetect_separators___(src []rune, errorsCollected []error) { // TESTED
 		because the strings/separators are removed and replaced with space in the src, as placeholders,
 	    the true/false/null words are surrounded with spaces, as separators.
 */
-func jsonDetect_trueFalseNull(src []rune, errorsCollected []error) { // TESTED
+func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) { // TESTED
 
 	// copy the original structure, not use the same variable
 	// the detected word runesInSrc will be deleted from here.
@@ -743,7 +742,7 @@ func jsonDetect_trueFalseNull(src []rune, errorsCollected []error) { // TESTED
 }
 
 // words are detected here, and I can hope only that they are numbers - later they will be validated
-func jsonDetect_numbers______(src []rune, errorsCollected []error) { // TESTED
+func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) { // TESTED
 
 	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
 
@@ -762,9 +761,9 @@ func jsonDetect_numbers______(src []rune, errorsCollected []error) { // TESTED
 /////////////////////////// local tools: supporter funcs, not for main logic /////////////////////////////
 
 // tokenTable keys are character positions in JSON source code (positive integers)
-func local_tool__tokenTable_position_keys_sorted() []int {
-	keys := make([]int, 0, len(tokensStartPositions))
-	for k := range tokensStartPositions {
+func local_tool__tokenTable_position_keys_sorted(tokens tokenTable_startPositionIndexed) []int {
+	keys := make([]int, 0, len(tokens))
+	for k := range tokens {
 		keys = append(keys, k)
 	}
 	sort.Ints(keys)
