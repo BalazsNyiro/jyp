@@ -35,7 +35,6 @@ import (
 var errorPrefix = "Error: "
 
 
-
 // the type... constants are simple flags for tokens/JSON_values, to know what is stored in them
 const typeIsUnknown byte = 0
 
@@ -58,6 +57,33 @@ const typeNumberInt byte = 12
 const typeNumberFloat64 byte = 13
 const typeNumber_exactTypeIsNotSet byte = 14
 
+
+/*
+const typeIsUnknown = "typeIsUnknown "
+
+const typeObjectOpen = "typeObjectOpen"
+const typeObjectClose = "typeObjectClose"
+const typeObject = "typeObject"
+
+const typeArrayOpen = "typeArrayOpen"
+const typeArrayClose = "typeArrayClose"
+const typeArray = "typeArray"
+
+const typeComma = "typeComma"
+const typeColon = "typeColon"
+
+const typeString = "typeString "
+const typeNull = "typeNull"
+const typeBool = "typeBool"
+
+const typeNumberInt = "typeNumberInt"
+const typeNumberFloat64 = "typeNumberFloat64"
+const typeNumber_exactTypeIsNotSet = "typeNumber_exactTypeIsNotSet"
+
+ */
+
+
+
 // token: a structural elem of the source code, maybe without real meaning (comma separator, for example)
 type token struct {
 	valType byte
@@ -75,7 +101,7 @@ type token struct {
 }
 
 type JSON_value struct {
-	ValType byte // the type of the value
+	ValType byte
 
 	// ...............................................................................................
 	// ...... these values represent a Json elem's value - and one of them is filled only.. ..........
@@ -260,26 +286,21 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 
 // //////////////////// VALUE setter FUNCTIONS ///////////////////////////////////////////////
 func valueValidationsSettings_inTokens(srcOrig []rune, tokens tokenTable_startPositionIndexed, errorsCollected []error) []error {
-	for _, tokenOne := range tokens {
-		if tokenOne.valType == typeString {
-			tokenOne, errorsCollected = valueValidateAndSetElemString(srcOrig, tokenOne, errorsCollected)
-			tokens[tokenOne.charPositionFirstInSourceCode] = tokenOne
-			// save the elem only if change happened, so if the type == true
-		} else
-		if tokenOne.valType == typeNumber_exactTypeIsNotSet {
-			tokenOne, errorsCollected = valueValidateAndSetElemNumber(srcOrig, tokenOne, errorsCollected)
-			tokens[tokenOne.charPositionFirstInSourceCode] = tokenOne
-		}
+	// tokens is a MAP, and the keys are the token positions in src.
+	// so there are gaps between keys!
+	for tokenStartPosInSrc, _ := range tokens {
+		valueValidateAndSetElemString(srcOrig, tokens, tokenStartPosInSrc, errorsCollected)
+		valueValidateAndSetElemNumber(srcOrig, tokens, tokenStartPosInSrc, errorsCollected)
 		// TODO: elem true|false|null value set?
 	}
 	return errorsCollected
 }
 
 // set the string value from raw strings
-func valueValidateAndSetElemString(srcOrig []rune, token token, errorsCollected []error) (token, []error) { // TESTED
+func valueValidateAndSetElemString(srcOrig []rune, tokens tokenTable_startPositionIndexed, tokenSelected int, errorsCollected []error) { // TESTED
 
-	if token.valType != typeString {
-		return token, errorsCollected
+	if (tokens)[tokenSelected].valType != typeString {
+		return
 	} // don't modify non-string tokens
 
 	/* Tasks:
@@ -297,7 +318,7 @@ func valueValidateAndSetElemString(srcOrig []rune, token token, errorsCollected 
 
 	// pos start + 1: strings has initial " in runes
 	// post end -1  closing " after string content
-	for pos := token.charPositionFirstInSourceCode+1; pos <= token.charPositionLastInSourceCode-1; pos++ {
+	for pos := (tokens)[tokenSelected].charPositionFirstInSourceCode+1; pos <= (tokens)[tokenSelected].charPositionLastInSourceCode-1; pos++ {
 
 		runeActual := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(srcOrig, pos)
 		//fmt.Println("rune actual (string value set):", pos, string(runeActual), runeActual)
@@ -388,15 +409,17 @@ func valueValidateAndSetElemString(srcOrig []rune, token token, errorsCollected 
 	} // for
 
 	// fmt.Println("value from raw src parsing:", string(valueFromRawSrcParsing))
-	token.valString = string(valueFromRawSrcParsing) // first I tried to remove this string conversion
+	tokenNow := (tokens)[tokenSelected]
+
+	tokenNow.valString = string(valueFromRawSrcParsing) // first I tried to remove this string conversion
+	(tokens)[tokenSelected] = tokenNow
 	// and use runes only, but it didn't help to get higher speed.
-	return token, errorsCollected
 }
 
-func valueValidateAndSetElemNumber(srcOrig []rune, token token, errorsCollected []error) (token, []error) {
+func valueValidateAndSetElemNumber(srcOrig []rune, tokens tokenTable_startPositionIndexed, tokenSelected int, errorsCollected []error)  {
 
-	if token.valType != typeNumber_exactTypeIsNotSet {
-		return token, errorsCollected
+	if (tokens)[tokenSelected].valType != typeNumber_exactTypeIsNotSet {
+		return
 	} // don't modify non-number elems
 
 	/*
@@ -426,7 +449,7 @@ func valueValidateAndSetElemNumber(srcOrig []rune, token token, errorsCollected 
 	// in case of 12.3: divider = 10^-1
 	// in case of 1.23: divider = 10^-2
 
-	numberRunes := base__runes_copy(srcOrig[token.charPositionFirstInSourceCode:token.charPositionLastInSourceCode+1])
+	numberRunes := base__runes_copy(srcOrig[(tokens)[tokenSelected].charPositionFirstInSourceCode:(tokens)[tokenSelected].charPositionLastInSourceCode+1])
 
 	// example number: -1234.567e-8
 	isNegative := numberRunes[0] == '-'
@@ -514,8 +537,10 @@ func valueValidateAndSetElemNumber(srcOrig []rune, token token, errorsCollected 
 				if isNegative {
 					numBase10 = -numBase10
 				}
-				token.valNumberInt = numBase10
-				token.valType = typeNumberInt
+				tokenNow := (tokens)[tokenSelected]
+				tokenNow.valNumberInt = numBase10
+				tokenNow.valType = typeNumberInt
+				(tokens)[tokenSelected] = tokenNow
 			}
 		}
 
@@ -528,8 +553,10 @@ func valueValidateAndSetElemNumber(srcOrig []rune, token token, errorsCollected 
 				if isNegative {
 					numBase10 = -numBase10
 				}
-				token.valNumberFloat = numBase10
-				token.valType = typeNumberFloat64
+				tokenNow := (tokens)[tokenSelected]
+				tokenNow.valNumberFloat = numBase10
+				tokenNow.valType = typeNumberFloat64
+				(tokens)[tokenSelected] = tokenNow
 			}
 		}
 
@@ -579,8 +606,6 @@ func valueValidateAndSetElemNumber(srcOrig []rune, token token, errorsCollected 
 
 		// numberValue := multiplier * ()
 	}
-
-	return token, errorsCollected
 }
 
 // ////////////////////  DETECTIONS  ///////////////////////////////////////////////
