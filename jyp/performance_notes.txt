@@ -1,0 +1,31 @@
+
+/*  there was a lot of options to work with JSON src
+
+    the test file was a 26Mb Json file.
+	// https://raw.githubusercontent.com/json-iterator/test-data/master/large-file.json
+
+	the fastest way is to read the file into string, and loop over the chars, once, to build up a token table
+
+	time read file to string: 33.604754ms
+	time read file to string, and convert string to runes 103.894378ms
+	time read file and collect chars into runes: 361.842687ms
+	time Loop over string chars as runes: 24.917645ms
+
+
+
+
+    Learnt facts:
+    - string -> runes conversion is slow operation
+    - runes collection into a slice, (save them) is slow
+
+    - function calls: if a string is passed or a string pointer passed: there is no real speed diff.
+      so a normal string can be passed
+
+
+    DON'T SAVE/MOVE DATA. Save only char range positions, and use the originally received data
+    structure as a database.
+
+Jyp had a nice, working first version, but with kubernetes manifest files (340.000 lines)
+the interpreter's speed was 3.4sec. Python3 json.loads() produced 0.2 sec, so the nice way was dropped.
+
+*/

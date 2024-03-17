@@ -22,6 +22,7 @@ import (
 	"os"
 	"testing"
 	"time"
+	"unicode/utf8"
 )
 
 var srcEverything string = `{
@@ -118,7 +119,7 @@ func Test_speed(t *testing.T) {
 	files := []string{"large-file_03percent.json", "large-file_06percent.json", "large-file_12percent.json", "large-file_25percent.json", "large-file_50percent.json", "large-file.json"}
 
 	for _, file := range files {
-		srcStr := file_read_for_tests(file)
+		srcStr := file_read_to_string(file)
 		src := []rune(srcStr)
 		tokens := tokenTable_startPositionIndexed{}
 		errorsCollected := []error{}
@@ -134,7 +135,35 @@ func Test_speed(t *testing.T) {
 
 	// 	srcStr := strings.Repeat(srcEverything, 100)
 	// https://raw.githubusercontent.com/json-iterator/test-data/master/large-file.json
-	srcStr := file_read_for_tests("large-file.json")
+
+
+	timeReadFileStart := time.Now()
+	srcStr := file_read_to_string("large-file.json")
+	fmt.Println("time read file to string:", time.Since(timeReadFileStart))
+
+	timeConvertToRunes := time.Now()
+	runes := []rune(srcStr)
+	_ = runes
+	fmt.Println("time read file to string -> to runes", time.Since(timeConvertToRunes))
+
+	timeReadFileToRunes := time.Now()
+	runes = file_read_to_runes("large-file.json")
+	fmt.Println("time read file into runes:", time.Since(timeReadFileToRunes))
+
+	timeSimpleStringPassing := time.Now()
+	tokensTableDetect_versionB(srcStr)
+	fmt.Println("time pointer string passing:", time.Since(timeSimpleStringPassing))
+
+
+	timeLoopOverStringSrc := time.Now()
+	counter := 0
+	for _, runeNow := range srcStr {
+		if runeNow > 22 {
+			counter++
+		}
+	}
+	fmt.Println(counter, "time Loop over string chars as runes:", time.Since(timeLoopOverStringSrc))
+
 	// python3 json.loads() speed: 0.24469351768493652 sec
 	// my speed: 3.82s (2024 Marc 16)
 	//           3.47s (2024 Marc 17)
@@ -553,10 +582,23 @@ func compare_rune_rune(callerInfo string, runeWanted, runeReceived rune, t *test
 }
 
 
-func file_read_for_tests(fn string) string {
+func file_read_to_string(fn string) string {
 	dat, err := os.ReadFile(fn)
 	if err != nil {
 		panic(err)
 	}
 	return string(dat)
+}
+
+func file_read_to_runes(fn string) []rune {
+	bytes, err := os.ReadFile(fn)
+	if err != nil { panic(err) }
+	runes := []rune{}
+	// https://pkg.go.dev/unicode/utf8#DecodeRune
+	for len(bytes) > 0 {
+		r, size := utf8.DecodeRune(bytes)
+		bytes = bytes[size:]
+		runes = append(runes, r)
+	}
+	return runes
 }
