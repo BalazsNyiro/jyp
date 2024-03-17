@@ -33,10 +33,7 @@ import (
 
 var errorPrefix = "Error: "
 
-// MAIN GLOBAL STRUCTURES
-var globalTokensStartPositions tokenTable_startPositionIndexed
-var globalErrorsCollected []error
-var globalSrc []rune
+var tokensStartPositions tokenTable_startPositionIndexed
 
 
 // the type... constants are simple flags for tokens/JSON_values, to know what is stored in them
@@ -108,21 +105,19 @@ type JSON_value struct {
 
 type tokenTable_startPositionIndexed map[int]token
 
-
-
-func objectHierarchyBuilding() JSON_value {
+func objectHierarchyBuilding(errorsCollected []error) JSON_value {
 	var elemRoot JSON_value
 
 	positionKeys_of_tokens := local_tool__tokenTable_position_keys_sorted()
 
 	if len(positionKeys_of_tokens) < 1 {
-		globalErrorsCollected = append(globalErrorsCollected, errors.New("emtpy source code, no tokens"))
+		errorsCollected = append(errorsCollected, errors.New("emtpy source code, no tokens"))
 		return elemRoot
 	}
 
 	keyFirst := positionKeys_of_tokens[0]
-	if globalTokensStartPositions[keyFirst].valType != typeObjectOpen {
-		globalErrorsCollected = append(globalErrorsCollected, errors.New("the first token has to be 'objectOpen' in JSON source code"))
+	if tokensStartPositions[keyFirst].valType != typeObjectOpen {
+		errorsCollected = append(errorsCollected, errors.New("the first token has to be 'objectOpen' in JSON source code"))
 		return elemRoot
 	}
 	///////////////////////////////////////////////////////////////
@@ -135,7 +130,7 @@ func objectHierarchyBuilding() JSON_value {
 	// tokenKeys are charPosition based numbers, they are not continuous.
 	for _, tokenPositionKey := range positionKeys_of_tokens {
 
-		tokenActual := globalTokensStartPositions[tokenPositionKey]
+		tokenActual := tokensStartPositions[tokenPositionKey]
 
 		if tokenActual.valType == typeComma { continue } // placeholders
 		if tokenActual.valType == typeColon { continue }
@@ -267,26 +262,27 @@ func objectHierarchyBuilding() JSON_value {
 }
 
 // //////////////////// VALUE setter FUNCTIONS ///////////////////////////////////////////////
-func valueValidationsSettings_inTokens() {
-	for _, tokenOne := range globalTokensStartPositions {
+func valueValidationsSettings_inTokens(errorsCollected []error) []error {
+	for _, tokenOne := range tokensStartPositions {
 		if tokenOne.valType == typeString {
-			tokenOne = valueValidateAndSetElemString(tokenOne)
-			globalTokensStartPositions[tokenOne.charPositionFirstInSourceCode] = tokenOne
+			tokenOne, errorsCollected = valueValidateAndSetElemString(tokenOne, errorsCollected)
+			tokensStartPositions[tokenOne.charPositionFirstInSourceCode] = tokenOne
 			// save the elem only if change happened, so if the type == true
 		} else
 		if tokenOne.valType == typeNumber_exactTypeIsNotSet {
-			tokenOne = valueValidateAndSetElemNumber(tokenOne)
-			globalTokensStartPositions[tokenOne.charPositionFirstInSourceCode] = tokenOne
+			tokenOne, errorsCollected = valueValidateAndSetElemNumber(tokenOne, errorsCollected)
+			tokensStartPositions[tokenOne.charPositionFirstInSourceCode] = tokenOne
 		}
 		// TODO: elem true|false|null value set?
 	}
+	return errorsCollected
 }
 
 // set the string value from raw strings
-func valueValidateAndSetElemString(token token) (token) { // TESTED
+func valueValidateAndSetElemString(token token, errorsCollected []error) (token, []error) { // TESTED
 
 	if token.valType != typeString {
-		return token
+		return token, errorsCollected
 	} // don't modify non-string tokens
 
 	/* Tasks:
@@ -327,22 +323,22 @@ func valueValidateAndSetElemString(token token) (token) { // TESTED
 
 				base10_val_2, err2 := base__hexaRune_to_intVal(runeNext2)
 				if err2 != nil {
-					globalErrorsCollected= append(globalErrorsCollected, err2)
+					errorsCollected = append(errorsCollected, err2)
 				}
 
 				base10_val_3, err3 := base__hexaRune_to_intVal(runeNext3)
 				if err3 != nil {
-					globalErrorsCollected = append(globalErrorsCollected, err3)
+					errorsCollected = append(errorsCollected, err3)
 				}
 
 				base10_val_4, err4 := base__hexaRune_to_intVal(runeNext4)
 				if err4 != nil {
-					globalErrorsCollected = append(globalErrorsCollected, err4)
+					errorsCollected = append(errorsCollected, err4)
 				}
 
 				base10_val_5, err5 := base__hexaRune_to_intVal(runeNext5)
 				if err5 != nil {
-					globalErrorsCollected = append(globalErrorsCollected, err5)
+					errorsCollected = append(errorsCollected, err5)
 				}
 
 				unicodeVal_10Based := 0
@@ -397,13 +393,13 @@ func valueValidateAndSetElemString(token token) (token) { // TESTED
 	// fmt.Println("value from raw src parsing:", string(valueFromRawSrcParsing))
 	token.valString = string(valueFromRawSrcParsing) // first I tried to remove this string conversion
 	// and use runes only, but it didn't help to get higher speed.
-	return token
+	return token, errorsCollected
 }
 
-func valueValidateAndSetElemNumber(token token) token {
+func valueValidateAndSetElemNumber(token token, errorsCollected []error) (token, []error) {
 
 	if token.valType != typeNumber_exactTypeIsNotSet {
-		return token
+		return token, errorsCollected
 	} // don't modify non-number elems
 
 	/*
@@ -467,44 +463,44 @@ func valueValidateAndSetElemNumber(token token) token {
 	runesSectionInteger = numberRunes
 	///////////////////
 
-	lenErrorCollectorBeforeErrorDetection := len(globalErrorsCollected)
+	lenErrorCollectorBeforeErrorDetection := len(errorsCollected)
 
 	/////////// ERROR HANDLING ////////////
 	// if the first digit is 0, there cannot be more digits.
 
 	if len(runesSectionInteger) > 1 {
 		if runesSectionInteger[0] == 0 { // if integer part starts with 0, there cannot be other digits after initial 0
-			globalErrorsCollected = append(globalErrorsCollected, errors.New("digits after 0 in integer part: "+string(runesSectionInteger)))
+			errorsCollected = append(errorsCollected, errors.New("digits after 0 in integer part: "+string(runesSectionInteger)))
 		}
 	}
 
 	var digits09 = []rune("0123456789")
 	if !base__validate_runes_are_in_allowed_set(runesSectionInteger, digits09) {
-		globalErrorsCollected = append(globalErrorsCollected, errors.New("illegal char in integer part: "+string(runesSectionInteger)))
+		errorsCollected = append(errorsCollected, errors.New("illegal char in integer part: "+string(runesSectionInteger)))
 	}
 
 	if !base__validate_runes_are_in_allowed_set(runesSectionFraction, digits09) {
-		globalErrorsCollected = append(globalErrorsCollected, errors.New("illegal char in fraction part: "+string(runesSectionFraction)))
+		errorsCollected = append(errorsCollected, errors.New("illegal char in fraction part: "+string(runesSectionFraction)))
 	}
 
 	if len(runesSectionExponent) > 0 { // validate the first char in exponent section
 		if !base__validate_rune_are_in_allowed_set(runesSectionExponent[0], []rune{'+', '-'}) {
-			globalErrorsCollected = append(globalErrorsCollected, errors.New("exponent part's first char is not +-: "+string(runesSectionExponent)))
+			errorsCollected = append(errorsCollected, errors.New("exponent part's first char is not +-: "+string(runesSectionExponent)))
 		}
 	}
 
 	if len(runesSectionExponent) == 1 { // exponent section is too short
-		globalErrorsCollected = append(globalErrorsCollected, errors.New("in exponent section +|- can be the FIRST char, then minimum one digit is necessary, and that is missing: "+string(runesSectionExponent)))
+		errorsCollected = append(errorsCollected, errors.New("in exponent section +|- can be the FIRST char, then minimum one digit is necessary, and that is missing: "+string(runesSectionExponent)))
 	}
 
 	if len(runesSectionExponent) > 1 { // validate other chars in exponent section
 		if !base__validate_runes_are_in_allowed_set(runesSectionExponent[1:], digits09) {
-			globalErrorsCollected = append(globalErrorsCollected, errors.New("illegal char after first char of exponent section: "+string(runesSectionExponent)))
+			errorsCollected = append(errorsCollected, errors.New("illegal char after first char of exponent section: "+string(runesSectionExponent)))
 		}
 	}
 
 	/////////////////////////// NUM CALCULATION, BASED ON DIGITS ////////////////////////////////
-	thisIsValidNumber := lenErrorCollectorBeforeErrorDetection == len(globalErrorsCollected)
+	thisIsValidNumber := lenErrorCollectorBeforeErrorDetection == len(errorsCollected)
 	if thisIsValidNumber {
 
 		// cases: - only integer part,
@@ -516,7 +512,7 @@ func valueValidateAndSetElemNumber(token token) token {
 		if len(runesSectionInteger) > 0 && len(runesSectionFraction) == 0 && len(runesSectionExponent) == 0 {
 			numBase10, err := strconv.Atoi(string(runesSectionInteger))
 			if err != nil {
-				globalErrorsCollected = append(globalErrorsCollected, err)
+				errorsCollected = append(errorsCollected, err)
 			} else {
 				if isNegative {
 					numBase10 = -numBase10
@@ -530,7 +526,7 @@ func valueValidateAndSetElemNumber(token token) token {
 		if len(runesSectionInteger) > 0 && len(runesSectionFraction) > 0 && len(runesSectionExponent) == 0 {
 			numBase10, err := strconv.ParseFloat(string(runesSectionInteger)+"."+string(runesSectionFraction), 64)
 			if err != nil {
-				globalErrorsCollected = append(globalErrorsCollected, err)
+				errorsCollected = append(errorsCollected, err)
 			} else {
 				if isNegative {
 					numBase10 = -numBase10
@@ -587,19 +583,19 @@ func valueValidateAndSetElemNumber(token token) token {
 		// numberValue := multiplier * ()
 	}
 
-	return token
+	return token, errorsCollected
 }
 
 // ////////////////////  DETECTIONS  ///////////////////////////////////////////////
 // Documented in program plan
-func jsonDetect_strings() { // TESTED
+func jsonDetect_strings______(src []rune, errorsCollected []error) { // TESTED
 
 	// to find escaped \" \\\" sections in strings
 	isEscaped := false
 	inStringDetection := false
 	var tokenNow token
 
-	for posInSrc, runeActual := range globalSrc{
+	for posInSrc, runeActual := range src {
 
 		if runeActual == '"' {
 			if !inStringDetection { // if at " char handling, we are NOT in string
@@ -609,7 +605,7 @@ func jsonDetect_strings() { // TESTED
 					tokenNow.charPositionFirstInSourceCode = posInSrc
 					tokenNow.runesInSrc = append(tokenNow.runesInSrc, runeActual)
 
-					globalSrc[posInSrc] = ' '
+					src[posInSrc] = ' '
 					continue
 
 			} else { // inStringDetection
@@ -618,9 +614,9 @@ func jsonDetect_strings() { // TESTED
 
 					tokenNow.charPositionLastInSourceCode = posInSrc
 					tokenNow.runesInSrc = append(tokenNow.runesInSrc, runeActual)
-					globalTokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow // save token
+					tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow // save token
 
-					globalSrc[posInSrc] = ' '
+					src[posInSrc] = ' '
 					continue
 				}
 			}
@@ -639,20 +635,20 @@ func jsonDetect_strings() { // TESTED
 			} else { // the escape series ended :-)
 				isEscaped = false
 			}
-			globalSrc[posInSrc] = ' ' // remove detected char from src
+			src[posInSrc] = ' ' // remove detected char from src
 		}
 
 	} // for, runeActual
 	if inStringDetection {
-		globalErrorsCollected = append(globalErrorsCollected, errors.New("non-closed string detected:"))
+		errorsCollected = append(errorsCollected, errors.New("non-closed string detected:"))
 	}
 } // detect strings
 
-func jsonDetect_separators() { // TESTED
+func jsonDetect_separators___(src []rune, errorsCollected []error) { // TESTED
 	var tokenNow token
 
 	detectedType := typeIsUnknown
-	for posInSrc, runeActual := range globalSrc {
+	for posInSrc, runeActual := range src {
 
 		if runeActual == ' ' {           // space is a very often filler after string detection.
 			detectedType = typeIsUnknown // so the program doesn't have to check everything,
@@ -683,8 +679,8 @@ func jsonDetect_separators() { // TESTED
 			tokenNow.charPositionFirstInSourceCode = posInSrc
 			tokenNow.charPositionLastInSourceCode = posInSrc
 			tokenNow.runesInSrc = append(tokenNow.runesInSrc, runeActual)
-			globalSrc[posInSrc] = ' '
-			globalTokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
+			src[posInSrc] = ' '
+			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
 
 			detectedType = typeIsUnknown
 			// set back the type to unknown, if token is handled
@@ -700,7 +696,7 @@ func jsonDetect_separators() { // TESTED
 		because the strings/separators are removed and replaced with space in the src, as placeholders,
 	    the true/false/null words are surrounded with spaces, as separators.
 */
-func jsonDetect_trueFalseNull() { // TESTED
+func jsonDetect_trueFalseNull(src []rune, errorsCollected []error) { // TESTED
 
 	// copy the original structure, not use the same variable
 	// the detected word runesInSrc will be deleted from here.
@@ -710,7 +706,7 @@ func jsonDetect_trueFalseNull() { // TESTED
 	charsTrue := []rune("true")
 	charsFalse := []rune("false")
 	charsNull := []rune("null")
-	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(globalSrc) {
+	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
 
 		if base__compare_runes_are_equal(wordOne.wordChars, charsTrue) {
 			detectedType = typeBool
@@ -732,13 +728,13 @@ func jsonDetect_trueFalseNull() { // TESTED
 
 			for posDetected := wordOne.posFirst; posDetected <= wordOne.posLast; posDetected++ {
 				// save all detected positions:
-				tokenNow.runesInSrc = append(tokenNow.runesInSrc, (globalSrc)[posDetected])
+				tokenNow.runesInSrc = append(tokenNow.runesInSrc, (src)[posDetected])
 				// clear detected positions from the src:
-				globalSrc[posDetected] = ' '
+				src[posDetected] = ' '
 				// only detected word runesInSrc are removed from the storage, where ALL original src is inserted in the first step
 
 			}
-			globalTokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
+			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
 
 			detectedType = typeIsUnknown // set the default value again ONLY if it was not unknown, in this case
 		}
@@ -747,9 +743,9 @@ func jsonDetect_trueFalseNull() { // TESTED
 }
 
 // words are detected here, and I can hope only that they are numbers - later they will be validated
-func jsonDetect_numbers() { // TESTED
+func jsonDetect_numbers______(src []rune, errorsCollected []error) { // TESTED
 
-	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(globalSrc) {
+	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
 
 		tokenNow := token{valType: typeNumber_exactTypeIsNotSet} // only numbers can be in the src now.
 		tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
@@ -757,9 +753,9 @@ func jsonDetect_numbers() { // TESTED
 
 		for posDetected := wordOne.posFirst; posDetected <= wordOne.posLast; posDetected++ {
 			// save all detected positions:
-			tokenNow.runesInSrc = append(tokenNow.runesInSrc, (globalSrc)[posDetected])
+			tokenNow.runesInSrc = append(tokenNow.runesInSrc, (src)[posDetected])
 		}
-		globalTokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
+		tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
 	}
 }
 
@@ -767,8 +763,8 @@ func jsonDetect_numbers() { // TESTED
 
 // tokenTable keys are character positions in JSON source code (positive integers)
 func local_tool__tokenTable_position_keys_sorted() []int {
-	keys := make([]int, 0, len(globalTokensStartPositions))
-	for k := range globalTokensStartPositions {
+	keys := make([]int, 0, len(tokensStartPositions))
+	for k := range tokensStartPositions {
 		keys = append(keys, k)
 	}
 	sort.Ints(keys)
