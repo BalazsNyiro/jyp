@@ -114,7 +114,7 @@ func Test_speed(t *testing.T) {
 	_ = testName
 
 
-
+/*
 	files := []string{"large-file_03percent.json", "large-file_06percent.json", "large-file_12percent.json", "large-file_25percent.json", "large-file_50percent.json", "large-file.json"}
 
 	for _, file := range files {
@@ -129,16 +129,20 @@ func Test_speed(t *testing.T) {
 		fmt.Println("time_str", time_str, file)
 
 	}
-/*
+
+ */
+
 	// 	srcStr := strings.Repeat(srcEverything, 100)
 	// https://raw.githubusercontent.com/json-iterator/test-data/master/large-file.json
 	srcStr := file_read_for_tests("large-file.json")
 	// python3 json.loads() speed: 0.24469351768493652 sec
 	// my speed: 3.82s (2024 Marc 16)
+	//           3.47s (2024 Marc 17)
 
 
 
 	src := []rune(srcStr)
+	srcOrig := []rune(srcStr)
 	tokens := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 
@@ -160,7 +164,7 @@ func Test_speed(t *testing.T) {
 	time_num := time.Since(startNum)
 
 	startValid := time.Now()
-	valueValidationsSettings_inTokens(tokens, errorsCollected)
+	valueValidationsSettings_inTokens(srcOrig, tokens, errorsCollected)
 	time_valid := time.Since(startValid)
 
 	startHierarchy := time.Now()
@@ -174,7 +178,6 @@ func Test_speed(t *testing.T) {
 	fmt.Println("time_num", time_num)
 	fmt.Println("time_val", time_valid)
 	fmt.Println("time_hie", time_hierarchy)
-*/
 
 	/* basic big result:
 	time_str 185.342µs
@@ -194,7 +197,7 @@ func Test_speed(t *testing.T) {
 
 	*/
 
-	// _ = elemRoot
+	_ = elemRoot
 }
 
 
@@ -238,6 +241,7 @@ func Test_parse_number_integer(t *testing.T) {
 
 	srcStr := `{"int":123, "float": 456.78, "intNegative": -9, "floatNegative": -0.12}`
 	src := []rune(srcStr)
+	srcOrig := []rune(srcStr)
 	tokens := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 
@@ -246,8 +250,8 @@ func Test_parse_number_integer(t *testing.T) {
 	jsonDetect_trueFalseNull(src, tokens, errorsCollected)
 	jsonDetect_numbers______(src, tokens, errorsCollected)
 
-	valueValidationsSettings_inTokens(tokens, errorsCollected)
-	TokensDisplay_startingCoords(tokens)
+	valueValidationsSettings_inTokens(srcOrig, tokens, errorsCollected)
+	TokensDisplay_startingCoords(srcOrig, tokens)
 
 	compare_int_int(testName, 17,     len(tokens),               t)
 	compare_str_str(testName, "int",  tokens[ 1].valString,      t)
@@ -265,6 +269,7 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 
 	srcStr := `{"quote":"\"Assume a virtue, if you have it not.\"\nShakespeare", "source": "http:\/\/www.quotationspage.com\/quotes\/William_Shakespeare\/"}`
 	src := []rune(srcStr)
+	srcOrig := []rune(srcStr)
 	tokens := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 
@@ -273,7 +278,7 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 	jsonDetect_trueFalseNull(src, tokens, errorsCollected)
 	jsonDetect_numbers______(src, tokens, errorsCollected)
 
-	valueValidationsSettings_inTokens(tokens, errorsCollected)
+	valueValidationsSettings_inTokens(srcOrig, tokens, errorsCollected)
 	// at this point, string tokens' real value is parsed - but there are no embedded structures yet
 	// TokensDisplay_startingCoords(tokens)
 
@@ -299,6 +304,7 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 }`
 
 	src = []rune(src2)
+	srcOrig = []rune(src2)
 	tokens = tokenTable_startPositionIndexed{}
 	errorsCollected = []error{}
 
@@ -307,7 +313,7 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 	jsonDetect_trueFalseNull(src, tokens, errorsCollected)
 	jsonDetect_numbers______(src, tokens, errorsCollected)
 
-	valueValidationsSettings_inTokens(tokens, errorsCollected)
+	valueValidationsSettings_inTokens(srcOrig, tokens, errorsCollected)
 	// TokensDisplay_startingCoords(tokens)
 	compare_str_str(testName, `" text"`,            tokens[19].valString,  t)
 	compare_str_str(testName, "\\ reverseSolidus",  tokens[63].valString,  t)
@@ -347,11 +353,11 @@ func Test_detect_numbers(t *testing.T) {
 	// TokensDisplay_startingCoords(tokens)
 	compare_int_int(testName, 21, len(tokens), t)
 
-	compare_str_str(testName, "123",     string(tokens[7].runesInSrc), t)
-	compare_str_str(testName, "-456.78", string(tokens[23].runesInSrc), t)
-	compare_str_str(testName, "0",       string(tokens[44].runesInSrc), t)
-	compare_str_str(testName, "-1.2E+3", string(tokens[55].runesInSrc), t)
-	compare_str_str(testName, "0.1e-4",  string(tokens[76].runesInSrc), t)
+	compare_str_str(testName, "123",     srcStr[tokens[7].charPositionFirstInSourceCode:tokens[7].charPositionLastInSourceCode+1], t)
+	compare_str_str(testName, "-456.78", srcStr[tokens[23].charPositionFirstInSourceCode:tokens[23].charPositionLastInSourceCode+1], t)
+	compare_str_str(testName, "0"      , srcStr[tokens[44].charPositionFirstInSourceCode:tokens[44].charPositionLastInSourceCode+1], t)
+	compare_str_str(testName, "-1.2E+3", srcStr[tokens[55].charPositionFirstInSourceCode:tokens[55].charPositionLastInSourceCode+1], t)
+	compare_str_str(testName, "0.1e-4" , srcStr[tokens[76].charPositionFirstInSourceCode:tokens[76].charPositionLastInSourceCode+1], t)
 }
 
 
@@ -387,6 +393,7 @@ func Test_separators_detect(t *testing.T) {
 	testName := funName + "_basic"
 	srcStr := `{"students":[{"name":"Bob", "age":12}{"name": "Eve", "age":34.56}]}`
 	src := []rune(srcStr)
+	srcOrig := []rune(srcStr)
 	tokensStartPositions := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
 
@@ -401,8 +408,8 @@ func Test_separators_detect(t *testing.T) {
 		tokenNow := tokensStartPositions[positionInSrc]
 		compare_int_int(    testName, positionInSrc,         tokenNow.charPositionFirstInSourceCode,  t)
 		compare_int_int(    testName, positionInSrc,         tokenNow.charPositionLastInSourceCode,   t)
-		compare_int_int(    testName, 1,      len(tokenNow.runesInSrc), t)
-		compare_runes_runes(testName, []rune(srcWanted),     tokenNow.runesInSrc,  t)
+		compare_int_int(    testName, 1,      tokenNow.charPositionLastInSourceCode - tokenNow.charPositionFirstInSourceCode+1, t)
+		compare_runes_runes(testName, []rune(srcWanted),     srcOrig[tokenNow.charPositionFirstInSourceCode:tokenNow.charPositionLastInSourceCode+1],  t)
 	}
 
 	testOneElem("{", 0  )
@@ -432,7 +439,7 @@ func Test_detect_strings(t *testing.T) {
 	testName := funName + "_emptyString"
 	srcStr := `{"empty":""}`
 	src := []rune(srcStr)
-	srcLenOrig := len(src)
+	srcOrig := []rune(srcStr)
 
 	tokensStartPositions := tokenTable_startPositionIndexed{}
 	errorsCollected := []error{}
@@ -442,13 +449,13 @@ func Test_detect_strings(t *testing.T) {
 	// after token detection, the parsed section is removed;
 	//                                       `{"empty":""}`, t)
 	compare_runes_runes(testName, []rune(`{       :  }`), src, t)
-	compare_int_int(testName, srcLenOrig, len(src), t)
+	compare_int_int(testName, len(srcOrig), len(src), t)
 
 	compare_int_int(testName, len(tokensStartPositions), 2, t) // 3 strings were detected
 	compare_int_int(testName, 1, tokensStartPositions[1].charPositionFirstInSourceCode,  t)
 	compare_int_int(testName, 7, tokensStartPositions[1].charPositionLastInSourceCode,  t)
-	compare_runes_runes(testName, []rune(`"empty"`), tokensStartPositions[1].runesInSrc, t)
-	compare_runes_runes(testName, []rune(`""`), tokensStartPositions[9].runesInSrc, t)
+	compare_runes_runes(testName, []rune(`"empty"`), srcOrig[tokensStartPositions[1].charPositionFirstInSourceCode:tokensStartPositions[1].charPositionLastInSourceCode+1], t)
+	compare_runes_runes(testName, []rune(`""`), srcOrig[tokensStartPositions[9].charPositionFirstInSourceCode:tokensStartPositions[9].charPositionLastInSourceCode+1], t)
 
 	compare_int_int(testName, len(errorsCollected), 0, t)
 
@@ -459,7 +466,7 @@ func Test_detect_strings(t *testing.T) {
 	testName = funName + "_simpleStringDetect"
 	srcStr = `{"name":"Bob", "age": 42}`
 	src = []rune(srcStr)
-	srcLenOrig = len(src)
+	srcOrig = []rune(srcStr)
 	tokensStartPositions = tokenTable_startPositionIndexed{}
 	errorsCollected = []error{}
 
@@ -468,12 +475,12 @@ func Test_detect_strings(t *testing.T) {
 	//                              `{"name":"Bob", "age": 42}`
 	// after token detection, the parsed section is removed;
 	compare_runes_runes(testName, []rune(`{      :     ,      : 42}`), src, t)
-	compare_int_int(testName, srcLenOrig, len(src), t)
+	compare_int_int(testName, len(srcOrig), len(src), t)
 
 	compare_int_int(testName, 3, len(tokensStartPositions), t) // 3 strings were detected
 	compare_int_int(testName, 1, tokensStartPositions[1].charPositionFirstInSourceCode,  t)
 	compare_int_int(testName, 6, tokensStartPositions[1].charPositionLastInSourceCode, t)
-	compare_runes_runes(testName, []rune(`"name"`), tokensStartPositions[1].runesInSrc, t)
+	compare_runes_runes(testName, []rune(`"name"`), srcOrig[tokensStartPositions[1].charPositionFirstInSourceCode:tokensStartPositions[1].charPositionLastInSourceCode+1], t)
 	compare_int_int(testName, len(errorsCollected), 0, t)
 
 
@@ -481,7 +488,7 @@ func Test_detect_strings(t *testing.T) {
 	testName = funName + "_escape"
 	srcEscStr := `{"name \"of\" the \t\\\"rose\n\"":"red"}`
 	srcEsc := []rune(srcEscStr)
-	srcLenOrig = len(srcEsc)
+	srcOrig = []rune(srcEscStr)
 	tokensStartPositions = tokenTable_startPositionIndexed{}
 	errorsCollected = []error{}
 
@@ -490,7 +497,7 @@ func Test_detect_strings(t *testing.T) {
 
 	//                              `{"name \"of\" the \t\\\"rose\n\"":"red"}`
 	compare_runes_runes(testName, []rune(`{                                :     }`), srcEsc, t)
-	compare_int_int(testName, srcLenOrig, len(srcEsc), t)
+	compare_int_int(testName, (len(srcOrig)), len(srcEsc), t)
 	compare_int_int(testName, 1, tokensStartPositions[1].charPositionFirstInSourceCode, t)
 	compare_int_int(testName, 32, tokensStartPositions[1].charPositionLastInSourceCode, t)
 }
@@ -545,15 +552,6 @@ func compare_rune_rune(callerInfo string, runeWanted, runeReceived rune, t *test
 	}
 }
 
-// test/Debug Helper - display Tokens table
-func TokensDisplay_startingCoords(tokens tokenTable_startPositionIndexed) {
-	keys := local_tool__tokenTable_position_keys_sorted(tokens)
-
-	fmt.Println("== Tokens Table display ==")
-	for _, key := range keys{
-		fmt.Println(string(tokens[key].runesInSrc), key, tokens[key])
-	}
-}
 
 func file_read_for_tests(fn string) string {
 	dat, err := os.ReadFile(fn)

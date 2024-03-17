@@ -14,6 +14,7 @@ package jyp
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -25,6 +26,7 @@ func JsonParse(srcStr string) (JSON_value, []error) {
 	var errorsCollected []error
 	tokens := tokenTable_startPositionIndexed{}
 	src := []rune(srcStr)
+	srcOrig := []rune(srcStr)
 
 	// the src is always less and less, as tokens are detected
 	// the tokens table has more and more elems, as the src sections are parsed
@@ -49,8 +51,9 @@ func JsonParse(srcStr string) (JSON_value, []error) {
 	// set correct string values, based on raw rune src.
 	// example: "\u0022quote\u0022"'s real form: `"quote"`,
 	// so the raw source has to be interpreted (escaped chars, unicode chars)
-	valueValidationsSettings_inTokens(tokens, errorsCollected)
-
+	valueValidationsSettings_inTokens(srcOrig, tokens, errorsCollected)
+	fmt.Println("TokenTable after detections")
+	TokensDisplay_startingCoords(srcOrig, tokens)
 	elemRoot := objectHierarchyBuilding(tokens, errorsCollected)
 
 	return elemRoot, errorsCollected
@@ -116,8 +119,8 @@ func NewString_JSON_value(str string) JSON_value {
 	return JSON_value{ValType: typeString,
 		CharPositionFirstInSourceCode: -1,
 		CharPositionLastInSourceCode:  -1,
-		Runes:                         []rune(`"`+str+`"`),  // strings have "..." boundaries in runesInSrc,
 		AddedInGoCode:                 true,                 // because in the Json source code the container is "..."
+		ValString: str,
 	}
 }
 
@@ -260,8 +263,16 @@ func (v JSON_value) repr(indentationByUser ...int) string {
 
 	} else {
 		// simple value, not a container
-		return string(v.Runes)
+		if v.ValType == typeString { return "\"" + v.ValString + "\"" }
+		if v.ValType == typeNull { return "null" }
+		if v.ValType == typeBool {
+			if v.ValBool { return "true"}
+			return "false"
+		}
+		if v.ValType == typeNumberInt{ return strconv.Itoa(v.ValNumberInt) }
+		if v.ValType == typeNumberFloat64{ return strconv.FormatFloat(v.ValNumberFloat, 'f', 0, 64) }
 	}
+	return "?"
 }
 
 func (v JSON_value) ValObject_keys_sorted() []string{

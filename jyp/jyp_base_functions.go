@@ -12,6 +12,7 @@ package jyp
 
 import (
 	"errors"
+	"fmt"
 	"unicode"
 )
 
@@ -266,3 +267,12 @@ func base__runeInRunes(runeWanted rune, runesToValidate []rune) bool {
 	return false
 }
 
+// test/Debug Helper - display Tokens table
+func TokensDisplay_startingCoords(srcOrig []rune, tokens tokenTable_startPositionIndexed) {
+	keys := local_tool__tokenTable_position_keys_sorted(tokens)
+
+	fmt.Println("== Tokens Table display ==")
+	for _, key := range keys{
+		fmt.Println(string(srcOrig[tokens[key].charPositionFirstInSourceCode:tokens[key].charPositionLastInSourceCode+1]), key, tokens[key])
+	}
+}
