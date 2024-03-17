@@ -599,7 +599,7 @@ func jsonDetect_strings() { // TESTED
 	inStringDetection := false
 	var tokenNow token
 
-	for posInSrc, runeActual := range globalSrc{
+	for posInSrc, runeActual := range globalSrc {
 
 		if runeActual == '"' {
 			if !inStringDetection { // if at " char handling, we are NOT in string

@@ -116,6 +116,7 @@ func Test_speed(t *testing.T) {
 
 	globalTokensStartPositions = tokenTable_startPositionIndexed{}
 
+	/*
 	files := []string{"large-file_03percent.json", "large-file_06percent.json", "large-file_12percent.json", "large-file_25percent.json", "large-file_50percent.json", "large-file.json"}
 
 	for _, file := range files {
@@ -129,7 +130,9 @@ func Test_speed(t *testing.T) {
 		fmt.Println("time_str", time_str, file)
 
 	}
-/*
+
+	 */
+
 	// 	srcStr := strings.Repeat(srcEverything, 100)
 	// https://raw.githubusercontent.com/json-iterator/test-data/master/large-file.json
 	srcStr := file_read_for_tests("large-file.json")
@@ -138,33 +141,33 @@ func Test_speed(t *testing.T) {
 
 
 
-	src := []rune(srcStr)
-	tokens := tokenTable_startPositionIndexed{}
-	globalErrorsCollected := []error{}
+	globalSrc = []rune(srcStr)
+	globalTokensStartPositions = tokenTable_startPositionIndexed{}
+	globalErrorsCollected = []error{}
 
 	start1 := time.Now()
-	jsonDetect_strings(src, tokens, globalErrorsCollected)
+	jsonDetect_strings()
 	time_str := time.Since(start1)
 	fmt.Println("time_str", time_str)
 
 	startSep := time.Now()
-	jsonDetect_separators(src, tokens, globalErrorsCollected)
+	jsonDetect_separators()
 	time_separators := time.Since(startSep)
 
 	startBool := time.Now()
-	jsonDetect_trueFalseNull(src, tokens, globalErrorsCollected)
+	jsonDetect_trueFalseNull()
 	time_bool := time.Since(startBool)
 
 	startNum := time.Now()
-	jsonDetect_numbers(src, tokens, globalErrorsCollected)
+	jsonDetect_numbers()
 	time_num := time.Since(startNum)
 
 	startValid := time.Now()
-	valueValidationsSettings_inTokens(tokens, globalErrorsCollected)
+	valueValidationsSettings_inTokens()
 	time_valid := time.Since(startValid)
 
 	startHierarchy := time.Now()
-	elemRoot := objectHierarchyBuilding(tokens, globalErrorsCollected)
+	elemRoot := objectHierarchyBuilding()
 	time_hierarchy := time.Since(startHierarchy)
 
 
@@ -174,7 +177,6 @@ func Test_speed(t *testing.T) {
 	fmt.Println("time_num", time_num)
 	fmt.Println("time_val", time_valid)
 	fmt.Println("time_hie", time_hierarchy)
-*/
 
 	/* basic big result:
 	time_str 185.342µs
@@ -194,7 +196,7 @@ func Test_speed(t *testing.T) {
 
 	*/
 
-	// _ = elemRoot
+	_ = elemRoot
 }
 
 
