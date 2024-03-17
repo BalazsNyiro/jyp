@@ -288,19 +288,27 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 func valueValidationsSettings_inTokens(srcOrig []rune, tokens tokenTable_startPositionIndexed, errorsCollected []error) []error {
 	// tokens is a MAP, and the keys are the token positions in src.
 	// so there are gaps between keys!
-	for tokenStartPosInSrc, _ := range tokens {
-		valueValidateAndSetElemString(srcOrig, tokens, tokenStartPosInSrc, errorsCollected)
-		valueValidateAndSetElemNumber(srcOrig, tokens, tokenStartPosInSrc, errorsCollected)
+	for tokenStartPosInSrc, tokenOrig := range tokens {
+
+		if tokenOrig.valType == typeString {
+			tokenUpdated := valueValidateAndSetElemString(srcOrig, tokenOrig, errorsCollected)
+			tokens[tokenStartPosInSrc] = tokenUpdated
+		}
+		if tokenOrig.valType == typeNumber_exactTypeIsNotSet {
+			tokenUpdated := valueValidateAndSetElemNumber(srcOrig, tokenOrig, errorsCollected)
+			tokens[tokenStartPosInSrc] = tokenUpdated
+		}
 		// TODO: elem true|false|null value set?
+
 	}
 	return errorsCollected
 }
 
 // set the string value from raw strings
-func valueValidateAndSetElemString(srcOrig []rune, tokens tokenTable_startPositionIndexed, tokenSelected int, errorsCollected []error) { // TESTED
+func valueValidateAndSetElemString(srcOrig []rune, tokenNow token, errorsCollected []error) token { // TESTED
 
-	if (tokens)[tokenSelected].valType != typeString {
-		return
+	if tokenNow.valType != typeString {
+		return tokenNow
 	} // don't modify non-string tokens
 
 	/* Tasks:
@@ -318,7 +326,7 @@ func valueValidateAndSetElemString(srcOrig []rune, tokens tokenTable_startPositi
 
 	// pos start + 1: strings has initial " in runes
 	// post end -1  closing " after string content
-	for pos := (tokens)[tokenSelected].charPositionFirstInSourceCode+1; pos <= (tokens)[tokenSelected].charPositionLastInSourceCode-1; pos++ {
+	for pos := tokenNow.charPositionFirstInSourceCode+1; pos <= tokenNow.charPositionLastInSourceCode-1; pos++ {
 
 		runeActual := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(srcOrig, pos)
 		//fmt.Println("rune actual (string value set):", pos, string(runeActual), runeActual)
@@ -409,17 +417,16 @@ func valueValidateAndSetElemString(srcOrig []rune, tokens tokenTable_startPositi
 	} // for
 
 	// fmt.Println("value from raw src parsing:", string(valueFromRawSrcParsing))
-	tokenNow := (tokens)[tokenSelected]
 
 	tokenNow.valString = string(valueFromRawSrcParsing) // first I tried to remove this string conversion
-	(tokens)[tokenSelected] = tokenNow
 	// and use runes only, but it didn't help to get higher speed.
+	return tokenNow
 }
 
-func valueValidateAndSetElemNumber(srcOrig []rune, tokens tokenTable_startPositionIndexed, tokenSelected int, errorsCollected []error)  {
+func valueValidateAndSetElemNumber(srcOrig []rune, tokenNow token, errorsCollected []error) token {
 
-	if (tokens)[tokenSelected].valType != typeNumber_exactTypeIsNotSet {
-		return
+	if tokenNow.valType != typeNumber_exactTypeIsNotSet {
+		return tokenNow
 	} // don't modify non-number elems
 
 	/*
@@ -449,7 +456,7 @@ func valueValidateAndSetElemNumber(srcOrig []rune, tokens tokenTable_startPositi
 	// in case of 12.3: divider = 10^-1
 	// in case of 1.23: divider = 10^-2
 
-	numberRunes := base__runes_copy(srcOrig[(tokens)[tokenSelected].charPositionFirstInSourceCode:(tokens)[tokenSelected].charPositionLastInSourceCode+1])
+	numberRunes := base__runes_copy(srcOrig[tokenNow.charPositionFirstInSourceCode:tokenNow.charPositionLastInSourceCode+1])
 
 	// example number: -1234.567e-8
 	isNegative := numberRunes[0] == '-'
@@ -537,10 +544,8 @@ func valueValidateAndSetElemNumber(srcOrig []rune, tokens tokenTable_startPositi
 				if isNegative {
 					numBase10 = -numBase10
 				}
-				tokenNow := (tokens)[tokenSelected]
 				tokenNow.valNumberInt = numBase10
 				tokenNow.valType = typeNumberInt
-				(tokens)[tokenSelected] = tokenNow
 			}
 		}
 
@@ -553,10 +558,8 @@ func valueValidateAndSetElemNumber(srcOrig []rune, tokens tokenTable_startPositi
 				if isNegative {
 					numBase10 = -numBase10
 				}
-				tokenNow := (tokens)[tokenSelected]
 				tokenNow.valNumberFloat = numBase10
 				tokenNow.valType = typeNumberFloat64
-				(tokens)[tokenSelected] = tokenNow
 			}
 		}
 
@@ -606,6 +609,7 @@ func valueValidateAndSetElemNumber(srcOrig []rune, tokens tokenTable_startPositi
 
 		// numberValue := multiplier * ()
 	}
+	return tokenNow
 }
 
 // ////////////////////  DETECTIONS  ///////////////////////////////////////////////
