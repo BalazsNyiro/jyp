@@ -27,6 +27,7 @@ package jyp
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 	"strconv"
 )
@@ -102,23 +103,30 @@ type JSON_value struct {
 	LevelInObjectStructure int // later it helps to print the Json Value :-)
 }
 
-type tokenTable_startPositionIndexed map[int]token
+type tokenTable_startPositionIndexed map[int]*token
 
 func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsCollected []error) JSON_value {
 	var elemRoot JSON_value
 
+	fmt.Println("DEBUG: 1")
 	positionKeys_of_tokens := local_tool__tokenTable_position_keys_sorted(tokens)
+	fmt.Println("DEBUG: 2")
 
 	if len(positionKeys_of_tokens) < 1 {
 		errorsCollected = append(errorsCollected, errors.New("emtpy source code, no tokens"))
 		return elemRoot
 	}
+	fmt.Println("DEBUG: 3")
 
 	keyFirst := positionKeys_of_tokens[0]
+	fmt.Println("DEBUG: 3a")
 	if tokens[keyFirst].valType != typeObjectOpen {
+		fmt.Println("DEBUG: 3b")
 		errorsCollected = append(errorsCollected, errors.New("the first token has to be 'objectOpen' in JSON source code"))
+		fmt.Println("DEBUG: 3c")
 		return elemRoot
 	}
+	fmt.Println("DEBUG: 4")
 	///////////////////////////////////////////////////////////////
 
 	idParent := -1 // id can be 0 or bigger, so -1 is a non-existing parent id (root elem doesn't have parent
@@ -126,8 +134,11 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 	keyStrings_of_collectors__filledIfObjectKey_emptyIfParentIsArray := map[int]string{} // if the parent is an object, elems can be inserted with keys.
 	lastDetectedStringKey__inObject := ""
 
+	fmt.Println("DEBUG: 5")
+
 	// tokenKeys are charPosition based numbers, they are not continuous.
 	for _, tokenPositionKey := range positionKeys_of_tokens {
+		fmt.Println("token position key:", tokenPositionKey)
 
 		tokenActual := tokens[tokenPositionKey]
 
@@ -262,15 +273,13 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 
 // //////////////////// VALUE setter FUNCTIONS ///////////////////////////////////////////////
 func valueValidationsSettings_inTokens(tokens tokenTable_startPositionIndexed, errorsCollected []error) []error {
-	for _, tokenOne := range tokens {
-		if tokenOne.valType == typeString {
-			tokenOne, errorsCollected = valueValidateAndSetElemString(tokenOne, errorsCollected)
-			tokens[tokenOne.charPositionFirstInSourceCode] = tokenOne
+	for _, tokenOnePtr := range tokens {
+		if tokenOnePtr.valType == typeString {
+			valueValidateAndSetElemString(*tokenOnePtr, errorsCollected)
 			// save the elem only if change happened, so if the type == true
 		} else
-		if tokenOne.valType == typeNumber_exactTypeIsNotSet {
-			tokenOne, errorsCollected = valueValidateAndSetElemNumber(tokenOne, errorsCollected)
-			tokens[tokenOne.charPositionFirstInSourceCode] = tokenOne
+		if tokenOnePtr.valType == typeNumber_exactTypeIsNotSet {
+			valueValidateAndSetElemNumber(*tokenOnePtr, errorsCollected)
 		}
 		// TODO: elem true|false|null value set?
 	}
@@ -613,7 +622,7 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 
 					tokenNow.charPositionLastInSourceCode = posInSrc
 					tokenNow.runesInSrc = append(tokenNow.runesInSrc, runeActual)
-					tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow // save token
+					tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = &tokenNow // save token
 
 					src[posInSrc] = ' '
 					continue
@@ -679,7 +688,7 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 			tokenNow.charPositionLastInSourceCode = posInSrc
 			tokenNow.runesInSrc = append(tokenNow.runesInSrc, runeActual)
 			src[posInSrc] = ' '
-			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
+			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = &tokenNow
 
 			detectedType = typeIsUnknown
 			// set back the type to unknown, if token is handled
@@ -733,7 +742,7 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 				// only detected word runesInSrc are removed from the storage, where ALL original src is inserted in the first step
 
 			}
-			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
+			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = &tokenNow
 
 			detectedType = typeIsUnknown // set the default value again ONLY if it was not unknown, in this case
 		}
@@ -754,7 +763,7 @@ func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startP
 			// save all detected positions:
 			tokenNow.runesInSrc = append(tokenNow.runesInSrc, (src)[posDetected])
 		}
-		tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
+		tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = &tokenNow
 	}
 }
 
