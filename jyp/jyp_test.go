@@ -254,11 +254,11 @@ func Test_parse_number_integer(t *testing.T) {
 	TokensDisplay_startingCoords(srcOrig, tokens)
 
 	compare_int_int(testName, 17,     len(tokens),               t)
-	compare_str_str(testName, "int",  tokens[ 1].valString,      t)
-	compare_int_int(testName, 123,    tokens[ 7].valNumberInt,   t)
-	compare_flt_flt(testName, 456.78, tokens[21].valNumberFloat, t)
-	compare_int_int(testName, -9,     tokens[44].valNumberInt,   t)
-	compare_flt_flt(testName, -0.12,  tokens[65].valNumberFloat, t)
+	compare_str_str(testName, "int",   tokens[ 1].ValString,      t)
+	compare_int_int(testName, 123,    tokens[ 7].ValNumberInt,   t)
+	compare_flt_flt(testName, 456.78, tokens[21].ValNumberFloat, t)
+	compare_int_int(testName, -9,     tokens[44].ValNumberInt,   t)
+	compare_flt_flt(testName, -0.12,  tokens[65].ValNumberFloat, t)
 }
 
 //  go test -v -run   Test_token_validate_and_value_set_for_strings
@@ -283,9 +283,9 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 	// TokensDisplay_startingCoords(tokens)
 
 	compare_int_int(testName, 9, len(tokens), t)
-	compare_str_str(testName, "quote",  tokens[1].valString, t)
-	compare_str_str(testName, `"Assume a virtue, if you have it not."`+"\nShakespeare",    tokens[9].valString,  t)
-	compare_str_str(testName, "http://www.quotationspage.com/quotes/William_Shakespeare/", tokens[76].valString, t)
+	compare_str_str(testName, "quote",  tokens[1].ValString, t)
+	compare_str_str(testName, `"Assume a virtue, if you have it not."`+"\nShakespeare",    tokens[9].ValString,  t)
+	compare_str_str(testName, "http://www.quotationspage.com/quotes/William_Shakespeare/", tokens[76].ValString, t)
 
 
 
@@ -315,17 +315,17 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 
 	valueValidationsSettings_inTokens(srcOrig, tokens, errorsCollected)
 	// TokensDisplay_startingCoords(tokens)
-	compare_str_str(testName, `" text"`,            tokens[19].valString,  t)
-	compare_str_str(testName, "\\ reverseSolidus",  tokens[63].valString,  t)
-	compare_str_str(testName, "/ solidus",          tokens[115].valString, t)
-	compare_str_str(testName, "\b backspace",       tokens[160].valString, t)
-	compare_str_str(testName, "\f formFeed",        tokens[207].valString, t)
-	compare_str_str(testName, "\n lineFeed",        tokens[253].valString, t)
+	compare_str_str(testName, `" text"`,            tokens[19].ValString,  t)
+	compare_str_str(testName, "\\ reverseSolidus",  tokens[63].ValString,  t)
+	compare_str_str(testName, "/ solidus",          tokens[115].ValString, t)
+	compare_str_str(testName, "\b backspace",       tokens[160].ValString, t)
+	compare_str_str(testName, "\f formFeed",        tokens[207].ValString, t)
+	compare_str_str(testName, "\n lineFeed",        tokens[253].ValString, t)
 
-	compare_str_str(testName, "\r carriageReturn",  tokens[299].valString, t)
-	compare_str_str(testName, "\t horizontalTab",   tokens[351].valString, t)
-	compare_str_str(testName, "\"",                 tokens[392].valString, t)
-	compare_str_str(testName, "ä",                  tokens[422].valString, t)
+	compare_str_str(testName, "\r carriageReturn",  tokens[299].ValString, t)
+	compare_str_str(testName, "\t horizontalTab",   tokens[351].ValString, t)
+	compare_str_str(testName, "\"",                 tokens[392].ValString, t)
+	compare_str_str(testName, "ä",                  tokens[422].ValString, t)
 }
 
 
@@ -353,11 +353,11 @@ func Test_detect_numbers(t *testing.T) {
 	// TokensDisplay_startingCoords(tokens)
 	compare_int_int(testName, 21, len(tokens), t)
 
-	compare_str_str(testName, "123",     srcStr[tokens[7].charPositionFirstInSourceCode:tokens[7].charPositionLastInSourceCode+1], t)
-	compare_str_str(testName, "-456.78", srcStr[tokens[23].charPositionFirstInSourceCode:tokens[23].charPositionLastInSourceCode+1], t)
-	compare_str_str(testName, "0"      , srcStr[tokens[44].charPositionFirstInSourceCode:tokens[44].charPositionLastInSourceCode+1], t)
-	compare_str_str(testName, "-1.2E+3", srcStr[tokens[55].charPositionFirstInSourceCode:tokens[55].charPositionLastInSourceCode+1], t)
-	compare_str_str(testName, "0.1e-4" , srcStr[tokens[76].charPositionFirstInSourceCode:tokens[76].charPositionLastInSourceCode+1], t)
+	compare_str_str(testName, "123",     srcStr[tokens[7].CharPositionFirstInSourceCode:tokens[7].CharPositionLastInSourceCode+1], t)
+	compare_str_str(testName, "-456.78", srcStr[tokens[23].CharPositionFirstInSourceCode:tokens[23].CharPositionLastInSourceCode+1], t)
+	compare_str_str(testName, "0"      , srcStr[tokens[44].CharPositionFirstInSourceCode:tokens[44].CharPositionLastInSourceCode+1], t)
+	compare_str_str(testName, "-1.2E+3", srcStr[tokens[55].CharPositionFirstInSourceCode:tokens[55].CharPositionLastInSourceCode+1], t)
+	compare_str_str(testName, "0.1e-4" , srcStr[tokens[76].CharPositionFirstInSourceCode:tokens[76].CharPositionLastInSourceCode+1], t)
 }
 
 
@@ -406,10 +406,10 @@ func Test_separators_detect(t *testing.T) {
 	   are ALWAYS same, and the length of Runes are 1, too. */
 	testOneElem := func (srcWanted string, positionInSrc int) {
 		tokenNow := tokensStartPositions[positionInSrc]
-		compare_int_int(    testName, positionInSrc,         tokenNow.charPositionFirstInSourceCode,  t)
-		compare_int_int(    testName, positionInSrc,         tokenNow.charPositionLastInSourceCode,   t)
-		compare_int_int(    testName, 1,      tokenNow.charPositionLastInSourceCode - tokenNow.charPositionFirstInSourceCode+1, t)
-		compare_runes_runes(testName, []rune(srcWanted),     srcOrig[tokenNow.charPositionFirstInSourceCode:tokenNow.charPositionLastInSourceCode+1],  t)
+		compare_int_int(    testName, positionInSrc,         tokenNow.CharPositionFirstInSourceCode,  t)
+		compare_int_int(    testName, positionInSrc,         tokenNow.CharPositionLastInSourceCode,   t)
+		compare_int_int(    testName, 1,      tokenNow.CharPositionLastInSourceCode - tokenNow.CharPositionFirstInSourceCode+1, t)
+		compare_runes_runes(testName, []rune(srcWanted),     srcOrig[tokenNow.CharPositionFirstInSourceCode:tokenNow.CharPositionLastInSourceCode+1],  t)
 	}
 
 	testOneElem("{", 0  )
@@ -452,10 +452,10 @@ func Test_detect_strings(t *testing.T) {
 	compare_int_int(testName, len(srcOrig), len(src), t)
 
 	compare_int_int(testName, len(tokensStartPositions), 2, t) // 3 strings were detected
-	compare_int_int(testName, 1, tokensStartPositions[1].charPositionFirstInSourceCode,  t)
-	compare_int_int(testName, 7, tokensStartPositions[1].charPositionLastInSourceCode,  t)
-	compare_runes_runes(testName, []rune(`"empty"`), srcOrig[tokensStartPositions[1].charPositionFirstInSourceCode:tokensStartPositions[1].charPositionLastInSourceCode+1], t)
-	compare_runes_runes(testName, []rune(`""`), srcOrig[tokensStartPositions[9].charPositionFirstInSourceCode:tokensStartPositions[9].charPositionLastInSourceCode+1], t)
+	compare_int_int(testName, 1, tokensStartPositions[1].CharPositionFirstInSourceCode,  t)
+	compare_int_int(testName, 7, tokensStartPositions[1].CharPositionLastInSourceCode,  t)
+	compare_runes_runes(testName, []rune(`"empty"`), srcOrig[tokensStartPositions[1].CharPositionFirstInSourceCode:tokensStartPositions[1].CharPositionLastInSourceCode+1], t)
+	compare_runes_runes(testName, []rune(`""`), srcOrig[tokensStartPositions[9].CharPositionFirstInSourceCode:tokensStartPositions[9].CharPositionLastInSourceCode+1], t)
 
 	compare_int_int(testName, len(errorsCollected), 0, t)
 
@@ -478,9 +478,9 @@ func Test_detect_strings(t *testing.T) {
 	compare_int_int(testName, len(srcOrig), len(src), t)
 
 	compare_int_int(testName, 3, len(tokensStartPositions), t) // 3 strings were detected
-	compare_int_int(testName, 1, tokensStartPositions[1].charPositionFirstInSourceCode,  t)
-	compare_int_int(testName, 6, tokensStartPositions[1].charPositionLastInSourceCode, t)
-	compare_runes_runes(testName, []rune(`"name"`), srcOrig[tokensStartPositions[1].charPositionFirstInSourceCode:tokensStartPositions[1].charPositionLastInSourceCode+1], t)
+	compare_int_int(testName, 1, tokensStartPositions[1].CharPositionFirstInSourceCode,  t)
+	compare_int_int(testName, 6, tokensStartPositions[1].CharPositionLastInSourceCode, t)
+	compare_runes_runes(testName, []rune(`"name"`), srcOrig[tokensStartPositions[1].CharPositionFirstInSourceCode:tokensStartPositions[1].CharPositionLastInSourceCode+1], t)
 	compare_int_int(testName, len(errorsCollected), 0, t)
 
 
@@ -498,8 +498,8 @@ func Test_detect_strings(t *testing.T) {
 	//                              `{"name \"of\" the \t\\\"rose\n\"":"red"}`
 	compare_runes_runes(testName, []rune(`{                                :     }`), srcEsc, t)
 	compare_int_int(testName, (len(srcOrig)), len(srcEsc), t)
-	compare_int_int(testName, 1, tokensStartPositions[1].charPositionFirstInSourceCode, t)
-	compare_int_int(testName, 32, tokensStartPositions[1].charPositionLastInSourceCode, t)
+	compare_int_int(testName, 1, tokensStartPositions[1].CharPositionFirstInSourceCode, t)
+	compare_int_int(testName, 32, tokensStartPositions[1].CharPositionLastInSourceCode, t)
 }
 
 

@@ -82,24 +82,6 @@ const typeNumber_exactTypeIsNotSet = "typeNumber_exactTypeIsNotSet"
 
  */
 
-
-
-// token: a structural elem of the source code, maybe without real meaning (comma separator, for example)
-type token struct {
-	valType byte
-
-	valBool   bool
-	valString string // real string characters. \u1234 from src is converted here into one char for example,
-	                 // and \u1234 has 6 runes in runesInSrc.
-					 // originally it was string, but in extremely long JSONS, nobody reads them.
-					 // convert runes to string ONLY if user wants to read something
-	valNumberInt   int
-	valNumberFloat float64
-
-	charPositionFirstInSourceCode int // 0: the first char in source code, 1: 2nd...
-	charPositionLastInSourceCode  int // 0: the first char in source code, 1: 2nd...
-}
-
 type JSON_value struct {
 	ValType byte
 
@@ -127,7 +109,7 @@ type JSON_value struct {
 	LevelInObjectStructure int // later it helps to print the Json Value :-)
 }
 
-type tokenTable_startPositionIndexed map[int]token
+type tokenTable_startPositionIndexed map[int]JSON_value
 
 func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsCollected []error) JSON_value {
 	var elemRoot JSON_value
@@ -140,7 +122,7 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 	}
 
 	keyFirst := positionKeys_of_tokens[0]
-	if tokens[keyFirst].valType != typeObjectOpen {
+	if tokens[keyFirst].ValType != typeObjectOpen {
 		errorsCollected = append(errorsCollected, errors.New("the first token has to be 'objectOpen' in JSON source code"))
 		return elemRoot
 	}
@@ -156,8 +138,8 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 		fmt.Println("token position key:", tokenPositionKey)
 		tokenActual := tokens[tokenPositionKey]
 
-		if tokenActual.valType == typeComma { continue } // placeholders
-		if tokenActual.valType == typeColon { continue }
+		if tokenActual.ValType == typeComma { continue } // placeholders
+		if tokenActual.ValType == typeColon { continue }
 
 		///////////////// SIMPLE JSON VALUES ARE SAVED DIRECTLY INTO THEIR PARENT /////////////////////////
 		// in json objects, the first string is always the key. then the next elem is the value
@@ -165,8 +147,8 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 		if idParent >= 0 { // the first root elem doesn't have parents, so idParent == -1
 			if lastDetectedStringKey__inObject == "" {
 				if containers[idParent].ValType == typeObject {
-					if tokenActual.valType == typeString {
-						lastDetectedStringKey__inObject = tokenActual.valString
+					if tokenActual.ValType == typeString {
+						lastDetectedStringKey__inObject = tokenActual.ValString
 						continue
 					} // == string
 				} // == object
@@ -174,7 +156,7 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 		} // >= 0
 
 		//////////////////////////////////////////////////////////////////////
-		if tokenActual.valType == typeObjectOpen || tokenActual.valType == typeArrayOpen {
+		if tokenActual.ValType == typeObjectOpen || tokenActual.ValType == typeArrayOpen {
 			// the id is important ONLY for the children - when they are inserted
 			// into the parent containers. So when the container elem is parsed,
 			// the id can be re-used later.
@@ -188,10 +170,10 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 			containerNew := JSON_value{
 				idParent:                      idParent,
 				idSelf:                        id,
-				CharPositionFirstInSourceCode: tokenActual.charPositionFirstInSourceCode,
+				CharPositionFirstInSourceCode: tokenActual.CharPositionFirstInSourceCode,
 				LevelInObjectStructure:        levelInObjectStructure,
 			}
-			if tokenActual.valType == typeObjectOpen {
+			if tokenActual.ValType == typeObjectOpen {
 				containerNew.ValType = typeObject
 				containerNew.ValObject = map[string]JSON_value{}
 			} else { // arrayOpen
@@ -217,7 +199,7 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 		/////////////////// SIMPLE VALUES or container-closers ////////////////////////////////////////
 		// 	"bool", "null", "string", "number_integer", "number_float64", "objectClose", "arrayClose"
 
-		isCloserToken := tokenActual.valType == typeObjectClose || tokenActual.valType == typeArrayClose
+		isCloserToken := tokenActual.ValType == typeObjectClose || tokenActual.ValType == typeArrayClose
 
 		var value JSON_value
 
@@ -234,9 +216,9 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 			lastDetectedStringKey__inObject = keyStrings_of_collectors__filledIfObjectKey_emptyIfParentIsArray[value.idSelf]
 			delete(keyStrings_of_collectors__filledIfObjectKey_emptyIfParentIsArray, value.idSelf)
 		} else {
-			value = JSON_value{ValType: tokenActual.valType,
-				CharPositionFirstInSourceCode: tokenActual.charPositionFirstInSourceCode,
-				CharPositionLastInSourceCode:  tokenActual.charPositionLastInSourceCode,
+			value = JSON_value{ValType: tokenActual.ValType,
+				CharPositionFirstInSourceCode: tokenActual.CharPositionFirstInSourceCode,
+				CharPositionLastInSourceCode:  tokenActual.CharPositionLastInSourceCode,
 				idParent:                      idParent,
 				LevelInObjectStructure:        containers[idParent].LevelInObjectStructure + 1,
 				// idSelf is not filled, the whole id conception is used ONLY to find parents
@@ -247,17 +229,17 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 			//	_ = "null type has no value, don't store it"
 			// }
 
-			if tokenActual.valType == typeBool {
-				value.ValBool = tokenActual.valBool
+			if tokenActual.ValType == typeBool {
+				value.ValBool = tokenActual.ValBool
 			} else
-			if tokenActual.valType == typeString {
-				value.ValString = tokenActual.valString
+			if tokenActual.ValType == typeString {
+				value.ValString = tokenActual.ValString
 			} else
-			if tokenActual.valType == typeNumberInt {
-				value.ValNumberInt = tokenActual.valNumberInt
+			if tokenActual.ValType == typeNumberInt {
+				value.ValNumberInt = tokenActual.ValNumberInt
 			} else
-			if tokenActual.valType == typeNumberFloat64 {
-				value.ValNumberFloat = tokenActual.valNumberFloat
+			if tokenActual.ValType == typeNumberFloat64 {
+				value.ValNumberFloat = tokenActual.ValNumberFloat
 			}
 
 		} // notCloser
@@ -290,11 +272,11 @@ func valueValidationsSettings_inTokens(srcOrig []rune, tokens tokenTable_startPo
 	// so there are gaps between keys!
 	for tokenStartPosInSrc, tokenOrig := range tokens {
 
-		if tokenOrig.valType == typeString {
+		if tokenOrig.ValType == typeString {
 			tokenUpdated := valueValidateAndSetElemString(srcOrig, tokenOrig, errorsCollected)
 			tokens[tokenStartPosInSrc] = tokenUpdated
 		}
-		if tokenOrig.valType == typeNumber_exactTypeIsNotSet {
+		if tokenOrig.ValType == typeNumber_exactTypeIsNotSet {
 			tokenUpdated := valueValidateAndSetElemNumber(srcOrig, tokenOrig, errorsCollected)
 			tokens[tokenStartPosInSrc] = tokenUpdated
 		}
@@ -305,9 +287,9 @@ func valueValidationsSettings_inTokens(srcOrig []rune, tokens tokenTable_startPo
 }
 
 // set the string value from raw strings
-func valueValidateAndSetElemString(srcOrig []rune, tokenNow token, errorsCollected []error) token { // TESTED
+func valueValidateAndSetElemString(srcOrig []rune, tokenNow JSON_value, errorsCollected []error) JSON_value{ // TESTED
 
-	if tokenNow.valType != typeString {
+	if tokenNow.ValType != typeString {
 		return tokenNow
 	} // don't modify non-string tokens
 
@@ -326,7 +308,7 @@ func valueValidateAndSetElemString(srcOrig []rune, tokenNow token, errorsCollect
 
 	// pos start + 1: strings has initial " in runes
 	// post end -1  closing " after string content
-	for pos := tokenNow.charPositionFirstInSourceCode+1; pos <= tokenNow.charPositionLastInSourceCode-1; pos++ {
+	for pos := tokenNow.CharPositionFirstInSourceCode+1; pos <= tokenNow.CharPositionLastInSourceCode-1; pos++ {
 
 		runeActual := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(srcOrig, pos)
 		//fmt.Println("rune actual (string value set):", pos, string(runeActual), runeActual)
@@ -418,14 +400,14 @@ func valueValidateAndSetElemString(srcOrig []rune, tokenNow token, errorsCollect
 
 	// fmt.Println("value from raw src parsing:", string(valueFromRawSrcParsing))
 
-	tokenNow.valString = string(valueFromRawSrcParsing) // first I tried to remove this string conversion
+	tokenNow.ValString = string(valueFromRawSrcParsing) // first I tried to remove this string conversion
 	// and use runes only, but it didn't help to get higher speed.
 	return tokenNow
 }
 
-func valueValidateAndSetElemNumber(srcOrig []rune, tokenNow token, errorsCollected []error) token {
+func valueValidateAndSetElemNumber(srcOrig []rune, tokenNow JSON_value, errorsCollected []error) JSON_value{
 
-	if tokenNow.valType != typeNumber_exactTypeIsNotSet {
+	if tokenNow.ValType != typeNumber_exactTypeIsNotSet {
 		return tokenNow
 	} // don't modify non-number elems
 
@@ -456,7 +438,7 @@ func valueValidateAndSetElemNumber(srcOrig []rune, tokenNow token, errorsCollect
 	// in case of 12.3: divider = 10^-1
 	// in case of 1.23: divider = 10^-2
 
-	numberRunes := base__runes_copy(srcOrig[tokenNow.charPositionFirstInSourceCode:tokenNow.charPositionLastInSourceCode+1])
+	numberRunes := base__runes_copy(srcOrig[tokenNow.CharPositionFirstInSourceCode:tokenNow.CharPositionLastInSourceCode+1])
 
 	// example number: -1234.567e-8
 	isNegative := numberRunes[0] == '-'
@@ -544,8 +526,8 @@ func valueValidateAndSetElemNumber(srcOrig []rune, tokenNow token, errorsCollect
 				if isNegative {
 					numBase10 = -numBase10
 				}
-				tokenNow.valNumberInt = numBase10
-				tokenNow.valType = typeNumberInt
+				tokenNow.ValNumberInt = numBase10
+				tokenNow.ValType = typeNumberInt
 			}
 		}
 
@@ -558,8 +540,8 @@ func valueValidateAndSetElemNumber(srcOrig []rune, tokenNow token, errorsCollect
 				if isNegative {
 					numBase10 = -numBase10
 				}
-				tokenNow.valNumberFloat = numBase10
-				tokenNow.valType = typeNumberFloat64
+				tokenNow.ValNumberFloat = numBase10
+				tokenNow.ValType = typeNumberFloat64
 			}
 		}
 
@@ -619,7 +601,7 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 	// to find escaped \" \\\" sections in strings
 	isEscaped := false
 	inStringDetection := false
-	var tokenNow token
+	var tokenNow JSON_value
 
 	for posInSrc, runeActual := range src {
 
@@ -627,8 +609,8 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 			if !inStringDetection { // if at " char handling, we are NOT in string
 					inStringDetection = true
 
-					tokenNow = token{valType: typeString}
-					tokenNow.charPositionFirstInSourceCode = posInSrc
+					tokenNow = JSON_value{ValType: typeString}
+					tokenNow.CharPositionFirstInSourceCode = posInSrc
 					src[posInSrc] = ' '
 					continue
 
@@ -636,8 +618,8 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 				if !isEscaped { // a non-escaped " char in a string detection
 					inStringDetection = false          // is the end of the string
 
-					tokenNow.charPositionLastInSourceCode = posInSrc
-					tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow // save token
+					tokenNow.CharPositionLastInSourceCode = posInSrc
+					tokensStartPositions[tokenNow.CharPositionFirstInSourceCode] = tokenNow // save token
 					src[posInSrc] = ' '
 					continue
 				}
@@ -664,7 +646,7 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 } // detect strings
 
 func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) { // TESTED
-	var tokenNow token
+	var tokenNow JSON_value
 
 	detectedType := typeIsUnknown
 	for posInSrc, runeActual := range src {
@@ -694,11 +676,11 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 		if detectedType == typeIsUnknown {
 			// keep the original rune, if it was not a detected char
 		} else { // save token, if something important is detected
-			tokenNow = token{valType: detectedType}
-			tokenNow.charPositionFirstInSourceCode = posInSrc
-			tokenNow.charPositionLastInSourceCode = posInSrc
+			tokenNow = JSON_value{ValType: detectedType}
+			tokenNow.CharPositionFirstInSourceCode = posInSrc
+			tokenNow.CharPositionLastInSourceCode = posInSrc
 			src[posInSrc] = ' '
-			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
+			tokensStartPositions[tokenNow.CharPositionFirstInSourceCode] = tokenNow
 
 			detectedType = typeIsUnknown
 			// set back the type to unknown, if token is handled
@@ -737,12 +719,12 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 		}
 
 		if detectedType != typeIsUnknown {
-			tokenNow := token{valType: detectedType}
+			tokenNow := JSON_value{ValType: detectedType}
 			if detectedType == typeBool {
-				tokenNow.valBool = base__compare_runes_are_equal(wordOne.wordChars, charsTrue)
+				tokenNow.ValBool = base__compare_runes_are_equal(wordOne.wordChars, charsTrue)
 			}
-			tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
-			tokenNow.charPositionLastInSourceCode = wordOne.posLast
+			tokenNow.CharPositionFirstInSourceCode = wordOne.posFirst
+			tokenNow.CharPositionLastInSourceCode = wordOne.posLast
 
 			for posDetected := wordOne.posFirst; posDetected <= wordOne.posLast; posDetected++ {
 				// clear detected positions from the src:
@@ -750,7 +732,7 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 				// only detected word runesInSrc are removed from the storage, where ALL original src is inserted in the first step
 
 			}
-			tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
+			tokensStartPositions[tokenNow.CharPositionFirstInSourceCode] = tokenNow
 
 			detectedType = typeIsUnknown // set the default value again ONLY if it was not unknown, in this case
 		}
@@ -763,10 +745,10 @@ func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startP
 
 	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
 
-		tokenNow := token{valType: typeNumber_exactTypeIsNotSet} // only numbers can be in the src now.
-		tokenNow.charPositionFirstInSourceCode = wordOne.posFirst
-		tokenNow.charPositionLastInSourceCode = wordOne.posLast
-		tokensStartPositions[tokenNow.charPositionFirstInSourceCode] = tokenNow
+		tokenNow := JSON_value{ValType: typeNumber_exactTypeIsNotSet} // only numbers can be in the src now.
+		tokenNow.CharPositionFirstInSourceCode = wordOne.posFirst
+		tokenNow.CharPositionLastInSourceCode = wordOne.posLast
+		tokensStartPositions[tokenNow.CharPositionFirstInSourceCode] = tokenNow
 	}
 }
 
