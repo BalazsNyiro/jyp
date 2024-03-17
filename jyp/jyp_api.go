@@ -23,37 +23,36 @@ import (
 // if the src can be parsed, return with the JSON root object with nested elems, and err is nil.
 func JsonParse(srcStr string) (JSON_value, []error) {
 
-	var errorsCollected []error
-	src := []rune(srcStr)
+	globalSrc = []rune(srcStr)
 
-	// the src is always less and less, as tokens are detected
-	// the tokens table has more and more elems, as the src sections are parsed
-	// at the end, src is total empty (if everything goes well) - and we don't have errors, too
+	// the globalSrc is always less and less, as tokens are detected
+	// the tokens table has more and more elems, as the globalSrc sections are parsed
+	// at the end, globalSrc is total empty (if everything goes well) - and we don't have errors, too
 
-	// only strings can have errors at this parsing step, but the src|tokens|errors are
+	// only strings can have errors at this parsing step, but the globalSrc|tokens|errors are
 	// lead through every fun, as a standard solution - so the possibility is open to throw an error everywhere.
 
-	// here maybe the tokens|errorsCollected ret val handling could be removed,
+	// here maybe the tokens|globalErrorsCollected ret val handling could be removed,
 	// but with this, it is clearer what is happening in the fun - so I use this form.
 	// in other words: represent if the structure is changed in the function.
-	jsonDetect_strings______(src, errorsCollected)
-	jsonDetect_separators___(src, errorsCollected)
-	jsonDetect_trueFalseNull(src, errorsCollected)
-	jsonDetect_numbers______(src, errorsCollected)
+	jsonDetect_strings()
+	jsonDetect_separators()
+	jsonDetect_trueFalseNull()
+	jsonDetect_numbers()
 
 	// at this point, Numbers are not validated - the ruins are collected only,
 	// and the lists/objects doesn't have embedded structures - it has to be built, too.
-	// src has to be empty, or contain only whitespaces.
+	// globalSrc has to be empty, or contain only whitespaces.
 
 
-	// set correct string values, based on raw rune src.
+	// set correct string values, based on raw rune globalSrc.
 	// example: "\u0022quote\u0022"'s real form: `"quote"`,
 	// so the raw source has to be interpreted (escaped chars, unicode chars)
-	valueValidationsSettings_inTokens(errorsCollected)
+	valueValidationsSettings_inTokens()
 
-	elemRoot := objectHierarchyBuilding(errorsCollected)
+	elemRoot := objectHierarchyBuilding()
 
-	return elemRoot, errorsCollected
+	return elemRoot, globalErrorsCollected
 }
 
 func (v JSON_value) AddKeyVal_path_into_object(keysMerged string, value JSON_value) error {

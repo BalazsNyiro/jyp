@@ -114,17 +114,17 @@ func Test_speed(t *testing.T) {
 	_ = testName
 
 
-	tokensStartPositions = tokenTable_startPositionIndexed{}
+	globalTokensStartPositions = tokenTable_startPositionIndexed{}
 
 	files := []string{"large-file_03percent.json", "large-file_06percent.json", "large-file_12percent.json", "large-file_25percent.json", "large-file_50percent.json", "large-file.json"}
 
 	for _, file := range files {
 		srcStr := file_read_for_tests(file)
-		src := []rune(srcStr)
-		errorsCollected := []error{}
+		globalSrc = []rune(srcStr)
+		globalErrorsCollected = []error{}
 
 		start1 := time.Now()
-		jsonDetect_strings______(src, errorsCollected)
+		jsonDetect_strings()
 		time_str := time.Since(start1)
 		fmt.Println("time_str", time_str, file)
 
@@ -140,31 +140,31 @@ func Test_speed(t *testing.T) {
 
 	src := []rune(srcStr)
 	tokens := tokenTable_startPositionIndexed{}
-	errorsCollected := []error{}
+	globalErrorsCollected := []error{}
 
 	start1 := time.Now()
-	jsonDetect_strings______(src, tokens, errorsCollected)
+	jsonDetect_strings(src, tokens, globalErrorsCollected)
 	time_str := time.Since(start1)
 	fmt.Println("time_str", time_str)
 
 	startSep := time.Now()
-	jsonDetect_separators___(src, tokens, errorsCollected)
+	jsonDetect_separators(src, tokens, globalErrorsCollected)
 	time_separators := time.Since(startSep)
 
 	startBool := time.Now()
-	jsonDetect_trueFalseNull(src, tokens, errorsCollected)
+	jsonDetect_trueFalseNull(src, tokens, globalErrorsCollected)
 	time_bool := time.Since(startBool)
 
 	startNum := time.Now()
-	jsonDetect_numbers______(src, tokens, errorsCollected)
+	jsonDetect_numbers(src, tokens, globalErrorsCollected)
 	time_num := time.Since(startNum)
 
 	startValid := time.Now()
-	valueValidationsSettings_inTokens(tokens, errorsCollected)
+	valueValidationsSettings_inTokens(tokens, globalErrorsCollected)
 	time_valid := time.Since(startValid)
 
 	startHierarchy := time.Now()
-	elemRoot := objectHierarchyBuilding(tokens, errorsCollected)
+	elemRoot := objectHierarchyBuilding(tokens, globalErrorsCollected)
 	time_hierarchy := time.Since(startHierarchy)
 
 
@@ -206,7 +206,7 @@ func Test_object_hierarchy_building(t *testing.T) {
 	funName := "Test_object_hierarchy_building"
 	testName := funName + "_basic"
 
-	tokensStartPositions = tokenTable_startPositionIndexed{}
+	globalTokensStartPositions = tokenTable_startPositionIndexed{}
  	src := `{"embedded":{"level2": [3,4.5,"stringAtEnd"]}}`
 
 	elemRoot, errorsCollected := JsonParse(src)
@@ -236,26 +236,26 @@ func Test_object_hierarchy_building(t *testing.T) {
 func Test_parse_number_integer(t *testing.T) {
 	funName := "Test_parse_number_integer"
 	testName := funName + "_basic"
-	tokensStartPositions = tokenTable_startPositionIndexed{}
+	globalTokensStartPositions = tokenTable_startPositionIndexed{}
 
 	srcStr := `{"int":123, "float": 456.78, "intNegative": -9, "floatNegative": -0.12}`
-	src := []rune(srcStr)
-	errorsCollected := []error{}
+	globalSrc= []rune(srcStr)
+	globalErrorsCollected = []error{}
 
-	jsonDetect_strings______(src, errorsCollected)
-	jsonDetect_separators___(src, errorsCollected)
-	jsonDetect_trueFalseNull(src, errorsCollected)
-	jsonDetect_numbers______(src, errorsCollected)
+	jsonDetect_strings()
+	jsonDetect_separators()
+	jsonDetect_trueFalseNull()
+	jsonDetect_numbers()
 
-	valueValidationsSettings_inTokens(errorsCollected)
-	TokensDisplay_startingCoords(tokensStartPositions)
+	valueValidationsSettings_inTokens()
+	TokensDisplay_startingCoords(globalTokensStartPositions)
 
-	compare_int_int(testName, 17,     len(tokensStartPositions),               t)
-	compare_str_str(testName, "int",   tokensStartPositions[ 1].valString,      t)
-	compare_int_int(testName, 123,    tokensStartPositions[ 7].valNumberInt,   t)
-	compare_flt_flt(testName, 456.78, tokensStartPositions[21].valNumberFloat, t)
-	compare_int_int(testName, -9,     tokensStartPositions[44].valNumberInt,   t)
-	compare_flt_flt(testName, -0.12,  tokensStartPositions[65].valNumberFloat, t)
+	compare_int_int(testName, 17,     len(globalTokensStartPositions),               t)
+	compare_str_str(testName, "int",   globalTokensStartPositions[ 1].valString,      t)
+	compare_int_int(testName, 123,    globalTokensStartPositions[ 7].valNumberInt,   t)
+	compare_flt_flt(testName, 456.78, globalTokensStartPositions[21].valNumberFloat, t)
+	compare_int_int(testName, -9,     globalTokensStartPositions[44].valNumberInt,   t)
+	compare_flt_flt(testName, -0.12,  globalTokensStartPositions[65].valNumberFloat, t)
 }
 
 //  go test -v -run   Test_token_validate_and_value_set_for_strings
@@ -263,25 +263,25 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 	funName := "Test_token_validate_and_value_set_for_strings"
 
 	testName := funName + "_escaped__quotes__reverseSolidus"
-	tokensStartPositions = tokenTable_startPositionIndexed{}
+	globalTokensStartPositions = tokenTable_startPositionIndexed{}
 
 	srcStr := `{"quote":"\"Assume a virtue, if you have it not.\"\nShakespeare", "source": "http:\/\/www.quotationspage.com\/quotes\/William_Shakespeare\/"}`
-	src := []rune(srcStr)
-	errorsCollected := []error{}
+	globalSrc = []rune(srcStr)
+	globalErrorsCollected = []error{}
 
-	jsonDetect_strings______(src, errorsCollected)
-	jsonDetect_separators___(src, errorsCollected)
-	jsonDetect_trueFalseNull(src, errorsCollected)
-	jsonDetect_numbers______(src, errorsCollected)
+	jsonDetect_strings()
+	jsonDetect_separators()
+	jsonDetect_trueFalseNull()
+	jsonDetect_numbers()
 
-	valueValidationsSettings_inTokens(errorsCollected)
+	valueValidationsSettings_inTokens()
 	// at this point, string tokens' real value is parsed - but there are no embedded structures yet
 	// TokensDisplay_startingCoords(tokens)
 
-	compare_int_int(testName, 9, len(tokensStartPositions), t)
-	compare_str_str(testName, "quote",  tokensStartPositions[1].valString, t)
-	compare_str_str(testName, `"Assume a virtue, if you have it not."`+"\nShakespeare",    tokensStartPositions[9].valString,  t)
-	compare_str_str(testName, "http://www.quotationspage.com/quotes/William_Shakespeare/", tokensStartPositions[76].valString, t)
+	compare_int_int(testName, 9, len(globalTokensStartPositions), t)
+	compare_str_str(testName, "quote",  globalTokensStartPositions[1].valString, t)
+	compare_str_str(testName, `"Assume a virtue, if you have it not."`+"\nShakespeare",    globalTokensStartPositions[9].valString,  t)
+	compare_str_str(testName, "http://www.quotationspage.com/quotes/William_Shakespeare/", globalTokensStartPositions[76].valString, t)
 
 
 
@@ -299,28 +299,28 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 			"unicodeChar2":   "\u00e4"
 }`
 
-	src = []rune(src2)
-	tokensStartPositions = tokenTable_startPositionIndexed{}
-	errorsCollected = []error{}
+	globalSrc = []rune(src2)
+	globalTokensStartPositions = tokenTable_startPositionIndexed{}
+	globalErrorsCollected = []error{}
 
-	jsonDetect_strings______(src, errorsCollected)
-	jsonDetect_separators___(src, errorsCollected)
-	jsonDetect_trueFalseNull(src, errorsCollected)
-	jsonDetect_numbers______(src, errorsCollected)
+	jsonDetect_strings()
+	jsonDetect_separators()
+	jsonDetect_trueFalseNull()
+	jsonDetect_numbers()
 
-	valueValidationsSettings_inTokens(errorsCollected)
+	valueValidationsSettings_inTokens()
 	// TokensDisplay_startingCoords(tokens)
-	compare_str_str(testName, `" text"`,            tokensStartPositions[ 19].valString,  t)
-	compare_str_str(testName, "\\ reverseSolidus",  tokensStartPositions[ 63].valString,  t)
-	compare_str_str(testName, "/ solidus",          tokensStartPositions[115].valString, t)
-	compare_str_str(testName, "\b backspace",       tokensStartPositions[160].valString, t)
-	compare_str_str(testName, "\f formFeed",        tokensStartPositions[207].valString, t)
-	compare_str_str(testName, "\n lineFeed",        tokensStartPositions[253].valString, t)
+	compare_str_str(testName, `" text"`,            globalTokensStartPositions[ 19].valString,  t)
+	compare_str_str(testName, "\\ reverseSolidus",  globalTokensStartPositions[ 63].valString,  t)
+	compare_str_str(testName, "/ solidus",          globalTokensStartPositions[115].valString, t)
+	compare_str_str(testName, "\b backspace",       globalTokensStartPositions[160].valString, t)
+	compare_str_str(testName, "\f formFeed",        globalTokensStartPositions[207].valString, t)
+	compare_str_str(testName, "\n lineFeed",        globalTokensStartPositions[253].valString, t)
 
-	compare_str_str(testName, "\r carriageReturn",  tokensStartPositions[299].valString, t)
-	compare_str_str(testName, "\t horizontalTab",   tokensStartPositions[351].valString, t)
-	compare_str_str(testName, "\"",                 tokensStartPositions[392].valString, t)
-	compare_str_str(testName, "ä",                  tokensStartPositions[422].valString, t)
+	compare_str_str(testName, "\r carriageReturn",  globalTokensStartPositions[299].valString, t)
+	compare_str_str(testName, "\t horizontalTab",   globalTokensStartPositions[351].valString, t)
+	compare_str_str(testName, "\"",                 globalTokensStartPositions[392].valString, t)
+	compare_str_str(testName, "ä",                  globalTokensStartPositions[422].valString, t)
 }
 
 
@@ -334,25 +334,25 @@ func Test_token_validate_and_value_set_for_strings(t *testing.T) {
 func Test_detect_numbers(t *testing.T) {
 	funName := "Test_detect_numbers"
 	testName := funName + "_basic"
-	tokensStartPositions = tokenTable_startPositionIndexed{}
+	globalTokensStartPositions = tokenTable_startPositionIndexed{}
 
 
 	srcStr := `{"age":123, "balance": -456.78, "problems": 0, "loan": -1.2E+3, "otherNum": 0.1e-4}`
-	src := []rune(srcStr)
-	errorsCollected := []error{}
+	globalSrc = []rune(srcStr)
+	globalErrorsCollected = []error{}
 
-	jsonDetect_strings______(src, errorsCollected)
-	jsonDetect_separators___(src, errorsCollected)
-	jsonDetect_trueFalseNull(src, errorsCollected)
-	jsonDetect_numbers______(src, errorsCollected)
+	jsonDetect_strings()
+	jsonDetect_separators()
+	jsonDetect_trueFalseNull()
+	jsonDetect_numbers()
 	// TokensDisplay_startingCoords(tokens)
-	compare_int_int(testName, 21, len(tokensStartPositions), t)
+	compare_int_int(testName, 21, len(globalTokensStartPositions), t)
 
-	compare_str_str(testName, "123",     string(tokensStartPositions[7].runesInSrc), t)
-	compare_str_str(testName, "-456.78", string(tokensStartPositions[23].runesInSrc), t)
-	compare_str_str(testName, "0",       string(tokensStartPositions[44].runesInSrc), t)
-	compare_str_str(testName, "-1.2E+3", string(tokensStartPositions[55].runesInSrc), t)
-	compare_str_str(testName, "0.1e-4",  string(tokensStartPositions[76].runesInSrc), t)
+	compare_str_str(testName, "123",     string(globalTokensStartPositions[7].runesInSrc), t)
+	compare_str_str(testName, "-456.78", string(globalTokensStartPositions[23].runesInSrc), t)
+	compare_str_str(testName, "0",       string(globalTokensStartPositions[44].runesInSrc), t)
+	compare_str_str(testName, "-1.2E+3", string(globalTokensStartPositions[55].runesInSrc), t)
+	compare_str_str(testName, "0.1e-4",  string(globalTokensStartPositions[76].runesInSrc), t)
 }
 
 
@@ -365,20 +365,20 @@ func Test_true_false_null(t *testing.T) {
 	testName := funName + "_basic"
 
 	srcStr := `{"name":"Bob","money":123,"boy":true,"girl":false,"age":null}`
-	src := []rune(srcStr)
-	srcLenOrig := len(src)
+	globalSrc = []rune(srcStr)
+	srcLenOrig := len(globalSrc)
 
-	errorsCollected := []error{}
-	tokensStartPositions = tokenTable_startPositionIndexed{}
+	globalErrorsCollected = []error{}
+	globalTokensStartPositions = tokenTable_startPositionIndexed{}
 
-	jsonDetect_strings______(src, errorsCollected)
-	jsonDetect_separators___(src, errorsCollected)
-	jsonDetect_trueFalseNull(src, errorsCollected)
+	jsonDetect_strings()
+	jsonDetect_separators()
+	jsonDetect_trueFalseNull()
 
 	// the orig src len has to be equal with the cleaned/received one's length:
-	compare_int_int(testName, srcLenOrig, len(src), t)
+	compare_int_int(testName, srcLenOrig, len(globalSrc), t)
 	// TokensDisplay_startingCoords(tokens)
-	compare_runes_runes(testName, []rune(`                      123                                    `), src, t)
+	compare_runes_runes(testName, []rune(`                      123                                    `), globalSrc, t)
 	// compare_int_int(testName, 20 , len(tokens), t)
 }
 
@@ -386,21 +386,21 @@ func Test_separators_detect(t *testing.T) {
 	funName := "Test_separators_detect"
 
 	testName := funName + "_basic"
-	tokensStartPositions = tokenTable_startPositionIndexed{}
+	globalTokensStartPositions = tokenTable_startPositionIndexed{}
 
 	srcStr := `{"students":[{"name":"Bob", "age":12}{"name": "Eve", "age":34.56}]}`
-	src := []rune(srcStr)
-	errorsCollected := []error{}
+	globalSrc = []rune(srcStr)
+	globalErrorsCollected = []error{}
 
-	jsonDetect_separators___(src, errorsCollected)
+	jsonDetect_separators()
 	//                              `{"students":[{"name":"Bob", "age":12}{"name": "Eve", "age":34.56}]}`
-	compare_runes_runes(testName, []rune(` "students"   "name" "Bob"  "age" 12  "name"  "Eve"  "age" 34.56   `), src, t)
-	compare_int_int(testName, 15, len(tokensStartPositions), t)
+	compare_runes_runes(testName, []rune(` "students"   "name" "Bob"  "age" 12  "name"  "Eve"  "age" 34.56   `), globalSrc, t)
+	compare_int_int(testName, 15, len(globalTokensStartPositions), t)
 
 	/* because the separators are one char long elems, the start position and end position
 	   are ALWAYS same, and the length of Runes are 1, too. */
 	testOneElem := func (srcWanted string, positionInSrc int) {
-		tokenNow := tokensStartPositions[positionInSrc]
+		tokenNow := globalTokensStartPositions[positionInSrc]
 		compare_int_int(    testName, positionInSrc,         tokenNow.charPositionFirstInSourceCode,  t)
 		compare_int_int(    testName, positionInSrc,         tokenNow.charPositionLastInSourceCode,   t)
 		compare_int_int(    testName, 1,      len(tokenNow.runesInSrc), t)
@@ -423,7 +423,7 @@ func Test_separators_detect(t *testing.T) {
 	testOneElem("]", 65 )
 	testOneElem("}", 66 )
 
-	compare_int_int(testName, len(errorsCollected), 0, t)
+	compare_int_int(testName, len(globalErrorsCollected), 0, t)
 }
 
 func Test_detect_strings(t *testing.T) {
@@ -433,71 +433,71 @@ func Test_detect_strings(t *testing.T) {
 	////////////////////////////////////////////////////////////////////////////////////////////
 	testName := funName + "_emptyString"
 	srcStr := `{"empty":""}`
-	src := []rune(srcStr)
-	srcLenOrig := len(src)
+	globalSrc= []rune(srcStr)
+	srcLenOrig := len(globalSrc)
 
-	tokensStartPositions = tokenTable_startPositionIndexed{}
-	errorsCollected := []error{}
+	globalTokensStartPositions = tokenTable_startPositionIndexed{}
+	globalErrorsCollected = []error{}
 
 
-	jsonDetect_strings______(src, errorsCollected)
+	jsonDetect_strings()
 	// after token detection, the parsed section is removed;
 	//                                       `{"empty":""}`, t)
-	compare_runes_runes(testName, []rune(`{       :  }`), src, t)
-	compare_int_int(testName, srcLenOrig, len(src), t)
+	compare_runes_runes(testName, []rune(`{       :  }`), globalSrc, t)
+	compare_int_int(testName, srcLenOrig, len(globalSrc), t)
 
-	compare_int_int(testName, len(tokensStartPositions), 2, t) // 3 strings were detected
-	compare_int_int(testName, 1, tokensStartPositions[1].charPositionFirstInSourceCode,  t)
-	compare_int_int(testName, 7, tokensStartPositions[1].charPositionLastInSourceCode,  t)
-	compare_runes_runes(testName, []rune(`"empty"`), tokensStartPositions[1].runesInSrc, t)
-	compare_runes_runes(testName, []rune(`""`), tokensStartPositions[9].runesInSrc, t)
+	compare_int_int(testName, len(globalTokensStartPositions), 2, t) // 3 strings were detected
+	compare_int_int(testName, 1, globalTokensStartPositions[1].charPositionFirstInSourceCode,  t)
+	compare_int_int(testName, 7, globalTokensStartPositions[1].charPositionLastInSourceCode,  t)
+	compare_runes_runes(testName, []rune(`"empty"`), globalTokensStartPositions[1].runesInSrc, t)
+	compare_runes_runes(testName, []rune(`""`), globalTokensStartPositions[9].runesInSrc, t)
 
-	compare_int_int(testName, len(errorsCollected), 0, t)
+	compare_int_int(testName, len(globalErrorsCollected), 0, t)
 
 
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	testName = funName + "_simpleStringDetect"
-	tokensStartPositions = tokenTable_startPositionIndexed{}
+	globalTokensStartPositions = tokenTable_startPositionIndexed{}
 
 	srcStr = `{"name":"Bob", "age": 42}`
-	src = []rune(srcStr)
-	srcLenOrig = len(src)
-	tokensStartPositions = tokenTable_startPositionIndexed{}
-	errorsCollected = []error{}
+	globalSrc = []rune(srcStr)
+	srcLenOrig = len(globalSrc)
+	globalTokensStartPositions = tokenTable_startPositionIndexed{}
+	globalErrorsCollected = []error{}
 
 	// tokens are indexed by the first char where they were detected
-	jsonDetect_strings______(src, errorsCollected)
+	jsonDetect_strings()
 	//                              `{"name":"Bob", "age": 42}`
 	// after token detection, the parsed section is removed;
-	compare_runes_runes(testName, []rune(`{      :     ,      : 42}`), src, t)
-	compare_int_int(testName, srcLenOrig, len(src), t)
+	compare_runes_runes(testName, []rune(`{      :     ,      : 42}`), globalSrc, t)
+	compare_int_int(testName, srcLenOrig, len(globalSrc), t)
 
-	compare_int_int(testName, 3, len(tokensStartPositions), t) // 3 strings were detected
-	compare_int_int(testName, 1, tokensStartPositions[1].charPositionFirstInSourceCode,  t)
-	compare_int_int(testName, 6, tokensStartPositions[1].charPositionLastInSourceCode, t)
-	compare_runes_runes(testName, []rune(`"name"`), tokensStartPositions[1].runesInSrc, t)
-	compare_int_int(testName, len(errorsCollected), 0, t)
+	compare_int_int(testName, 3, len(globalTokensStartPositions), t) // 3 strings were detected
+	compare_int_int(testName, 1, globalTokensStartPositions[1].charPositionFirstInSourceCode,  t)
+	compare_int_int(testName, 6, globalTokensStartPositions[1].charPositionLastInSourceCode, t)
+	compare_runes_runes(testName, []rune(`"name"`), globalTokensStartPositions[1].runesInSrc, t)
+	compare_int_int(testName, len(globalErrorsCollected), 0, t)
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	testName = funName + "_escape"
-	tokensStartPositions = tokenTable_startPositionIndexed{}
+	globalTokensStartPositions = tokenTable_startPositionIndexed{}
 
 	srcEscStr := `{"name \"of\" the \t\\\"rose\n\"":"red"}`
-	srcEsc := []rune(srcEscStr)
-	srcLenOrig = len(srcEsc)
-	errorsCollected = []error{}
+	globalSrc = []rune(srcEscStr)
+	srcLenOrig = len(globalSrc)
+	globalErrorsCollected = []error{}
 
 	// tokens are indexed by the first char where they were detected
-	jsonDetect_strings______(srcEsc, errorsCollected)
+	jsonDetect_strings()
 
 	//                              `{"name \"of\" the \t\\\"rose\n\"":"red"}`
-	compare_runes_runes(testName, []rune(`{                                :     }`), srcEsc, t)
-	compare_int_int(testName, srcLenOrig, len(srcEsc), t)
-	compare_int_int(testName, 1, tokensStartPositions[1].charPositionFirstInSourceCode, t)
-	compare_int_int(testName, 32, tokensStartPositions[1].charPositionLastInSourceCode, t)
+	compare_runes_runes(testName, []rune(`{                                :     }`), globalSrc, t)
+	compare_int_int(testName, srcLenOrig, len(globalSrc), t)
+	compare_int_int(testName, 1, globalTokensStartPositions[1].charPositionFirstInSourceCode, t)
+	compare_int_int(testName, 32, globalTokensStartPositions[1].charPositionLastInSourceCode, t)
 }
 
 
