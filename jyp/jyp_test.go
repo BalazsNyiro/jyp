@@ -113,6 +113,23 @@ func Test_speed(t *testing.T) {
 	testName := funName + "_basic"
 	_ = testName
 
+
+
+	files := []string{"large-file_03percent.json", "large-file_06percent.json", "large-file_12percent.json", "large-file_25percent.json", "large-file_50percent.json", "large-file.json"}
+
+	for _, file := range files {
+		srcStr := file_read_for_tests(file)
+		src := []rune(srcStr)
+		tokens := tokenTable_startPositionIndexed{}
+		errorsCollected := []error{}
+
+		start1 := time.Now()
+		jsonDetect_strings______(src, tokens, errorsCollected)
+		time_str := time.Since(start1)
+		fmt.Println("time_str", time_str, file)
+
+	}
+/*
 	// 	srcStr := strings.Repeat(srcEverything, 100)
 	// https://raw.githubusercontent.com/json-iterator/test-data/master/large-file.json
 	srcStr := file_read_for_tests("large-file.json")
@@ -128,6 +145,7 @@ func Test_speed(t *testing.T) {
 	start1 := time.Now()
 	jsonDetect_strings______(src, tokens, errorsCollected)
 	time_str := time.Since(start1)
+	fmt.Println("time_str", time_str)
 
 	startSep := time.Now()
 	jsonDetect_separators___(src, tokens, errorsCollected)
@@ -150,12 +168,13 @@ func Test_speed(t *testing.T) {
 	time_hierarchy := time.Since(startHierarchy)
 
 
-	fmt.Println("time_str", time_str)
+
 	fmt.Println("time_sep", time_separators)
 	fmt.Println("time_bol", time_bool)
 	fmt.Println("time_num", time_num)
 	fmt.Println("time_val", time_valid)
 	fmt.Println("time_hie", time_hierarchy)
+*/
 
 	/* basic big result:
 	time_str 185.342µs
@@ -175,7 +194,7 @@ func Test_speed(t *testing.T) {
 
 	*/
 
-	_ = elemRoot
+	// _ = elemRoot
 }
 
 
