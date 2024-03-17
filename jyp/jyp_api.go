@@ -24,7 +24,7 @@ import (
 func JsonParse(srcStr string) (JSON_value, []error) {
 
 	var errorsCollected []error
-	tokens := tokenTable_startPositionIndexed{}
+	tokens := tokenTable_startPositionIndexed_containerId{}
 	src := []rune(srcStr)
 	srcOrig := []rune(srcStr)
 
@@ -71,7 +71,7 @@ func (v JSON_value) AddKeyVal_path_into_object(keysMerged string, value JSON_val
 		}
 
 		if len(keys) > 1 {
-			object := v.ValObject[keys[0]]
+			object := global_valObjects[v.Id][keys[0]]
 
 			separator := string(keysMerged[0])
 			pathAfterFirstKey := separator+strings.Join(keys[1:], separator)
@@ -79,7 +79,7 @@ func (v JSON_value) AddKeyVal_path_into_object(keysMerged string, value JSON_val
 			if err2 != nil {
 				return err2
 			}
-			v.ValObject[keys[0]] = object
+			global_valObjects[v.Id][keys[0]] = object
 		}
 
 		v.local_tool__updateLevelForChildren()
@@ -91,10 +91,7 @@ func (v JSON_value) AddKeyVal_path_into_object(keysMerged string, value JSON_val
 
 func (v JSON_value) AddKeyVal_into_object(key string, value JSON_value) error {
 	if v.ValType == typeObject {
-		objects := v.ValObject
-		objects[key] = value
-		v.ValObject = objects
-
+		global_valObjects[v.Id][key] = value
 		v.local_tool__updateLevelForChildren()
 		return nil
 	}
@@ -104,10 +101,7 @@ func (v JSON_value) AddKeyVal_into_object(key string, value JSON_value) error {
 // add value into an ARRAY
 func (v JSON_value) AddVal_into_array(value JSON_value) error {
 	if v.ValType == typeArray {
-		elems := v.ValArray
-		elems = append(elems, value)
-		v.ValArray = elems
-
+		global_valArrays[v.Id] = append(global_valArrays[v.Id], value)
 		v.local_tool__updateLevelForChildren()
 		return nil
 	}
@@ -119,8 +113,6 @@ func NewString_JSON_value(str string) JSON_value {
 	return JSON_value{ValType: typeString,
 		CharPositionFirstInSourceCode: -1,
 		CharPositionLastInSourceCode:  -1,
-		AddedInGoCode:                 true,                 // because in the Json source code the container is "..."
-		ValString: str,
 	}
 }
 
@@ -174,7 +166,7 @@ func (v JSON_value) ObjPathKeys(keysEmbedded []string) (JSON_value, error) {
 	}
 
 	// minimum 1 key is received
-	valueCollected, keyFirstIsKnownInObject := v.ValObject[keysEmbedded[0]]
+	valueCollected, keyFirstIsKnownInObject := global_valObjects[v.Id][keysEmbedded[0]]
 	if ! keyFirstIsKnownInObject {
 		return valueEmpty, errors.New(errorPrefix + "unknown object key (key:"+keysEmbedded[0]+")")
 	}
@@ -194,14 +186,12 @@ func (v JSON_value) ObjPathKeys(keysEmbedded []string) (JSON_value, error) {
 
 func (v JSON_value) Arr(index int) (JSON_value, error) {
 	// ask ONE indexed elem from an array
-
 	var valueEmpty JSON_value
-	indexMax := len(v.ValArray) - 1
+	indexMax := len(global_valArrays[v.Id]) - 1
 	if index > indexMax {
 		return valueEmpty, errors.New(errorPrefix + "index ("+strconv.Itoa(index)+") is not in array")
 	}
-
-	valueCollected := v.ValArray[index]
+	valueCollected := global_valArrays[v.Id][index]
 	return valueCollected, nil
 }
 
@@ -241,43 +231,43 @@ func (v JSON_value) repr(indentationByUser ...int) string {
 
 			counter := 0
 			for _, childKey := range v.ValObject_keys_sorted() {
-				childVal := v.ValObject[childKey]
-				comma := base__separator_set_if_no_last_elem(counter, len(v.ValObject), ",")
+				childVal := global_valObjects[v.Id][childKey]
+				comma := base__separator_set_if_no_last_elem(counter, len(global_valObjects[v.Id]), ",")
 				reprValue += prefixChildOfObj + "\"" + childKey + "\"" + objectKeyValSeparator + childVal.repr(indentation) + comma + lineEnd
 				counter ++
 			}
 		} else {
 			charOpen = "["
 			charClose = "]"
-			for counter, childVal := range v.ValArray {
-				comma := base__separator_set_if_no_last_elem(counter, len(v.ValArray), ",")
+			for counter, childVal := range global_valArrays[v.Id] {
+				comma := base__separator_set_if_no_last_elem(counter, len(global_valArrays[v.Id]), ",")
 				reprValue += prefixChildOfObj + childVal.repr(indentation) + comma + lineEnd
 			}
 		}
 
 		extraNewlineAfterRootElemPrint := ""
-		if v.idSelf == 0 {
+		if v.Id == 0 {
 			extraNewlineAfterRootElemPrint = "\n"
 		}
 		return prefix + charOpen + lineEnd + reprValue + prefix + charClose + extraNewlineAfterRootElemPrint
 
 	} else {
 		// simple value, not a container
-		if v.ValType == typeString { return "\"" + v.ValString + "\"" }
+		if v.ValType == typeString { return "\"" + global_valStrings[v.Id] + "\"" }
 		if v.ValType == typeNull { return "null" }
 		if v.ValType == typeBool {
-			if v.ValBool { return "true"}
+			if global_valBools[v.Id] { return "true"}
 			return "false"
 		}
-		if v.ValType == typeNumberInt{ return strconv.Itoa(v.ValNumberInt) }
-		if v.ValType == typeNumberFloat64{ return strconv.FormatFloat(v.ValNumberFloat, 'f', 0, 64) }
+		if v.ValType == typeNumberInt{ return strconv.Itoa(global_valNumInts[v.Id]) }
+		if v.ValType == typeNumberFloat64{ return strconv.FormatFloat(global_valNumFloats[v.Id], 'f', 0, 64) }
 	}
 	return "?"
 }
 
 func (v JSON_value) ValObject_keys_sorted() []string{
-	keys := make([]string, 0, len(v.ValObject))
-	for k, _ := range v.ValObject {
+	keys := make([]string, 0, len(global_valObjects[v.Id]))
+	for k, _ := range global_valObjects[v.Id] {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)

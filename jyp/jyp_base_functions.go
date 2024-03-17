@@ -268,11 +268,12 @@ func base__runeInRunes(runeWanted rune, runesToValidate []rune) bool {
 }
 
 // test/Debug Helper - display Tokens table
-func TokensDisplay_startingCoords(srcOrig []rune, tokens tokenTable_startPositionIndexed) {
-	keys := local_tool__tokenTable_position_keys_sorted(tokens)
+func TokensDisplay_startingCoords(srcOrig []rune, tokens tokenTable_startPositionIndexed_containerId) {
+	charPositions := local_tool__tokenTable_position_keys_sorted(tokens)
 
 	fmt.Println("== Tokens Table display ==")
-	for _, key := range keys{
-		fmt.Println(string(srcOrig[tokens[key].CharPositionFirstInSourceCode:tokens[key].CharPositionLastInSourceCode+1]), key, tokens[key])
+	for _, charPos := range charPositions {
+		charPosLastPlus1 := global_JSON_ELEM_CONTAINER[tokens[charPos]].CharPositionLastInSourceCode+1
+		fmt.Println(string(srcOrig[charPos:charPosLastPlus1]), charPos, tokens[charPos])
 	}
 }

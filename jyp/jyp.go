@@ -82,36 +82,54 @@ const typeNumber_exactTypeIsNotSet = "typeNumber_exactTypeIsNotSet"
 
  */
 
+type JSON_oneObject map[string]JSON_value
+type JSON_oneArray []JSON_value
+
+// JSON value id -> Value pairs.
+var global_valObjects =  map[int]JSON_oneObject{}
+var global_valArrays = map[int]JSON_oneArray{}
+var global_valBools = map[int] bool{}
+var global_valStrings = map[int] string{}
+var global_valNumInts = map[int] int{}
+var global_valNumFloats = map[int] float64{}
+
+// json elem: an elem, based on json.org definition
+var global_JSON_ELEM_CONTAINER =  map[int]JSON_value{}
+
 type JSON_value struct {
+	Id     int   // unique id of the value
 	ValType byte
-
-	// ...............................................................................................
-	// ...... these values represent a Json elem's value - and one of them is filled only.. ..........
-	ValObject map[string]JSON_value
-	ValArray  []JSON_value
-
-	ValBool bool // true, false
-
-	ValString      string  // a string JSON value is stored here (filled ONLY if ValType is string)
-	ValNumberInt   int     // an integer JSON value is stored here
-	ValNumberFloat float64 // a float JSON value is saved here
-	// ...............................................................................................
-
-	//////// PARSING SECTION: detection from the JSON source code /////
 	CharPositionFirstInSourceCode int // 0: the first char in source code, 1: 2nd...
 	CharPositionLastInSourceCode  int // 0: the first char in source code, 1: 2nd...
-	AddedInGoCode                 bool
 
 	/////// CONNECTIONS ///
-	idParent int // the id of the parent elem - internal attrib to build structures
-	idSelf   int // the id of this actual elem
+	IdParent int // the id of the parent elem - internal attrib to build structures
 
 	LevelInObjectStructure int // later it helps to print the Json Value :-)
 }
+func (v JSON_value) ValString() string {
+	return global_valStrings[v.Id]
+}
 
-type tokenTable_startPositionIndexed map[int]JSON_value
+func (v JSON_value) ValNumberInt() int {
+	return global_valNumInts[v.Id]
+}
 
-func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsCollected []error) JSON_value {
+func (v JSON_value) ValNumberFloat() float64{
+	return global_valNumFloats[v.Id]
+}
+
+func (v JSON_value) ValArray() JSON_oneArray {
+	return global_valArrays[v.Id]
+}
+
+func (v JSON_value) ValObject() JSON_oneObject {
+	return global_valObjects[v.Id]
+}
+
+type tokenTable_startPositionIndexed_containerId map[int]int
+
+func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed_containerId, errorsCollected []error) JSON_value {
 	var elemRoot JSON_value
 
 	positionKeys_of_tokens := local_tool__tokenTable_position_keys_sorted(tokens)
@@ -122,33 +140,32 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 	}
 
 	keyFirst := positionKeys_of_tokens[0]
-	if tokens[keyFirst].ValType != typeObjectOpen {
+	if global_JSON_ELEM_CONTAINER[tokens[keyFirst]].ValType != typeObjectOpen {
 		errorsCollected = append(errorsCollected, errors.New("the first token has to be 'objectOpen' in JSON source code"))
 		return elemRoot
 	}
 	///////////////////////////////////////////////////////////////
 
 	idParent := -1 // id can be 0 or bigger, so -1 is a non-existing parent id (root elem doesn't have parent
-	containers := map[int]JSON_value{}
 	keyStrings_of_collectors__filledIfObjectKey_emptyIfParentIsArray := map[int]string{} // if the parent is an object, elems can be inserted with keys.
 	lastDetectedStringKey__inObject := ""
 
 	// tokenKeys are charPosition based numbers, they are not continuous.
 	for _, tokenPositionKey := range positionKeys_of_tokens {
 		fmt.Println("token position key:", tokenPositionKey)
-		tokenActual := tokens[tokenPositionKey]
+		tokenActualId := tokens[tokenPositionKey]
 
-		if tokenActual.ValType == typeComma { continue } // placeholders
-		if tokenActual.ValType == typeColon { continue }
+		if global_JSON_ELEM_CONTAINER[tokenActualId].ValType == typeComma { continue } // placeholders
+		if global_JSON_ELEM_CONTAINER[tokenActualId].ValType == typeColon { continue }
 
 		///////////////// SIMPLE JSON VALUES ARE SAVED DIRECTLY INTO THEIR PARENT /////////////////////////
 		// in json objects, the first string is always the key. then the next elem is the value
 		// detect this situation: string key in an object:
-		if idParent >= 0 { // the first root elem doesn't have parents, so idParent == -1
+		if idParent >= 0 { // the first root elem doesn't have parents, so IdParent == -1
 			if lastDetectedStringKey__inObject == "" {
-				if containers[idParent].ValType == typeObject {
-					if tokenActual.ValType == typeString {
-						lastDetectedStringKey__inObject = tokenActual.ValString
+				if global_JSON_ELEM_CONTAINER[idParent].ValType == typeObject {
+					if global_JSON_ELEM_CONTAINER[tokenActualId].ValType == typeString {
+						lastDetectedStringKey__inObject = global_valStrings[tokenActualId]
 						continue
 					} // == string
 				} // == object
@@ -156,34 +173,32 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 		} // >= 0
 
 		//////////////////////////////////////////////////////////////////////
-		if tokenActual.ValType == typeObjectOpen || tokenActual.ValType == typeArrayOpen {
+		if global_JSON_ELEM_CONTAINER[tokenActualId].ValType == typeObjectOpen || global_JSON_ELEM_CONTAINER[tokenActualId].ValType == typeArrayOpen {
 			// the id is important ONLY for the children - when they are inserted
 			// into the parent containers. So when the container elem is parsed,
 			// the id can be re-used later.
-			id := len(containers) // get the next free id in the database
+			id := len(global_JSON_ELEM_CONTAINER) // get the next free id in the database
 			// container: array|object,
 			levelInObjectStructure := 0
 			if idParent >= 0 {
-				levelInObjectStructure = containers[idParent].LevelInObjectStructure + 1
+				levelInObjectStructure = global_JSON_ELEM_CONTAINER[idParent].LevelInObjectStructure + 1
 			}
 
 			containerNew := JSON_value{
-				idParent:                      idParent,
-				idSelf:                        id,
-				CharPositionFirstInSourceCode: tokenActual.CharPositionFirstInSourceCode,
+				IdParent:                      idParent,
+				Id:                            id,
+				CharPositionFirstInSourceCode: global_JSON_ELEM_CONTAINER[tokenActualId].CharPositionFirstInSourceCode,
 				LevelInObjectStructure:        levelInObjectStructure,
 			}
-			if tokenActual.ValType == typeObjectOpen {
+			if global_JSON_ELEM_CONTAINER[tokenActualId].ValType == typeObjectOpen {
 				containerNew.ValType = typeObject
-				containerNew.ValObject = map[string]JSON_value{}
 			} else { // arrayOpen
 				containerNew.ValType = typeArray
-				containerNew.ValArray = []JSON_value{}
 			}
 
 			// the container has to be saved, because every new elem will be inserted
 			// later, and at the close point, the whole container is handled as one
-			containers[id] = containerNew // single value.
+			global_JSON_ELEM_CONTAINER[id] = containerNew // single value.
 
 			/* 	at this point, key has to be saved, because when the container is CLOSED,
 			   	at that moment the key will be used, to insert the obj into te parent.
@@ -199,87 +214,61 @@ func objectHierarchyBuilding(tokens tokenTable_startPositionIndexed, errorsColle
 		/////////////////// SIMPLE VALUES or container-closers ////////////////////////////////////////
 		// 	"bool", "null", "string", "number_integer", "number_float64", "objectClose", "arrayClose"
 
-		isCloserToken := tokenActual.ValType == typeObjectClose || tokenActual.ValType == typeArrayClose
+		isCloserToken := global_JSON_ELEM_CONTAINER[tokenActualId].ValType == typeObjectClose || global_JSON_ELEM_CONTAINER[tokenActualId].ValType == typeArrayClose
 
 		var value JSON_value
 
 		if isCloserToken {
 			if idParent == 0 { // closerToken IN root elem, which id==0
-				elemRoot = containers[0] //  read elem 0
+				elemRoot = global_JSON_ELEM_CONTAINER[0] //  read elem 0
 				break                    // the exit point of the processing
 			}
 			// handle the container as a single value - and restore it's keyString.
-			value = containers[idParent] // the actual parent is closed, handle it as ONE value
-			delete(containers, idParent) // and remove the actual elemContainer from containers
+			value = global_JSON_ELEM_CONTAINER[idParent] // the actual parent is closed, handle it as ONE value
+			delete(global_JSON_ELEM_CONTAINER, idParent) // and remove the actual elemContainer from containers
 
-			idParent = value.idParent // the new parent after the obj close is the UPPER level parent
-			lastDetectedStringKey__inObject = keyStrings_of_collectors__filledIfObjectKey_emptyIfParentIsArray[value.idSelf]
-			delete(keyStrings_of_collectors__filledIfObjectKey_emptyIfParentIsArray, value.idSelf)
+			idParent = value.IdParent // the new parent after the obj close is the UPPER level parent
+			lastDetectedStringKey__inObject = keyStrings_of_collectors__filledIfObjectKey_emptyIfParentIsArray[value.Id]
+			delete(keyStrings_of_collectors__filledIfObjectKey_emptyIfParentIsArray, value.Id)
 		} else {
-			value = JSON_value{ValType: tokenActual.ValType,
-				CharPositionFirstInSourceCode: tokenActual.CharPositionFirstInSourceCode,
-				CharPositionLastInSourceCode:  tokenActual.CharPositionLastInSourceCode,
-				idParent:                      idParent,
-				LevelInObjectStructure:        containers[idParent].LevelInObjectStructure + 1,
-				// idSelf is not filled, the whole id conception is used ONLY to find parents
-				// during parsing.
-			}
-
-			//if tokenActual.valType == typeNull {
-			//	_ = "null type has no value, don't store it"
-			// }
-
-			if tokenActual.ValType == typeBool {
-				value.ValBool = tokenActual.ValBool
-			} else
-			if tokenActual.ValType == typeString {
-				value.ValString = tokenActual.ValString
-			} else
-			if tokenActual.ValType == typeNumberInt {
-				value.ValNumberInt = tokenActual.ValNumberInt
-			} else
-			if tokenActual.ValType == typeNumberFloat64 {
-				value.ValNumberFloat = tokenActual.ValNumberFloat
-			}
-
+			value = global_JSON_ELEM_CONTAINER[tokenActualId]
+			value.IdParent = idParent
+			value.LevelInObjectStructure = global_JSON_ELEM_CONTAINER[idParent].LevelInObjectStructure + 1
 		} // notCloser
 
 		///////////////// update the parent container with the new elem ////////////////////////////
-		parent := containers[idParent]
+		parent := global_JSON_ELEM_CONTAINER[idParent]
 		parent.CharPositionLastInSourceCode = value.CharPositionLastInSourceCode
 		// ^^^ the tokenCloser's last position is saved with this!
 		if parent.ValType == typeObject { // objects are the typical containers, so this is the first in the checklist
-			parent_valObjects := parent.ValObject
-			// here the string conversation is necessary, because string keys are stored in the Objects
-			parent_valObjects[string(lastDetectedStringKey__inObject)] = value
+			global_valObjects[parent.IdParent][lastDetectedStringKey__inObject] = value
 			lastDetectedStringKey__inObject = "" // clear the keyName, we used that for the current object
-			parent.ValObject = parent_valObjects
 		} else
 		if parent.ValType == typeArray {
-			elems := parent.ValArray
-			elems = append(elems, value)
-			parent.ValArray = elems
+			global_valArrays[parent.IdParent] = append(global_valArrays[parent.IdParent], value)
 		}
-		containers[idParent] = parent // save back the updated parent
+		global_JSON_ELEM_CONTAINER[idParent] = parent // save back the updated parent
 
 	} // for, tokenNum, tokenPositionKey
 	return elemRoot
 }
 
 // //////////////////// VALUE setter FUNCTIONS ///////////////////////////////////////////////
-func valueValidationsSettings_inTokens(srcOrig []rune, tokens tokenTable_startPositionIndexed, errorsCollected []error) []error {
+func valueValidationsSettings_inTokens(srcOrig []rune, tokens tokenTable_startPositionIndexed_containerId, errorsCollected []error) []error {
 	// tokens is a MAP, and the keys are the token positions in src.
 	// so there are gaps between keys!
-	for tokenStartPosInSrc, tokenOrig := range tokens {
+	for _, tokenId := range tokens {
 
-		if tokenOrig.ValType == typeString {
-			tokenUpdated := valueValidateAndSetElemString(srcOrig, tokenOrig, errorsCollected)
-			tokens[tokenStartPosInSrc] = tokenUpdated
+		if global_JSON_ELEM_CONTAINER[tokenId].ValType == typeString {
+			valueValidateAndSetElemString(srcOrig, tokenId, errorsCollected)
 		}
+		/*
 		if tokenOrig.ValType == typeNumber_exactTypeIsNotSet {
 			tokenUpdated := valueValidateAndSetElemNumber(srcOrig, tokenOrig, errorsCollected)
 			tokens[tokenStartPosInSrc] = tokenUpdated
 		}
+
+		 */
 		// TODO: elem true|false|null value set?
 
 	}
@@ -287,10 +276,10 @@ func valueValidationsSettings_inTokens(srcOrig []rune, tokens tokenTable_startPo
 }
 
 // set the string value from raw strings
-func valueValidateAndSetElemString(srcOrig []rune, tokenNow JSON_value, errorsCollected []error) JSON_value{ // TESTED
+func valueValidateAndSetElemString(srcOrig []rune, tokenId int, errorsCollected []error) { // TESTED
 
-	if tokenNow.ValType != typeString {
-		return tokenNow
+	if global_JSON_ELEM_CONTAINER[tokenId].ValType != typeString {
+		return
 	} // don't modify non-string tokens
 
 	/* Tasks:
@@ -308,7 +297,7 @@ func valueValidateAndSetElemString(srcOrig []rune, tokenNow JSON_value, errorsCo
 
 	// pos start + 1: strings has initial " in runes
 	// post end -1  closing " after string content
-	for pos := tokenNow.CharPositionFirstInSourceCode+1; pos <= tokenNow.CharPositionLastInSourceCode-1; pos++ {
+	for pos := global_JSON_ELEM_CONTAINER[tokenId].CharPositionFirstInSourceCode+1; pos <= global_JSON_ELEM_CONTAINER[tokenId].CharPositionLastInSourceCode-1; pos++ {
 
 		runeActual := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(srcOrig, pos)
 		//fmt.Println("rune actual (string value set):", pos, string(runeActual), runeActual)
@@ -399,10 +388,7 @@ func valueValidateAndSetElemString(srcOrig []rune, tokenNow JSON_value, errorsCo
 	} // for
 
 	// fmt.Println("value from raw src parsing:", string(valueFromRawSrcParsing))
-
-	tokenNow.ValString = string(valueFromRawSrcParsing) // first I tried to remove this string conversion
-	// and use runes only, but it didn't help to get higher speed.
-	return tokenNow
+	global_valStrings[tokenId] = string(valueFromRawSrcParsing)
 }
 
 func valueValidateAndSetElemNumber(srcOrig []rune, tokenNow JSON_value, errorsCollected []error) JSON_value{
@@ -526,7 +512,7 @@ func valueValidateAndSetElemNumber(srcOrig []rune, tokenNow JSON_value, errorsCo
 				if isNegative {
 					numBase10 = -numBase10
 				}
-				tokenNow.ValNumberInt = numBase10
+				global_valNumInts[tokenNow.Id] = numBase10
 				tokenNow.ValType = typeNumberInt
 			}
 		}
@@ -540,7 +526,7 @@ func valueValidateAndSetElemNumber(srcOrig []rune, tokenNow JSON_value, errorsCo
 				if isNegative {
 					numBase10 = -numBase10
 				}
-				tokenNow.ValNumberFloat = numBase10
+				global_valNumFloats[tokenNow.Id] = numBase10
 				tokenNow.ValType = typeNumberFloat64
 			}
 		}
@@ -596,7 +582,7 @@ func valueValidateAndSetElemNumber(srcOrig []rune, tokenNow JSON_value, errorsCo
 
 // ////////////////////  DETECTIONS  ///////////////////////////////////////////////
 // Documented in program plan
-func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) { // TESTED
+func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startPositionIndexed_containerId, errorsCollected []error) { // TESTED
 
 	// to find escaped \" \\\" sections in strings
 	isEscaped := false
@@ -609,8 +595,11 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 			if !inStringDetection { // if at " char handling, we are NOT in string
 					inStringDetection = true
 
-					tokenNow = JSON_value{ValType: typeString}
-					tokenNow.CharPositionFirstInSourceCode = posInSrc
+					tokenNow = JSON_value{
+						ValType: typeString,
+						CharPositionFirstInSourceCode: posInSrc,
+						CharPositionLastInSourceCode: posInSrc,
+					}
 					src[posInSrc] = ' '
 					continue
 
@@ -618,8 +607,11 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 				if !isEscaped { // a non-escaped " char in a string detection
 					inStringDetection = false          // is the end of the string
 
+					tokenNow.Id = len(global_JSON_ELEM_CONTAINER)
 					tokenNow.CharPositionLastInSourceCode = posInSrc
-					tokensStartPositions[tokenNow.CharPositionFirstInSourceCode] = tokenNow // save token
+					global_JSON_ELEM_CONTAINER[tokenNow.Id] = tokenNow
+					tokensStartPositions[tokenNow.CharPositionFirstInSourceCode] = tokenNow.Id // save token
+					global_valStrings[tokenNow.Id] = string(src[tokenNow.CharPositionFirstInSourceCode:tokenNow.CharPositionLastInSourceCode+1])
 					src[posInSrc] = ' '
 					continue
 				}
@@ -645,7 +637,7 @@ func jsonDetect_strings______(src []rune, tokensStartPositions tokenTable_startP
 	}
 } // detect strings
 
-func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) { // TESTED
+func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startPositionIndexed_containerId, errorsCollected []error) { // TESTED
 	var tokenNow JSON_value
 
 	detectedType := typeIsUnknown
@@ -676,11 +668,12 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 		if detectedType == typeIsUnknown {
 			// keep the original rune, if it was not a detected char
 		} else { // save token, if something important is detected
-			tokenNow = JSON_value{ValType: detectedType}
+			tokenNow = JSON_value{Id: len(global_JSON_ELEM_CONTAINER), ValType: detectedType}
 			tokenNow.CharPositionFirstInSourceCode = posInSrc
 			tokenNow.CharPositionLastInSourceCode = posInSrc
 			src[posInSrc] = ' '
-			tokensStartPositions[tokenNow.CharPositionFirstInSourceCode] = tokenNow
+			tokensStartPositions[tokenNow.CharPositionFirstInSourceCode] = tokenNow.Id
+			global_JSON_ELEM_CONTAINER[tokenNow.Id] = tokenNow
 
 			detectedType = typeIsUnknown
 			// set back the type to unknown, if token is handled
@@ -696,7 +689,7 @@ func jsonDetect_separators___(src []rune, tokensStartPositions tokenTable_startP
 		because the strings/separators are removed and replaced with space in the src, as placeholders,
 	    the true/false/null words are surrounded with spaces, as separators.
 */
-func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) { // TESTED
+func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startPositionIndexed_containerId, errorsCollected []error) { // TESTED
 
 	// copy the original structure, not use the same variable
 	// the detected word runesInSrc will be deleted from here.
@@ -719,9 +712,9 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 		}
 
 		if detectedType != typeIsUnknown {
-			tokenNow := JSON_value{ValType: detectedType}
+			tokenNow := JSON_value{Id: len(global_JSON_ELEM_CONTAINER), ValType: detectedType}
 			if detectedType == typeBool {
-				tokenNow.ValBool = base__compare_runes_are_equal(wordOne.wordChars, charsTrue)
+				global_valBools[tokenNow.Id] = base__compare_runes_are_equal(wordOne.wordChars, charsTrue)
 			}
 			tokenNow.CharPositionFirstInSourceCode = wordOne.posFirst
 			tokenNow.CharPositionLastInSourceCode = wordOne.posLast
@@ -730,9 +723,9 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 				// clear detected positions from the src:
 				src[posDetected] = ' '
 				// only detected word runesInSrc are removed from the storage, where ALL original src is inserted in the first step
-
 			}
-			tokensStartPositions[tokenNow.CharPositionFirstInSourceCode] = tokenNow
+			tokensStartPositions[tokenNow.CharPositionFirstInSourceCode] = tokenNow.Id
+			global_JSON_ELEM_CONTAINER[tokenNow.Id] = tokenNow
 
 			detectedType = typeIsUnknown // set the default value again ONLY if it was not unknown, in this case
 		}
@@ -741,21 +734,22 @@ func jsonDetect_trueFalseNull(src []rune, tokensStartPositions tokenTable_startP
 }
 
 // words are detected here, and I can hope only that they are numbers - later they will be validated
-func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startPositionIndexed, errorsCollected []error) { // TESTED
+func jsonDetect_numbers______(src []rune, tokensStartPositions tokenTable_startPositionIndexed_containerId, errorsCollected []error) { // TESTED
 
 	for _, wordOne := range base__src_get_whitespace_separated_words_posFirst_posLast(src) {
 
-		tokenNow := JSON_value{ValType: typeNumber_exactTypeIsNotSet} // only numbers can be in the src now.
+		tokenNow := JSON_value{Id: len(global_JSON_ELEM_CONTAINER), ValType: typeNumber_exactTypeIsNotSet} // only numbers can be in the src now.
 		tokenNow.CharPositionFirstInSourceCode = wordOne.posFirst
 		tokenNow.CharPositionLastInSourceCode = wordOne.posLast
-		tokensStartPositions[tokenNow.CharPositionFirstInSourceCode] = tokenNow
+		tokensStartPositions[tokenNow.CharPositionFirstInSourceCode] = tokenNow.Id
+		global_JSON_ELEM_CONTAINER[tokenNow.Id] = tokenNow
 	}
 }
 
 /////////////////////////// local tools: supporter funcs, not for main logic /////////////////////////////
 
 // tokenTable keys are character positions in JSON source code (positive integers)
-func local_tool__tokenTable_position_keys_sorted(tokens tokenTable_startPositionIndexed) []int {
+func local_tool__tokenTable_position_keys_sorted(tokens tokenTable_startPositionIndexed_containerId) []int {
 	keys := make([]int, 0, len(tokens))
 	for k := range tokens {
 		keys = append(keys, k)
@@ -770,20 +764,20 @@ func (v JSON_value) local_tool__updateLevelForChildren() {
 
 	if v.ValType == typeArray {
 		arrayUpdated := []JSON_value{}
-		for _, elem := range v.ValArray {
+		for _, elem := range global_valArrays[v.Id] {
 			elem.LevelInObjectStructure = v.LevelInObjectStructure + 1
 			arrayUpdated = append(arrayUpdated, elem)
 		}
-		v.ValArray = arrayUpdated
+		global_valArrays[v.Id] = arrayUpdated
 	}
 	if v.ValType == typeObject {
 		objectsUpdated := map[string]JSON_value{}
 
-		for key, elem := range v.ValObject {
+		for key, elem := range global_valObjects[v.Id] {
 			elem.LevelInObjectStructure = v.LevelInObjectStructure + 1
 			objectsUpdated[key] = elem
 		}
-		v.ValObject = objectsUpdated
+		global_valObjects[v.Id] = objectsUpdated
 	}
 
 }
