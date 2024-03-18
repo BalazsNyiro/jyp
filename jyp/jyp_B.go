@@ -37,32 +37,33 @@ type tokenElem_B struct {
 type tokenElems []tokenElem_B
 
 func tokensTableDetect_versionB(srcStr string) tokenElems{
-	isEscaped := false
 	tokenTable := tokenElems{}
-
-	posStringStart := -1
 	posUnknownBlockStart := -1 // used only if the token is longer than 1 char. numbers, false/true for example
-
-	tokenAddedInThisCycle := ""
+	
+	//////////// TOKEN ADD func ///////////////////////
+	tokenAddedInForLoop := ""
 	tokenAdd := func (typeOfToken rune, posFirst, posLast int) {
-		tokenAddedInThisCycle = ""
-		if posUnknownBlockStart != -1 {
+		tokenAddedInForLoop = ""         // the unknown blocks can be added IF a know block follows them.
+		if posUnknownBlockStart != -1 {  // JSON has to be in containers {...} or [...] so it is closed with a known elem
 			tokenTable = append(tokenTable, tokenElem_B{tokenType: '?', posInSrcFirst: posUnknownBlockStart, posInSrcLast: posFirst-1}  )
 			posUnknownBlockStart = -1
-			tokenAddedInThisCycle += "?"
+			tokenAddedInForLoop += "?"
 		}
 		tokenTable = append(tokenTable, tokenElem_B{tokenType: typeOfToken, posInSrcFirst: posFirst, posInSrcLast: posLast}  )
-		tokenAddedInThisCycle += string(typeOfToken)
-	} // func, tokenAdd
+		tokenAddedInForLoop += string(typeOfToken)
+	} // func, tokenAdd //////////////////////////////
+	
+	
+	posStringStart := -1  //////////////////////////////////////////
+	inString := func () bool { // if string start position detected,
+		return posStringStart != -1    // we are in String detection
+	} //////////////////////////////////////////////////////////////
 
-	inString := func () bool { // if string start position detected, we are in String detection
-		return posStringStart != -1
-	}
-
+	isEscaped := false
 
 	for pos, runeNow := range srcStr {
 
-		tokenAddedInThisCycle = "---" // updated from tokenAdd
+		tokenAddedInForLoop = "---" // updated from tokenAdd
 
 
 		stringCloseAtEnd := false
@@ -112,7 +113,7 @@ func tokensTableDetect_versionB(srcStr string) tokenElems{
 		inStringInfo := " " // administration
 		if inString() {
 			inStringInfo = "S"
-			tokenAddedInThisCycle = "\""  // this will be added in a stringCloseAtEnd
+			tokenAddedInForLoop = "\"" // this will be added in a stringCloseAtEnd
 		}
 
 		if stringCloseAtEnd {
@@ -120,7 +121,7 @@ func tokensTableDetect_versionB(srcStr string) tokenElems{
 			posStringStart = -1
 		}
 
-		fmt.Println(fmt.Sprintf("pos: %2d", pos), string(runeNow), inStringInfo, " token:", tokenAddedInThisCycle)
+		fmt.Println(fmt.Sprintf("pos: %2d", pos), string(runeNow), inStringInfo, " token:", tokenAddedInForLoop)
 	}
 	return tokenTable
 }
