@@ -13,7 +13,6 @@ package jyp
 import (
 	"errors"
 	"fmt"
-	"unicode"
 )
 
 // runesSections were checked against illegal chars, so here digitRune is in 0123456789
@@ -79,21 +78,6 @@ func base__hexaRune_to_intVal(hexaChar rune) (int, error) { // TESTED
 }
 
 // the rune is a whitespace char
-func base__is_whitespace_rune(oneRune rune) bool { // TESTED
-	/*
-		https://stackoverflow.com/questions/29038314/determining-whitespace-in-go
-		func IsSpace
-
-		func IsSpace(r rune) bool
-
-		IsSpace reports whether the rune is a space character as defined by Unicode's White Space property; in the Latin-1 space this is
-
-		'\t', '\n', '\v', '\f', '\r', ' ', U+0085 (NEL), U+00A0 (NBSP).
-
-		Other definitions of spacing characters are set by category Z and property Pattern_White_Space.
-	*/
-	return unicode.IsSpace(oneRune)
-}
 
 // the string has whitespace chars only
 func base__is_whitespace_string(src string) bool { // TESTED

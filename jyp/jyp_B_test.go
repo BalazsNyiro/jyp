@@ -18,7 +18,7 @@ func Test_tokensTableDetect_versionB(t *testing.T) {
 	funName := "Test_tokensTableDetect_versionB"
 	testName := funName + "_basic"
 
-	src := `{"text":{"level2": [3,4.5,"string\"Escaped"]}}`
+	src := `{"text":{"level2":[321,4.5,"string\"Escaped",true,false,null]}}`
 
 	tokensTableB := tokensTableDetect_versionB(src)
 	_ = tokensTableB
