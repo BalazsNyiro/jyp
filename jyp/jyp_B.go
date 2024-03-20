@@ -232,8 +232,7 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 				elem.ValObject[objKey] = nextValueElem
 				pos = posLastUsed
 
-				// look forward:
-				if pos+1 < len(tokensTableB) {
+				if pos+1 < len(tokensTableB) { // look forward:
 					if tokensTableB[pos+1].tokenType == '}' {
 						break
 					}
@@ -241,11 +240,29 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 				pos, _ = build__find_next_token_pos(true, []rune{','}, pos+1, tokensTableB)
 			} // for pos, internal children loop
 
+		} else if tokenNow.tokenType == '?' {
+			elem = NewString_JSON_value_B("unknown_elem, maybe number or bool")
+			break
 		} else if tokenNow.tokenType == '"' {
 			elem = NewString_JSON_value_B(getTextFromSrc(src, tokensTableB[pos]))
 			break
+		} else if tokenNow.tokenType == '[' {
+			elem = NewArr_JSON_value_B()
+			for ; pos < len(tokensTableB); pos++ { // detect children
+				// find the next ANY token, the new VALUE, and not placeholders
+				nextValueElem, _, posLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1)
+				elem.ValArray = append(elem.ValArray, nextValueElem)
+				pos = posLastUsed
+
+				if pos+1 < len(tokensTableB) { // look forward:
+					if tokensTableB[pos+1].tokenType == ']' {
+						break
+					}
+				}
+				pos, _ = build__find_next_token_pos(true, []rune{','}, pos+1, tokensTableB)
+			} // for pos, internal children loop
 		}
-		if tokenNow.tokenType == '?' { continue}
+
 		if tokenNow.tokenType == '}' { break } // elem prepared, exit
 		if tokenNow.tokenType == ']' { break } // elem prepared, exit
 	} // for BIG loop
@@ -253,7 +270,7 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 	return elem, problems, pos // ret with last used position
 }
 
-// TODO: newArray, newObject, newInt, newFloat, newBool....
+// TODO: newObject, newInt, newFloat, newBool....
 func NewString_JSON_value_B(text string) JSON_value_B {
 	return JSON_value_B{
 		ValType: '"',
@@ -268,6 +285,14 @@ func NewObj_JSON_value_B() JSON_value_B {
 		ValObject: map[string]JSON_value_B{},
 	}
 }
+
+func NewArr_JSON_value_B() JSON_value_B {
+	return JSON_value_B{
+		ValType: '[',
+		ValArray: []JSON_value_B{},
+	}
+}
+
 
 type JSON_value_B struct {
 	ValType rune
@@ -313,6 +338,15 @@ func (v JSON_value_B) repr(indent string, level int) string {
 			out += prefix + prefix + childKey + ":" + " " + childVal.repr(indent, level+1)
 		}
 		out += prefix + "}" + newLine
+		return out
+	}
+
+	if v.ValType == '[' {
+		out := prefix + "[" + newLine
+		for _, child := range v.ValArray {
+			out += prefix + prefix + child.repr(indent, level+1)
+		}
+		out += prefix + "]" + newLine
 		return out
 	}
 	return ""
