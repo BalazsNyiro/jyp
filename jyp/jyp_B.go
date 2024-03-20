@@ -193,26 +193,19 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 
 			// find the next ANY token, the new VALUE
 			pos, _ = build__find_next_token_pos([]rune{'{', '"'}, pos, tokensTableB)
-			tokenNext := tokensTableB[pos]
-
-
-			////////////// VALUE HANDLING ////////////
-			if tokenNext.tokenType == '{' {
-				fmt.Println("recursive call")
-				objEmbedded, errorsEmbedded, posEmbeddedLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1)
-				// todo error handling
-				_ = errorsEmbedded
-				elem.ValObject[objKey] = objEmbedded
-				pos = posEmbeddedLastUsed
-			}
-
-			if tokenNext.tokenType == '"' {
-				elem.ValObject[objKey] = NewString_JSON_value_B(
-					getTextFromSrc(src, tokensTableB[pos]))
-			}
-
 			if tokensTableB[pos].tokenType == '}' { break }
+
+			// todo: error handling
+			nextValueElem, _, posNext := JSON_B_structure_building(src, tokensTableB, pos)
+			elem.ValObject[objKey] = nextValueElem
+			pos = posNext
+
 		} // handle objects
+
+		if tokenNow.tokenType == '"' {
+			elem = NewString_JSON_value_B(getTextFromSrc(src, tokensTableB[pos]))
+		}
+
 
 	} // for BIG loop
 
