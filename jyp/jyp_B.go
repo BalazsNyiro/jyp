@@ -79,7 +79,9 @@ func tokensTableDetect_versionB(srcStr string) tokenElems_B {
 
 		// detect tokens:
 		if ! inString() { // json structural chars:
-			if runeNow == '{' || runeNow == '}' || runeNow == '[' || runeNow == ']' || runeNow == ',' || runeNow == ':' {
+			if base__is_whitespace_rune(runeNow) {
+				// skip the whitespaces from tokens, don't do anything
+			} else if runeNow == '{' || runeNow == '}' || runeNow == '[' || runeNow == ']' || runeNow == ',' || runeNow == ':' {
 				tokenAdd(runeNow, pos, pos)
 			} else {
 				// not in string, and not json structural char
@@ -157,64 +159,109 @@ func print_tokenB(prefix string, t tokenElem_B) {
 // find the next from allowed types
 func build__find_next_token_pos(wantedThem bool, types []rune, posActual int, tokensTable tokenElems_B) (int, error) {
 	var pos int
-	for pos = posActual+1; pos<len(tokensTable); pos++ {
-		for _, oneType := range types {
-			if wantedThem {
-				if tokensTable[pos].tokenType == oneType {
-					return pos, nil
-				}
-			} else {
-				if tokensTable[pos].tokenType != oneType {
+	if pos >= len(tokensTable) {
+		return pos, errors.New("token position is bigger than last elem index")
+	}
+	if wantedThem { // want one from types:
+		for pos = posActual; pos<len(tokensTable); pos++ {
+			for _, wanted := range types {
+				if tokensTable[pos].tokenType == wanted {
+					// print_tokenB("wanted1:", tokensTable[pos])
 					return pos, nil
 				}
 			}
 		}
+		return pos, errors.New("wanted token is not detected in table")
+
+	} else { // want something that is NOT in typeList
+		for pos = posActual; pos<len(tokensTable); pos++ {
+			actualTypeIsNonWanted := false
+			for _, nonWantedType := range types {
+				if tokensTable[pos].tokenType == nonWantedType {
+					actualTypeIsNonWanted = true// all nonWanted has to be checked
+					break
+				}
+			}
+			if ! actualTypeIsNonWanted {
+				// print_tokenB("wanted2:", tokensTable[pos])
+				return pos, nil
+			}
+		}
+		return pos, errors.New("wanted token is not detected in table")
 	}
-	return pos, errors.New("wanted token is not detected in table")
 }
 
-func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosStart int) (JSON_value_B, []error, int) {
-	errors := JSON_B_validation(tokensTableB)
-	if len(errors) > 0 {
-		return JSON_value_B{}, errors, 0
+
+func prefixGen(char string, repeatNum int) string {
+	out := ""
+	for i:=0; i<repeatNum; i++ {
+		out += char
+	}
+	return out
+}
+
+func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosStart int, structureLevel int) (JSON_value_B, []error, int) {
+	problems := JSON_B_validation(tokensTableB)
+	if tokenPosStart >= len(tokensTableB) {
+		problems = append(problems, errors.New("wanted position index is higher than tokensTableB"))
+	}
+	if len(problems) > 0 {
+		return JSON_value_B{}, problems, 0
 	}
 	elem := JSON_value_B{}
 	var pos int
+
+	prefix := func () string {return prefixGen(" ", structureLevel)}
+
 	for pos = tokenPosStart; pos<len(tokensTableB); pos++ {
 		tokenNow := tokensTableB[pos]
-		print_tokenB("tokenNow", tokenNow)
+		print_tokenB(prefix()+"tokenNow", tokenNow)
 
 		if tokenNow.tokenType == '{' {
 			elem = NewObj_JSON_value_B()
+			structureLevel++
 
-			// todo: error handling
-			// find the next string, the new key
-			pos, _ = build__find_next_token_pos(true, []rune{'"'}, pos+1, tokensTableB)
-			objKey := getTextFromSrc(src, tokensTableB[pos])
+			// loop over children
+			for ; pos <len(tokensTableB); pos++ {
 
-			// find the next : but don't do anything with that
-			pos, _ = build__find_next_token_pos(true, []rune{':'}, pos+1, tokensTableB)
+				// todo: error handling
+				// find the next string, the new key
+				pos, _ = build__find_next_token_pos(true, []rune{'"'}, pos, tokensTableB)
+				objKey := getTextFromSrc(src, tokensTableB[pos])
+				print_tokenB(prefix()+"tokenKey search:" + objKey + "=>", tokensTableB[pos])
 
-			// find the next ANY token, the new VALUE, and not placeholders
-			pos, _ = build__find_next_token_pos(false, []rune{'?', ':', ','}, pos+1, tokensTableB)
+				// find the next : but don't do anything with that
+				pos, _ = build__find_next_token_pos(true, []rune{':'}, pos+1, tokensTableB)
+				print_tokenB(prefix()+"Colon   ", tokensTableB[pos])
 
-			// todo: error handling
-			nextValueElem, _, posLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1)
-			elem.ValObject[objKey] = nextValueElem
-			pos = posLastUsed
+				// find the next ANY token, the new VALUE, and not placeholders
+				nextValueElem, _, posLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1, structureLevel)
+				elem.ValObject[objKey] = nextValueElem
+				pos = posLastUsed
 
-		} // handle objects
+				print(prefix()+"nextValueElem:", nextValueElem.repr("", 0))
 
+				// look forward:
+				if pos+1 < len(tokensTableB) {
+					if tokensTableB[pos+1].tokenType == '}' {
+						structureLevel--
+						break
+					}
+				}
+			} // for pos, internal children loop
 
-		if tokenNow.tokenType == '"' {
+		} else if tokenNow.tokenType == '"' {
+			print_tokenB(prefix()+"simple string detected:", tokensTableB[pos] )
 			elem = NewString_JSON_value_B(getTextFromSrc(src, tokensTableB[pos]))
+			break
 		}
-		if tokenNow.tokenType == '}' { break }
+		if tokenNow.tokenType == ':' { continue}
 		if tokenNow.tokenType == ',' { continue}
 		if tokenNow.tokenType == '?' { continue}
+		if tokenNow.tokenType == '}' { break } // elem prepared, exit
 	} // for BIG loop
 
-	return elem, errors, pos
+	return elem, problems, pos // ret with last used position
 }
 
 // TODO: newArray, newObject, newInt, newFloat, newBool....
@@ -245,4 +292,29 @@ type JSON_value_B struct {
 	ValString      string  // a string JSON value is stored here (filled ONLY if ValType is string)
 	ValNumberInt   int     // an integer JSON value is stored here
 	ValNumberFloat float64 // a float JSON value is saved here
+}
+func (v JSON_value_B) repr(indent string, level int) string {
+	prefix := "" // indentOneLevelPrefix
+	newLine := ""
+	if len(indent) > 0 {
+		prefix = indent
+		for i:=0; i<level; i++{
+			prefix += indent
+		}
+		newLine = "\n"
+	}
+
+	if v.ValType == '"' {
+		return "'"+v.ValString + "'"
+	}
+
+	if v.ValType == '{' {
+		out := prefix + "{" + newLine
+		for key, val := range v.ValObject {
+			out += prefix + prefix + key + ":" + " " + val.repr(indent, level+1)
+		}
+		out += prefix + "}" + newLine
+		return out
+	}
+	return ""
 }

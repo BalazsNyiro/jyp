@@ -26,14 +26,18 @@ func Test_tokensTableDetect_versionB(t *testing.T) {
 	src := file_read_to_string("large-file.json")
 
 	timeStart := time.Now()
-	src = `{"a": "b"}`
-	src = `{"a": "b", "embedded": {"d":"e"}}`
+	// src = `{"a": "b"}`
+	src = `{"a": "A", "B": {"c":"C"}, "d":"D"}`
 	tokensTableB := tokensTableDetect_versionB(src)
 	fmt.Println("token table creation time:", time.Since(timeStart))
-	fmt.Println("tokensTableB", tokensTableB)
-	root, _, _ := JSON_B_structure_building(src, tokensTableB, 0)
-	fmt.Println(root)
+	fmt.Println("tokensTableB")
+	for _, tokenb := range tokensTableB {
+		print_tokenB("tokenTable:", tokenb)
+	}
+	root, _, _ := JSON_B_structure_building(src, tokensTableB, 0, 0)
+	fmt.Println(root.repr("  ", 0))
 
+	_ = root
 	_ = tokensTableB
 	_ = testName
 
