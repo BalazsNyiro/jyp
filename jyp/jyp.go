@@ -101,6 +101,7 @@ type token struct {
 }
 
 type JSON_value struct {
+	ValTypeB rune
 	ValType byte
 
 	// ...............................................................................................
