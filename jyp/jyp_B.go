@@ -154,11 +154,14 @@ func print_tokenB(prefix string, t tokenElem_B) {
 
 
 // return with pos only to avoid elem copy with reading/passing
-func build__find_next_token_pos(typeWanted rune, posActual int, tokensTable tokenElems_B) (int, error) {
+// find the next from allowed types
+func build__find_next_token_pos(typesWanted []rune, posActual int, tokensTable tokenElems_B) (int, error) {
 	var pos int
 	for pos = posActual+1; pos<len(tokensTable); pos++ {
-		if tokensTable[pos].tokenType == typeWanted {
-			return pos, nil
+		for _, wanted := range typesWanted {
+			if tokensTable[pos].tokenType == wanted{
+				return pos, nil
+			}
 		}
 	}
 	return pos, errors.New("wanted token is not detected in table")
@@ -180,68 +183,37 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 			var objKey string
 			var posInObj int
 
-			// find the next string
-			/*
-			for posInObj = pos+1; posInObj<len(tokensTableB); posInObj++ {
-				if tokensTableB[posInObj].tokenType == '"' {
-					objKey = getTextFromSrc(src, tokensTableB[posInObj])
-					fmt.Println("find first key:", objKey)
-					break // read the next string, that will be the key
-			}} // for, posInObj
-
-			 */
 			// todo: error handling
-			posInObj, _ = build__find_next_token_pos('"', pos, tokensTableB)
+			// find the next string, the new key
+			pos, _ = build__find_next_token_pos([]rune{'"'}, pos, tokensTableB)
 			objKey = getTextFromSrc(src, tokensTableB[posInObj])
 
-			fmt.Println("find first key:", objKey)
+			// find the next : but don't do anything with that
+			pos, _ = build__find_next_token_pos([]rune{':'}, pos, tokensTableB)
 
-			// find the next :
-			posInObj, _ = build__find_next_token_pos(':', pos, tokensTableB)
-			print_tokenB("detected COLON:", tokensTableB[posInObj])
-			/*
-			for posInObj = posInObj+1; posInObj<len(tokensTableB); posInObj++ {
-				if tokensTableB[posInObj].tokenType == ':' {
-					fmt.Println(": detected")
-					break
-				}
-			}
+			// find the next ANY token, the new VALUE
+			pos, _ = build__find_next_token_pos([]rune{'{', '"'}, pos, tokensTableB)
+			tokenNext := tokensTableB[pos]
 
-			 */
-
-
-			// find the next ANY token
-			for posInObj = posInObj+1; posInObj<len(tokensTableB); posInObj++ {
-				if tokensTableB[posInObj].tokenType == '"' ||
-					tokensTableB[posInObj].tokenType == '{' {
-					fmt.Println("next possible thing that we can handle, detected")
-					break
-				}
-			}
-			tokenNext := tokensTableB[posInObj]
-			print_tokenB("tokenNext", tokenNext)
 
 			////////////// VALUE HANDLING ////////////
-			// handle embedded objects
 			if tokenNext.tokenType == '{' {
-				objEmbedded, errorsEmbedded, posEmbeddedLastUsed := JSON_B_structure_building(src, tokensTableB, posInObj+1)
+				fmt.Println("recursive call")
+				objEmbedded, errorsEmbedded, posEmbeddedLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1)
 				// todo error handling
 				_ = errorsEmbedded
 				elem.ValObject[objKey] = objEmbedded
-				posInObj = posEmbeddedLastUsed
+				pos = posEmbeddedLastUsed
 			}
 
 			if tokenNext.tokenType == '"' {
 				elem.ValObject[objKey] = NewString_JSON_value_B(
-					getTextFromSrc(src, tokensTableB[posInObj]))
+					getTextFromSrc(src, tokensTableB[pos]))
 			}
 
-			pos = posInObj
-
-			if tokensTableB[posInObj].tokenType == '}' {
-				break
-			}
+			if tokensTableB[pos].tokenType == '}' { break }
 		} // handle objects
+
 	} // for BIG loop
 
 	return elem, errors, pos

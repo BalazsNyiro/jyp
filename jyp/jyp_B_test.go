@@ -27,10 +27,11 @@ func Test_tokensTableDetect_versionB(t *testing.T) {
 
 	timeStart := time.Now()
 	src = `{"a": "b"}`
+	src = `{"a": "b", "embedded": {"d":"e"}}`
 	tokensTableB := tokensTableDetect_versionB(src)
 	fmt.Println("token table creation time:", time.Since(timeStart))
 	fmt.Println("tokensTableB", tokensTableB)
-	root, _, _ := JSON_B_structure_building(`{"a": "b"}`, tokensTableB, 0)
+	root, _, _ := JSON_B_structure_building(src, tokensTableB, 0)
 	fmt.Println(root)
 
 	_ = tokensTableB
