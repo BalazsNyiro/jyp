@@ -176,37 +176,35 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 	var pos int
 	for pos = tokenPosStart; pos<len(tokensTableB); pos++ {
 		tokenNow := tokensTableB[pos]
-		print_tokenB("for head", tokenNow)
+		print_tokenB("tokenNow", tokenNow)
 
 		if tokenNow.tokenType == '{' {
 			elem = NewObj_JSON_value_B()
-			var objKey string
-			var posInObj int
 
 			// todo: error handling
 			// find the next string, the new key
-			pos, _ = build__find_next_token_pos([]rune{'"'}, pos, tokensTableB)
-			objKey = getTextFromSrc(src, tokensTableB[posInObj])
+			pos, _ = build__find_next_token_pos([]rune{'"'}, pos+1, tokensTableB)
+			objKey := getTextFromSrc(src, tokensTableB[pos])
 
 			// find the next : but don't do anything with that
-			pos, _ = build__find_next_token_pos([]rune{':'}, pos, tokensTableB)
+			pos, _ = build__find_next_token_pos([]rune{':'}, pos+1, tokensTableB)
 
 			// find the next ANY token, the new VALUE
-			pos, _ = build__find_next_token_pos([]rune{'{', '"'}, pos, tokensTableB)
-			if tokensTableB[pos].tokenType == '}' { break }
+			pos, _ = build__find_next_token_pos([]rune{'{', '"'}, pos+1, tokensTableB)
 
 			// todo: error handling
-			nextValueElem, _, posNext := JSON_B_structure_building(src, tokensTableB, pos)
+			nextValueElem, _, posLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1)
 			elem.ValObject[objKey] = nextValueElem
-			pos = posNext
+			pos = posLastUsed
 
 		} // handle objects
+
 
 		if tokenNow.tokenType == '"' {
 			elem = NewString_JSON_value_B(getTextFromSrc(src, tokensTableB[pos]))
 		}
-
-
+		if tokenNow.tokenType == '}' { break }
+		if tokenNow.tokenType == ',' { continue}
 	} // for BIG loop
 
 	return elem, errors, pos
