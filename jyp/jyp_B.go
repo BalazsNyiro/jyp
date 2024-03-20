@@ -155,12 +155,18 @@ func print_tokenB(prefix string, t tokenElem_B) {
 
 // return with pos only to avoid elem copy with reading/passing
 // find the next from allowed types
-func build__find_next_token_pos(typesWanted []rune, posActual int, tokensTable tokenElems_B) (int, error) {
+func build__find_next_token_pos(wantedThem bool, types []rune, posActual int, tokensTable tokenElems_B) (int, error) {
 	var pos int
 	for pos = posActual+1; pos<len(tokensTable); pos++ {
-		for _, wanted := range typesWanted {
-			if tokensTable[pos].tokenType == wanted{
-				return pos, nil
+		for _, oneType := range types {
+			if wantedThem {
+				if tokensTable[pos].tokenType == oneType {
+					return pos, nil
+				}
+			} else {
+				if tokensTable[pos].tokenType != oneType {
+					return pos, nil
+				}
 			}
 		}
 	}
@@ -183,14 +189,14 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 
 			// todo: error handling
 			// find the next string, the new key
-			pos, _ = build__find_next_token_pos([]rune{'"'}, pos+1, tokensTableB)
+			pos, _ = build__find_next_token_pos(true, []rune{'"'}, pos+1, tokensTableB)
 			objKey := getTextFromSrc(src, tokensTableB[pos])
 
 			// find the next : but don't do anything with that
-			pos, _ = build__find_next_token_pos([]rune{':'}, pos+1, tokensTableB)
+			pos, _ = build__find_next_token_pos(true, []rune{':'}, pos+1, tokensTableB)
 
-			// find the next ANY token, the new VALUE
-			pos, _ = build__find_next_token_pos([]rune{'{', '"'}, pos+1, tokensTableB)
+			// find the next ANY token, the new VALUE, and not placeholders
+			pos, _ = build__find_next_token_pos(false, []rune{'?', ':', ','}, pos+1, tokensTableB)
 
 			// todo: error handling
 			nextValueElem, _, posLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1)
@@ -205,6 +211,7 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 		}
 		if tokenNow.tokenType == '}' { break }
 		if tokenNow.tokenType == ',' { continue}
+		if tokenNow.tokenType == '?' { continue}
 	} // for BIG loop
 
 	return elem, errors, pos
