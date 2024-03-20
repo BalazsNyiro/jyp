@@ -13,6 +13,7 @@ package jyp
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"unicode"
 )
 
@@ -200,7 +201,7 @@ func prefixGen(char string, repeatNum int) string {
 	return out
 }
 
-func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosStart int, structureLevel int) (JSON_value_B, []error, int) {
+func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosStart int) (JSON_value_B, []error, int) {
 	problems := JSON_B_validation(tokensTableB)
 	if tokenPosStart >= len(tokensTableB) {
 		problems = append(problems, errors.New("wanted position index is higher than tokensTableB"))
@@ -211,54 +212,42 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 	elem := JSON_value_B{}
 	var pos int
 
-	prefix := func () string {return prefixGen(" ", structureLevel)}
-
 	for pos = tokenPosStart; pos<len(tokensTableB); pos++ {
 		tokenNow := tokensTableB[pos]
-		print_tokenB(prefix()+"tokenNow", tokenNow)
 
 		if tokenNow.tokenType == '{' {
 			elem = NewObj_JSON_value_B()
-			structureLevel++
 
-			// loop over children
-			for ; pos <len(tokensTableB); pos++ {
+			for ; pos <len(tokensTableB); pos++ { // detect children
 
 				// todo: error handling
-				// find the next string, the new key
 				pos, _ = build__find_next_token_pos(true, []rune{'"'}, pos, tokensTableB)
-				objKey := getTextFromSrc(src, tokensTableB[pos])
-				print_tokenB(prefix()+"tokenKey search:" + objKey + "=>", tokensTableB[pos])
+				objKey := getTextFromSrc(src, tokensTableB[pos]) // next string key
 
 				// find the next : but don't do anything with that
 				pos, _ = build__find_next_token_pos(true, []rune{':'}, pos+1, tokensTableB)
-				print_tokenB(prefix()+"Colon   ", tokensTableB[pos])
 
 				// find the next ANY token, the new VALUE, and not placeholders
-				nextValueElem, _, posLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1, structureLevel)
+				nextValueElem, _, posLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1)
 				elem.ValObject[objKey] = nextValueElem
 				pos = posLastUsed
-
-				print(prefix()+"nextValueElem:", nextValueElem.repr("", 0))
 
 				// look forward:
 				if pos+1 < len(tokensTableB) {
 					if tokensTableB[pos+1].tokenType == '}' {
-						structureLevel--
 						break
 					}
 				}
+				pos, _ = build__find_next_token_pos(true, []rune{','}, pos+1, tokensTableB)
 			} // for pos, internal children loop
 
 		} else if tokenNow.tokenType == '"' {
-			print_tokenB(prefix()+"simple string detected:", tokensTableB[pos] )
 			elem = NewString_JSON_value_B(getTextFromSrc(src, tokensTableB[pos]))
 			break
 		}
-		if tokenNow.tokenType == ':' { continue}
-		if tokenNow.tokenType == ',' { continue}
 		if tokenNow.tokenType == '?' { continue}
 		if tokenNow.tokenType == '}' { break } // elem prepared, exit
+		if tokenNow.tokenType == ']' { break } // elem prepared, exit
 	} // for BIG loop
 
 	return elem, problems, pos // ret with last used position
@@ -293,6 +282,15 @@ type JSON_value_B struct {
 	ValNumberInt   int     // an integer JSON value is stored here
 	ValNumberFloat float64 // a float JSON value is saved here
 }
+
+func (v JSON_value_B) ValObject_keys_sorted() []string{
+	keys := make([]string, 0, len(v.ValObject))
+	for k, _ := range v.ValObject {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
 func (v JSON_value_B) repr(indent string, level int) string {
 	prefix := "" // indentOneLevelPrefix
 	newLine := ""
@@ -310,8 +308,9 @@ func (v JSON_value_B) repr(indent string, level int) string {
 
 	if v.ValType == '{' {
 		out := prefix + "{" + newLine
-		for key, val := range v.ValObject {
-			out += prefix + prefix + key + ":" + " " + val.repr(indent, level+1)
+		for _, childKey := range v.ValObject_keys_sorted() {
+			childVal := v.ValObject[childKey]
+			out += prefix + prefix + childKey + ":" + " " + childVal.repr(indent, level+1)
 		}
 		out += prefix + "}" + newLine
 		return out
