@@ -27,13 +27,14 @@ func Test_tokensTableDetect_versionB(t *testing.T) {
 
 	timeStart := time.Now()
 	// src = `{"a": "b"}`
-	src = `{"a": "A", "b1": {"b2":"B2"}, "c":"C"}`
+	src = `{"a": "A", "b1": {"b2":"B2"}, "c":"C", "list":["k", "l"]}`
 	tokensTableB := tokensTableDetect_versionB(src)
 	fmt.Println("token table creation time:", time.Since(timeStart))
 	fmt.Println("tokensTableB")
 	for _, tokenb := range tokensTableB {
 		print_tokenB("tokenTable:", tokenb)
 	}
+
 	root, _, _ := JSON_B_structure_building(src, tokensTableB, 0)
 	fmt.Println(root.repr("  ", 0))
 

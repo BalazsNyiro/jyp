@@ -192,11 +192,14 @@ func build__find_next_token_pos(wantedThem bool, types []rune, posActual int, to
 	}
 }
 
-
-func prefixGen(char string, repeatNum int) string {
+// repeat the wanted unit prefix a few times
+func prefixGen(oneUnitPrefix string, repeatNum int) string {
+	if oneUnitPrefix == "" {
+		return "" // if there is nothing to repeat
+	}
 	out := ""
 	for i:=0; i<repeatNum; i++ {
-		out += char
+		out += oneUnitPrefix
 	}
 	return out
 }
@@ -219,7 +222,6 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 			elem = NewObj_JSON_value_B()
 
 			for ; pos <len(tokensTableB); pos++ { // detect children
-
 				// todo: error handling
 				pos, _ = build__find_next_token_pos(true, []rune{'"'}, pos, tokensTableB)
 				objKey := getTextFromSrc(src, tokensTableB[pos]) // next string key
@@ -227,7 +229,7 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 				// find the next : but don't do anything with that
 				pos, _ = build__find_next_token_pos(true, []rune{':'}, pos+1, tokensTableB)
 
-				// find the next ANY token, the new VALUE, and not placeholders
+				// find the next ANY token, the new VALUE
 				nextValueElem, _, posLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1)
 				elem.ValObject[objKey] = nextValueElem
 				pos = posLastUsed
@@ -243,13 +245,15 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 		} else if tokenNow.tokenType == '?' {
 			elem = NewString_JSON_value_B("unknown_elem, maybe number or bool")
 			break
+
 		} else if tokenNow.tokenType == '"' {
 			elem = NewString_JSON_value_B(getTextFromSrc(src, tokensTableB[pos]))
 			break
+
 		} else if tokenNow.tokenType == '[' {
 			elem = NewArr_JSON_value_B()
 			for ; pos < len(tokensTableB); pos++ { // detect children
-				// find the next ANY token, the new VALUE, and not placeholders
+				// find the next ANY token, the new VALUE
 				nextValueElem, _, posLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1)
 				elem.ValArray = append(elem.ValArray, nextValueElem)
 				pos = posLastUsed
@@ -261,10 +265,8 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 				}
 				pos, _ = build__find_next_token_pos(true, []rune{','}, pos+1, tokensTableB)
 			} // for pos, internal children loop
-		}
-
-		if tokenNow.tokenType == '}' { break } // elem prepared, exit
-		if tokenNow.tokenType == ']' { break } // elem prepared, exit
+		} else if tokenNow.tokenType == '}' { break
+		} else if tokenNow.tokenType == ']' { break } // elem prepared, exit
 	} // for BIG loop
 
 	return elem, problems, pos // ret with last used position
@@ -320,10 +322,7 @@ func (v JSON_value_B) repr(indent string, level int) string {
 	prefix := "" // indentOneLevelPrefix
 	newLine := ""
 	if len(indent) > 0 {
-		prefix = indent
-		for i:=0; i<level; i++{
-			prefix += indent
-		}
+		prefix = prefixGen(indent, level)
 		newLine = "\n"
 	}
 
@@ -344,7 +343,7 @@ func (v JSON_value_B) repr(indent string, level int) string {
 	if v.ValType == '[' {
 		out := prefix + "[" + newLine
 		for _, child := range v.ValArray {
-			out += prefix + prefix + child.repr(indent, level+1)
+			out += prefix + indent + child.repr(indent, level+1)
 		}
 		out += prefix + "]" + newLine
 		return out
