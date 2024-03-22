@@ -59,14 +59,10 @@ func tokensTableDetect_versionB(srcStr string) tokenElems_B {
 	
 	//////////// TOKEN ADD func ///////////////////////
 	tokenAdd := func (typeOfToken rune, posFirst, posLast int) {
-		if posUnknownBlockStart != -1 {  // JSON has to be in containers {...} or [...] so it is closed with a known elem
-			tokenTable = append(tokenTable, tokenElem_B{tokenType: '?', posInSrcFirst: posUnknownBlockStart, posInSrcLast: posFirst-1}  )
-			posUnknownBlockStart = -1
-		}
-
 		tokenTable = append(tokenTable, tokenElem_B{tokenType: typeOfToken, posInSrcFirst: posFirst, posInSrcLast: posLast}  )
 	} // func, tokenAdd //////////////////////////////
-	
+
+	inUnknownBlock := func () bool { return posUnknownBlockStart != -1	}
 	
 	posStringStart := -1  //////////////////////////////////////////
 	inString := func () bool { // if string start position detected,
@@ -97,19 +93,26 @@ func tokensTableDetect_versionB(srcStr string) tokenElems_B {
 		// detect tokens:
 		if ! inString() { // json structural chars:
 			if base__is_whitespace_rune(runeNow) {
-				if posUnknownBlockStart == -1 {
-					// skip the whitespaces from tokens, don't do anything
+				if ! inUnknownBlock() {
+					// skip the whitespaces from tokens if the pos is NOT in unknown block,
+					// so don't start an unknown block with a whitespace
 				} else { // whitespace AFTER an unknown token
+					// save the previously detected unknownBlock,
+					// and skip the whitespace
 					tokenTable = append(tokenTable, tokenElem_B{tokenType: '?', posInSrcFirst: posUnknownBlockStart, posInSrcLast: pos-1}  )
 					posUnknownBlockStart = -1
 				}
 			} else if runeNow == '{' || runeNow == '}' || runeNow == '[' || runeNow == ']' || runeNow == ',' || runeNow == ':' {
+				if inUnknownBlock() {
+					tokenTable = append(tokenTable, tokenElem_B{tokenType: '?', posInSrcFirst: posUnknownBlockStart, posInSrcLast: pos-1}  )
+					posUnknownBlockStart = -1
+				}
 				tokenAdd(runeNow, pos, pos)
 			} else {
-				// not in string, and not json structural char
-				// so it can be a number, true/false, or
+				// not in string, and not json structural char and not whitespace
+				// so it can be a number, true/false/null or
 				// whitespaces:
-				if posUnknownBlockStart == -1 {
+				if ! inUnknownBlock() {
 					posUnknownBlockStart = pos // save block start
 					// standard Json has to be closed with known
 				}
@@ -159,8 +162,11 @@ func JSON_B_validation(tokenTableB tokenElems_B) []error {
 }
 
 
-func getTextFromSrc(src string, token tokenElem_B) string {
-	return src[token.posInSrcFirst:token.posInSrcLast+1]
+func getTextFromSrc(src string, token tokenElem_B, quoted bool) string {
+	if quoted {
+		return src[token.posInSrcFirst:token.posInSrcLast+1]
+	}
+	return src[token.posInSrcFirst+1:token.posInSrcLast]
 }
 
 func print_tokenB(prefix string, t tokenElem_B) {
@@ -236,7 +242,9 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 			for ; pos <len(tokensTableB); pos++ { // detect children
 				// todo: error handling
 				pos, _ = build__find_next_token_pos(true, []rune{'"'}, pos, tokensTableB)
-				objKey := getTextFromSrc(src, tokensTableB[pos]) // next string key
+
+				// the objKey is not quoted. TODO: it has to be interpreted, too
+				objKey := getTextFromSrc(src, tokensTableB[pos], false) // next string key
 
 				// find the next : but don't do anything with that
 				pos, _ = build__find_next_token_pos(true, []rune{':'}, pos+1, tokensTableB)
@@ -259,7 +267,7 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 			break
 
 		} else if tokenNow.tokenType == '"' {
-			elem = NewString_JSON_value_quotedBothEnd(getTextFromSrc(src, tokensTableB[pos]))
+			elem = NewString_JSON_value_quotedBothEnd(getTextFromSrc(src, tokensTableB[pos], true))
 			break
 
 		} else if tokenNow.tokenType == '[' {
@@ -277,7 +285,7 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 				}
 				pos, _ = build__find_next_token_pos(true, []rune{','}, pos+1, tokensTableB)
 			} // for pos, internal children loop
-		} else if tokenNow.tokenType == '}' { break
+		} else if tokenNow.tokenType == '}' { break   // ascii:125,
 		} else if tokenNow.tokenType == ']' { break } // elem prepared, exit
 	} // for BIG loop
 

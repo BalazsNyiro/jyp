@@ -58,7 +58,7 @@ func Test_structure_building(t *testing.T) {
 	root, _, _ := JSON_B_structure_building(src, tokensTableB, 0)
 	compare_rune_rune(testName, '{', root.ValType, t)
 	compare_int_int(testName, 1, len(root.ValObject), t) // has 1 elem
-	compare_str_str(testName, "A", root.ValObject["a"].repr(), t)
+	compare_str_str(testName, "A", root.ValObject["a"].ValString, t)
 
 
 	testName = funName + "_basic_arr"
