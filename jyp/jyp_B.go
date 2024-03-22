@@ -32,6 +32,8 @@ import (
 	"unicode"
 )
 
+var errorPrefix = "Error: "
+
 type tokenElem_B struct {
 	tokenType rune /* one rune is stored here to represent a unit in the source code
                       { objOpen
@@ -53,12 +55,13 @@ type tokenElem_B struct {
 
 type tokenElems_B []tokenElem_B
 
-func tokensTableDetect_versionB(srcStr string) tokenElems_B {
+func tokensTableDetect_structuralTokens_strings(srcStr string) tokenElems_B {
 	tokenTable := tokenElems_B{}
 	posUnknownBlockStart := -1 // used only if the token is longer than 1 char. numbers, false/true for example
 	
 	//////////// TOKEN ADD func ///////////////////////
 	tokenAdd := func (typeOfToken rune, posFirst, posLast int) {
+		// TODO: unknown token processing here, to avoid second loop? w
 		tokenTable = append(tokenTable, tokenElem_B{tokenType: typeOfToken, posInSrcFirst: posFirst, posInSrcLast: posLast}  )
 	} // func, tokenAdd //////////////////////////////
 
@@ -222,7 +225,7 @@ func prefixGen(oneUnitPrefix string, repeatNum int) string {
 	return out
 }
 
-func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosStart int) (JSON_value_B, []error, int) {
+func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosStart int, errorsCollected []error) (JSON_value_B, []error, int) {
 	problems := JSON_B_validation(tokensTableB)
 	if tokenPosStart >= len(tokensTableB) {
 		problems = append(problems, errors.New("wanted position index is higher than tokensTableB"))
@@ -250,7 +253,7 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 				pos, _ = build__find_next_token_pos(true, []rune{':'}, pos+1, tokensTableB)
 
 				// find the next ANY token, the new VALUE
-				nextValueElem, _, posLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1)
+				nextValueElem, _, posLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1, errorsCollected)
 				elem.ValObject[objKey] = nextValueElem
 				pos = posLastUsed
 
@@ -263,18 +266,18 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 			} // for pos, internal children loop
 
 		} else if tokenNow.tokenType == '?' {
-			elem = NewString_JSON_value_quotedBothEnd("\"unknown_elem, maybe number or bool\"")
+			elem = NewString_JSON_value_quotedBothEnd("\"unknown_elem, maybe number or bool\"", errorsCollected)
 			break
 
 		} else if tokenNow.tokenType == '"' {
-			elem = NewString_JSON_value_quotedBothEnd(getTextFromSrc(src, tokensTableB[pos], true))
+			elem = NewString_JSON_value_quotedBothEnd(getTextFromSrc(src, tokensTableB[pos], true), errorsCollected)
 			break
 
 		} else if tokenNow.tokenType == '[' {
 			elem = NewArr_JSON_value_B()
 			for ; pos < len(tokensTableB); pos++ { // detect children
 				// find the next ANY token, the new VALUE
-				nextValueElem, _, posLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1)
+				nextValueElem, _, posLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1, errorsCollected)
 				elem.ValArray = append(elem.ValArray, nextValueElem)
 				pos = posLastUsed
 
@@ -293,12 +296,14 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 }
 
 // TODO: newObject, newInt, newFloat, newBool....
-func NewString_JSON_value_quotedBothEnd(text string) JSON_value_B {
+func NewString_JSON_value_quotedBothEnd(text string, errorsCollected []error) JSON_value_B {
 	// strictly have minimum one "opening....and...one..closing" quote!
+	valString := stringValueParsing_rawToInterpretedCharacters( text[1:len(text)-1], errorsCollected)
+
 	return JSON_value_B{
 		ValType:      '"',
 		ValStringRaw: text,
-		ValString: text[1:len(text)-1],
+		ValString: valString,
 	}
 }
 
@@ -342,61 +347,213 @@ func (v JSON_value_B) ValObject_keys_sorted() []string{
 }
 
 
-// example usage: repr(2) means: use "  " 2 spaces as indentation
-// if ind
-// otherwise a simple formatted output
-func (v JSON_value_B) repr(indentationLength ...int) string {
-	if len(indentationLength) == 0 { // so no param is passed
-		return v.repr_fine("", 0)
-	}
-	if indentationLength[0] < 1 { // a 0 or negative param is passed
-		return v.repr_fine("", 0)
-	}
-	indentation := prefixGen(" ", indentationLength[0])
-	return v.repr_fine(indentation, 0)
-}
-
-// tunable repr
-func (v JSON_value_B) repr_fine(indent string, level int) string {
-	prefix := "" // indentOneLevelPrefix
-	prefix2 := "" // indentTwoLevelPrefix
-	newLine := ""
-	if len(indent) > 0 {
-		prefix = prefixGen(indent, level)
-		prefix2 = prefixGen(indent, level+1)
-		newLine = "\n"
-	}
-
-	if v.ValType == '"' {
-		return "\""+v.ValString + "\""
-	}
-
-	if v.ValType == '{' {
-		out := prefix + "{" + newLine
-		for counter, childKey := range v.ValObject_keys_sorted() {
-			comma := base__separator_set_if_no_last_elem(counter, len(v.ValObject), ",")
-			childVal := v.ValObject[childKey]
-			out += prefix2 + childKey + ":" + " " + childVal.repr_fine(indent, level+1) + comma + newLine
-		}
-		out += prefix + "}" + newLine
-		return out
-	}
-	// TODO: comma after values
-	if v.ValType == '[' {
-		out := prefix + "[" + newLine
-		for counter, child := range v.ValArray {
-			comma := base__separator_set_if_no_last_elem(counter, len(v.ValArray), ",")
-			out += prefix2 + indent + child.repr_fine(indent, level+1) + comma + newLine
-		}
-		out += prefix + "]" + newLine
-		return out
-	}
-	return ""
-}
-
 func base__separator_set_if_no_last_elem(position, length_numOfAllElems int, separator string) string {
 	if position < length_numOfAllElems-1 {
 		return separator
 	}
 	return ""
 }
+
+// set the string value from raw strings
+// in orig soure code, \n means 2 chars: a backslash and 'n'.
+// but if it is interpreted, that is one newline "\n" char.
+func stringValueParsing_rawToInterpretedCharacters(src string, errorsCollected []error) string{ // TESTED
+
+	/* Tasks:
+	- is it a valid string?
+	- convert special char representations to real chars
+
+	the func works typically with 2 chars, for example: \t
+	but sometime with 6: \u0123, so I need to look forward for the next 5 chars
+	*/
+
+	valueFromRawSrcParsing := []rune{}
+
+	// fmt.Println("string token value detection:", src)
+	runeBackSlash := '\\' // be careful: this is ONE \ char, only written with this expression
+
+	// pos start + 1: strings has initial " in runes
+	// post end -1  closing " after string content
+	for pos := 0; pos < len(src); pos++ {
+
+		runeActual := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos)
+		//fmt.Println("rune actual (string value set):", pos, string(runeActual), runeActual)
+		runeNext1 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+1)
+
+		if runeActual != runeBackSlash { // a non-backSlash char
+			valueFromRawSrcParsing = append(valueFromRawSrcParsing, runeActual)
+			continue
+		} else {
+			// runeActual is \\ here, so ESCAPING started
+
+			if runeNext1 == 'u' {
+				// this is \u.... unicode code point - special situation,
+				// because after the \u four other chars has to be handled
+
+				runeNext2 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+2)
+				runeNext3 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+3)
+				runeNext4 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+4)
+				runeNext5 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+5)
+
+				base10_val_2, err2 := base__hexaRune_to_intVal(runeNext2)
+				if err2 != nil {
+					errorsCollected = append(errorsCollected, err2)
+				}
+
+				base10_val_3, err3 := base__hexaRune_to_intVal(runeNext3)
+				if err3 != nil {
+					errorsCollected = append(errorsCollected, err3)
+				}
+
+				base10_val_4, err4 := base__hexaRune_to_intVal(runeNext4)
+				if err4 != nil {
+					errorsCollected = append(errorsCollected, err4)
+				}
+
+				base10_val_5, err5 := base__hexaRune_to_intVal(runeNext5)
+				if err5 != nil {
+					errorsCollected = append(errorsCollected, err5)
+				}
+
+				unicodeVal_10Based := 0
+
+				if err2 == nil && err3 == nil && err4 == nil && err5 == nil {
+					unicodeVal_10Based = base10_val_2*16*16*16 +
+						base10_val_3*16*16 +
+						base10_val_4*16 +
+						base10_val_5
+				}
+				runeFromHexaDigits := rune(unicodeVal_10Based)
+
+				pos += 1 + 4 // one extra pos because of the u, and +4 because of the digits
+				valueFromRawSrcParsing = append(valueFromRawSrcParsing, runeFromHexaDigits)
+
+			} else { // the first detected char was a backslash, what is the second?
+				// so this is a simple escaped char, for example: \" \t \b \n
+				runeReal := '?'
+				if runeNext1 == '"' { // \" -> is a " char in a string
+					runeReal = '"' // in a string, this is an escaped " double quote char
+				} else
+				if runeNext1 == runeBackSlash { // in reality, these are the 2 chars: \\
+					runeReal = '\\' // reverse solidus
+				} else
+				if runeNext1 == '/' { // a very special escaping: \/
+					runeReal = '/' // solidus
+				} else
+				if runeNext1 == 'b' { // This is the first good example for escaping:
+					runeReal = '\b' // in the src there were 2 chars: \ and b,
+				} else //  (backspace)    // and one char is inserted into the stringVal
+				if runeNext1 == 'f' { // formfeed
+					runeReal = '\f'
+				} else
+				if runeNext1 == 'n' { // linefeed
+					runeReal = '\n'
+				} else
+				if runeNext1 == 'r' { // carriage return
+					runeReal = '\r' //
+				} else
+				if runeNext1 == 't' { // horizontal tab
+					runeReal = '\t' //
+				}
+
+				pos += 1 // one extra pos increasing is necessary, because of
+				// 2 chars were processed: the actual \ and the next one.
+
+				valueFromRawSrcParsing = append(valueFromRawSrcParsing, runeReal)
+			}
+		} // else
+	} // for
+
+	// errorsCollected is updated by default, it can be modified here in this func
+	return string(valueFromRawSrcParsing)
+}
+
+
+// get the rune IF the index is really in the range of the src.
+// return with ' ' space, IF the index is NOT in the range.
+// reason: avoid never ending index checking, so do it only once
+// the space can be answered because this func is used when a real char wanted to be detected,
+// and if a space is returned, this has NO MEANING in that parse section
+// this fun is NOT used in string detection - and other places whitespaces can be neglected, too
+// getChar, with whitespace replace
+func base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src string, pos int) rune { // TESTED
+	char := base__srcGetChar__safeOverindexing(src, pos)
+	if base__is_whitespace_rune(char) {
+		return ' ' // simplify everything. if the char is ANY whitespace char,
+		// return with SPACE, this is not important in the source code parsing
+	}
+	return char
+}
+
+// getChar, no whitespace replace
+func base__srcGetChar__safeOverindexing(src string, pos int) rune { // TESTED
+	posPossibleMax := len(src) - 1  // if src is empty, max is -1,
+	posPossibleMin := 0             // and the condition cannot be true here:
+	if (pos >= posPossibleMin) && (pos <= posPossibleMax) {
+		return []rune(src[pos:pos+1])[0]
+	}
+	return ' '
+}
+
+// runesSections were checked against illegal chars, so here digitRune is in 0123456789
+// TODO: maybe can be removed if not used in the future in exponent number detection section
+func base__digit10BasedRune_integer_value(digit10based rune) (int, error) {
+	if digit10based == '0' {
+		return 0, nil
+	}
+	if digit10based == '1' {
+		return 1, nil
+	}
+	if digit10based == '2' {
+		return 2, nil
+	}
+	if digit10based == '3' {
+		return 3, nil
+	}
+	if digit10based == '4' {
+		return 4, nil
+	}
+	if digit10based == '5' {
+		return 5, nil
+	}
+	if digit10based == '6' {
+		return 6, nil
+	}
+	if digit10based == '7' {
+		return 7, nil
+	}
+	if digit10based == '8' {
+		return 8, nil
+	}
+	if digit10based == '9' {
+		return 9, nil
+	}
+	return 0, errors.New(errorPrefix + "rune (" + string(digit10based) + ")")
+}
+
+func base__hexaRune_to_intVal(hexaChar rune) (int, error) { // TESTED
+	hexaTable := map[rune]int{
+		'0': 0,
+		'1': 1,
+		'2': 2,
+		'3': 3,
+		'4': 4,
+		'5': 5,
+		'6': 6,
+		'7': 7,
+		'8': 8,
+		'9': 9,
+		'a': 10,
+		'b': 11,
+		'c': 12,
+		'd': 13,
+		'e': 14,
+		'f': 15,
+	}
+	base10Val, keyInHexaTable := hexaTable[hexaChar]
+	if keyInHexaTable {
+		return base10Val, nil
+	}
+	return 0, errors.New("hexa char(" + string(hexaChar) + ") was not in hexa table")
+}
+

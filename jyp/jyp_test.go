@@ -146,7 +146,7 @@ func Test_speed(t *testing.T) {
 	fmt.Println("time read file into runes:", time.Since(timeReadFileToRunes))
 
 	timeSimpleStringPassing := time.Now()
-	tokensTableDetect_versionB(srcStr)
+	tokensTableDetect_structuralTokens_strings(srcStr)
 	fmt.Println("time pointer string passing:", time.Since(timeSimpleStringPassing))
 
 	timeLoopOverStringSrc := time.Now()
