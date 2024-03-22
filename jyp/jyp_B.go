@@ -246,8 +246,8 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 				// todo: error handling
 				pos, _ = build__find_next_token_pos(true, []rune{'"'}, pos, tokensTableB)
 
-				// the objKey is not quoted. TODO: it has to be interpreted, too
-				objKey := getTextFromSrc(src, tokensTableB[pos], false) // next string key
+				// the next string key, the objKey is not quoted, but interpreted, too
+				objKey := stringValueParsing_rawToInterpretedCharacters(getTextFromSrc(src, tokensTableB[pos], false), errorsCollected)
 
 				// find the next : but don't do anything with that
 				pos, _ = build__find_next_token_pos(true, []rune{':'}, pos+1, tokensTableB)

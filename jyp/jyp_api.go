@@ -51,17 +51,17 @@ func (v JSON_value_B) Repr_tuned(indent string, level int) string {
 			childVal := v.ValObject[childKey]
 			out += prefix2 + "\""+childKey+"\"" + colon + childVal.Repr_tuned(indent, level+1) + comma + newLine
 		}
-		out += prefix + "}" + newLine
+		out += prefix + "}"
 		return out
 	}
-	// TODO: comma after values
+
 	if v.ValType == '[' {
 		out := prefix + "[" + newLine
 		for counter, child := range v.ValArray {
 			comma := base__separator_set_if_no_last_elem(counter, len(v.ValArray), ",")
 			out += prefix2 + indent + child.Repr_tuned(indent, level+1) + comma + newLine
 		}
-		out += prefix + "]" + newLine
+		out += prefix + "]"
 		return out
 	}
 	return ""
