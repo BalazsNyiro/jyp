@@ -129,18 +129,9 @@ func tokensTableDetect_versionB(srcStr string) tokenElems_B {
 }
 
 func base__is_whitespace_rune(oneRune rune) bool { // TESTED
-	/*
-		https://stackoverflow.com/questions/29038314/determining-whitespace-in-go
-		func IsSpace
-
-		func IsSpace(r rune) bool
-
-		IsSpace reports whether the rune is a space character as defined by Unicode's White Space property; in the Latin-1 space this is
-
+	/*  https://stackoverflow.com/questions/29038314/determining-whitespace-in-go
 		'\t', '\n', '\v', '\f', '\r', ' ', U+0085 (NEL), U+00A0 (NBSP).
-
-		Other definitions of spacing characters are set by category Z and property Pattern_White_Space.
-	*/
+		Other definitions of spacing characters are set by category Z and property Pattern_White_Space. */
 	return unicode.IsSpace(oneRune)
 }
 
@@ -172,7 +163,7 @@ func print_tokenB(prefix string, t tokenElem_B) {
 
 
 // return with pos only to avoid elem copy with reading/passing
-// find the next from allowed types
+// find the next token from allowed types
 func build__find_next_token_pos(wantedThem bool, types []rune, posActual int, tokensTable tokenElems_B) (int, error) {
 	var pos int
 	if pos >= len(tokensTable) {
@@ -333,6 +324,8 @@ func (v JSON_value_B) ValObject_keys_sorted() []string{
 	sort.Strings(keys)
 	return keys
 }
+
+
 func (v JSON_value_B) repr(indent string, level int) string {
 	prefix := "" // indentOneLevelPrefix
 	newLine := ""
