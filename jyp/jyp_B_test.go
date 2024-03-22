@@ -23,7 +23,9 @@ func Test_tokensTableDetect_versionB(t *testing.T) {
 	testName := funName + "_basic"
 
 	//src := `{"text":{"level2":[321,4.5,"string\"Escaped",true,false,null]}}`
-	src := file_read_to_string("large-file.json")
+	src := ""
+	// src := file_read_to_string("large-file.json")
+
 
 	timeStart := time.Now()
 	// src = `{"a": "b"}`
@@ -36,11 +38,33 @@ func Test_tokensTableDetect_versionB(t *testing.T) {
 	}
 
 	root, _, _ := JSON_B_structure_building(src, tokensTableB, 0)
-	fmt.Println(root.repr("  ", 0))
+	fmt.Println(root.repr(0))
 
 	_ = root
 	_ = tokensTableB
 	_ = testName
 
 	// base__print_tokenElems(tokensTableB)
+}
+
+
+//  go test -v -run  Test_structure_building_simple
+func Test_structure_building(t *testing.T) {
+	funName := ""
+	testName := funName + "_basic_obj"
+
+	src := `{"a": "A"}`
+	tokensTableB := tokensTableDetect_versionB(src)
+	root, _, _ := JSON_B_structure_building(src, tokensTableB, 0)
+	compare_rune_rune(testName, '{', root.ValType, t)
+	compare_int_int(testName, 1, len(root.ValObject), t) // has 1 elem
+	compare_str_str(testName, "A", root.ValObject["a"].repr(), t)
+
+
+	testName = funName + "_basic_arr"
+	src = `["a", "A"]`
+	tokensTableB = tokensTableDetect_versionB(src)
+	root, _, _ = JSON_B_structure_building(src, tokensTableB, 0)
+	compare_rune_rune(testName, '[', root.ValType, t)
+	compare_int_int(testName, 2, len(root.ValArray), t) // has 1 elem
 }

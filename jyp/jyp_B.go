@@ -63,6 +63,7 @@ func tokensTableDetect_versionB(srcStr string) tokenElems_B {
 			tokenTable = append(tokenTable, tokenElem_B{tokenType: '?', posInSrcFirst: posUnknownBlockStart, posInSrcLast: posFirst-1}  )
 			posUnknownBlockStart = -1
 		}
+
 		tokenTable = append(tokenTable, tokenElem_B{tokenType: typeOfToken, posInSrcFirst: posFirst, posInSrcLast: posLast}  )
 	} // func, tokenAdd //////////////////////////////
 	
@@ -96,7 +97,12 @@ func tokensTableDetect_versionB(srcStr string) tokenElems_B {
 		// detect tokens:
 		if ! inString() { // json structural chars:
 			if base__is_whitespace_rune(runeNow) {
-				// skip the whitespaces from tokens, don't do anything
+				if posUnknownBlockStart == -1 {
+					// skip the whitespaces from tokens, don't do anything
+				} else { // whitespace AFTER an unknown token
+					tokenTable = append(tokenTable, tokenElem_B{tokenType: '?', posInSrcFirst: posUnknownBlockStart, posInSrcLast: pos-1}  )
+					posUnknownBlockStart = -1
+				}
 			} else if runeNow == '{' || runeNow == '}' || runeNow == '[' || runeNow == ']' || runeNow == ',' || runeNow == ':' {
 				tokenAdd(runeNow, pos, pos)
 			} else {
@@ -249,11 +255,11 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 			} // for pos, internal children loop
 
 		} else if tokenNow.tokenType == '?' {
-			elem = NewString_JSON_value_B("unknown_elem, maybe number or bool")
+			elem = NewString_JSON_value_quotedBothEnd("\"unknown_elem, maybe number or bool\"")
 			break
 
 		} else if tokenNow.tokenType == '"' {
-			elem = NewString_JSON_value_B(getTextFromSrc(src, tokensTableB[pos]))
+			elem = NewString_JSON_value_quotedBothEnd(getTextFromSrc(src, tokensTableB[pos]))
 			break
 
 		} else if tokenNow.tokenType == '[' {
@@ -279,11 +285,12 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 }
 
 // TODO: newObject, newInt, newFloat, newBool....
-func NewString_JSON_value_B(text string) JSON_value_B {
+func NewString_JSON_value_quotedBothEnd(text string) JSON_value_B {
+	// strictly have minimum one "opening....and...one..closing" quote!
 	return JSON_value_B{
-		ValType: '"',
-		ValString: text, // now it is a raw string only
-		// TODO: this string has to be interpreted,
+		ValType:      '"',
+		ValStringRaw: text,
+		ValString: text[1:len(text)-1],
 	}
 }
 
@@ -311,7 +318,8 @@ type JSON_value_B struct {
 
 	ValBool bool // true, false
 
-	ValString      string  // a string JSON value is stored here (filled ONLY if ValType is string)
+	ValString   string     // the parsed string. \n means 1 char here, for example
+	ValStringRaw   string  // exact copy of the original source code, that was parsed (non-interpreted. \t means 2 chars, not 1!
 	ValNumberInt   int     // an integer JSON value is stored here
 	ValNumberFloat float64 // a float JSON value is saved here
 }
@@ -326,16 +334,33 @@ func (v JSON_value_B) ValObject_keys_sorted() []string{
 }
 
 
-func (v JSON_value_B) repr(indent string, level int) string {
+// example usage: repr(2) means: use "  " 2 spaces as indentation
+// if ind
+// otherwise a simple formatted output
+func (v JSON_value_B) repr(indentationLength ...int) string {
+	if len(indentationLength) == 0 { // so no param is passed
+		return v.repr_fine("", 0)
+	}
+	if indentationLength[0] < 1 { // a 0 or negative param is passed
+		return v.repr_fine("", 0)
+	}
+	indentation := prefixGen(" ", indentationLength[0])
+	return v.repr_fine(indentation, 0)
+}
+
+// tunable repr
+func (v JSON_value_B) repr_fine(indent string, level int) string {
 	prefix := "" // indentOneLevelPrefix
+	prefix2 := "" // indentTwoLevelPrefix
 	newLine := ""
 	if len(indent) > 0 {
 		prefix = prefixGen(indent, level)
+		prefix2 = prefixGen(indent, level+1)
 		newLine = "\n"
 	}
 
 	if v.ValType == '"' {
-		return "'"+v.ValString + "'"
+		return "\""+v.ValString + "\""
 	}
 
 	if v.ValType == '{' {
@@ -343,7 +368,7 @@ func (v JSON_value_B) repr(indent string, level int) string {
 		for counter, childKey := range v.ValObject_keys_sorted() {
 			comma := base__separator_set_if_no_last_elem(counter, len(v.ValObject), ",")
 			childVal := v.ValObject[childKey]
-			out += prefix + prefix + childKey + ":" + " " + childVal.repr(indent, level+1) + comma
+			out += prefix2 + childKey + ":" + " " + childVal.repr_fine(indent, level+1) + comma + newLine
 		}
 		out += prefix + "}" + newLine
 		return out
@@ -353,7 +378,7 @@ func (v JSON_value_B) repr(indent string, level int) string {
 		out := prefix + "[" + newLine
 		for counter, child := range v.ValArray {
 			comma := base__separator_set_if_no_last_elem(counter, len(v.ValArray), ",")
-			out += prefix + indent + child.repr(indent, level+1) + comma
+			out += prefix2 + indent + child.repr_fine(indent, level+1) + comma + newLine
 		}
 		out += prefix + "]" + newLine
 		return out
