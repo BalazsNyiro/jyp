@@ -6,6 +6,21 @@ This source code (all file in this repo) is licensed
 under the Apache-2 style license found in the
 LICENSE file in the root directory of this source tree.
 
+
+this file is the implementation of the _standard_ json data format:
+https://www.json.org/json-en.html
+
+these songs helped a lot to write this parser - respect:
+  - Drummatix /туманами/
+  - Mari Samuelsen /Sequence (four)/
+
+in the code I intentionally avoid direct pointer usage - I think that is safer:
+  - for goroutines
+  - if json blocks are read and inserted into other json block, pointers are not useful,
+    because they can have side effects. Every value has to be COPIED.
+
+
+This module: is the main logic of json parsing
 */
 
 package jyp
@@ -339,7 +354,7 @@ func (v JSON_value_B) repr(indent string, level int) string {
 		out += prefix + "}" + newLine
 		return out
 	}
-
+	// TODO: comma after values
 	if v.ValType == '[' {
 		out := prefix + "[" + newLine
 		for _, child := range v.ValArray {

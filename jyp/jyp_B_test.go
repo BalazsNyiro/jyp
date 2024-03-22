@@ -27,7 +27,7 @@ func Test_tokensTableDetect_versionB(t *testing.T) {
 
 	timeStart := time.Now()
 	// src = `{"a": "b"}`
-	src = `{"a": "A", "b1": {"b2":"B2"}, "c":"C", "list":["k", "l"]}`
+	src = `{"a": "A", "b1": {"b2":"B2"}, "c":"C", "list":["k", "bh"]}`
 	tokensTableB := tokensTableDetect_versionB(src)
 	fmt.Println("token table creation time:", time.Since(timeStart))
 	fmt.Println("tokensTableB")
