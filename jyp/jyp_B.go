@@ -340,9 +340,10 @@ func (v JSON_value_B) repr(indent string, level int) string {
 
 	if v.ValType == '{' {
 		out := prefix + "{" + newLine
-		for _, childKey := range v.ValObject_keys_sorted() {
+		for counter, childKey := range v.ValObject_keys_sorted() {
+			comma := base__separator_set_if_no_last_elem(counter, len(v.ValObject), ",")
 			childVal := v.ValObject[childKey]
-			out += prefix + prefix + childKey + ":" + " " + childVal.repr(indent, level+1)
+			out += prefix + prefix + childKey + ":" + " " + childVal.repr(indent, level+1) + comma
 		}
 		out += prefix + "}" + newLine
 		return out
@@ -350,11 +351,19 @@ func (v JSON_value_B) repr(indent string, level int) string {
 	// TODO: comma after values
 	if v.ValType == '[' {
 		out := prefix + "[" + newLine
-		for _, child := range v.ValArray {
-			out += prefix + indent + child.repr(indent, level+1)
+		for counter, child := range v.ValArray {
+			comma := base__separator_set_if_no_last_elem(counter, len(v.ValArray), ",")
+			out += prefix + indent + child.repr(indent, level+1) + comma
 		}
 		out += prefix + "]" + newLine
 		return out
+	}
+	return ""
+}
+
+func base__separator_set_if_no_last_elem(position, length_numOfAllElems int, separator string) string {
+	if position < length_numOfAllElems-1 {
+		return separator
 	}
 	return ""
 }
