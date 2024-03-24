@@ -15,7 +15,6 @@ import (
 	"unicode"
 )
 
-
 func base__hexaRune_to_intVal(hexaChar rune) (int, error) { // TESTED
 	hexaTable := map[rune]int{
 		'0': 0,
@@ -49,3 +48,29 @@ func base__is_whitespace_rune(oneRune rune) bool { // TESTED
 	return unicode.IsSpace(oneRune)
 }
 
+
+// get the rune IF the index is really in the range of the src.
+// return with ' ' space, IF the index is NOT in the range.
+// reason: avoid never ending index checking, so do it only once
+// the space can be answered because this func is used when a real char wanted to be detected,
+// and if a space is returned, this has NO MEANING in that parse section
+// this fun is NOT used in string detection - and other places whitespaces can be neglected, too
+// getChar, with whitespace replace
+func base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src string, pos int) rune { //
+	char := base__srcGetChar__safeOverindexing(src, pos)
+	if base__is_whitespace_rune(char) {
+		return ' ' // simplify everything. if the char is ANY whitespace char,
+		// return with SPACE, this is not important in the source code parsing
+	}
+	return char
+}
+
+// getChar, no whitespace replace
+func base__srcGetChar__safeOverindexing(src string, pos int) rune { // TESTED
+	posPossibleMax := len(src) - 1  // if src is empty, max is -1,
+	posPossibleMin := 0             // and the condition cannot be true here:
+	if (pos >= posPossibleMin) && (pos <= posPossibleMax) {
+		return []rune(src[pos:pos+1])[0]
+	}
+	return ' '
+}

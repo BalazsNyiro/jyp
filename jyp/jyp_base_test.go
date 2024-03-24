@@ -55,7 +55,7 @@ func Test_hexaRune_to_intVal(t *testing.T) {
 	compare_bool_bool(testName, true, err != nil, t)
 }
 
-// go test -v -run Test_hexaRune_to_intVal
+// go test -v -run Test_base__is_whitespace_rune
 func Test_base__is_whitespace_rune(t *testing.T) {
 	funName := "Test_base__is_whitespace_rune"
 	testName := funName + "_base"
@@ -80,3 +80,39 @@ func Test_base__is_whitespace_rune(t *testing.T) {
 	isWhitespace = base__is_whitespace_rune('1')
 	compare_bool_bool(testName, false, isWhitespace, t)
 }
+
+// go test -v -run
+func Test_base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(t *testing.T) {
+	funName := "Test_base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces"
+	testName := funName + "_base"
+
+	txt := "ab\ncd"
+
+	charRead := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(txt, 0)
+	compare_rune_rune(testName,'a', charRead, t)
+
+	charRead = base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(txt, 2)
+	compare_rune_rune(testName,' ', charRead, t) // space instead of \n
+
+	charRead = base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(txt, 9)
+	compare_rune_rune(testName,' ', charRead, t)
+}
+
+
+// go test -v -run Test_base__srcGetChar__safeOverindexing
+func Test_base__srcGetChar__safeOverindexing(t *testing.T) {
+	funName := "Test_base__srcGetChar__safeOverindexing"
+	testName := funName + "_base"
+
+	txt := "ab\ncd"
+
+	charRead := base__srcGetChar__safeOverindexing(txt, 0)
+	compare_rune_rune(testName,'a', charRead, t)
+
+	charRead = base__srcGetChar__safeOverindexing(txt, 2)
+	compare_rune_rune(testName,'\n', charRead, t)
+
+	charRead = base__srcGetChar__safeOverindexing(txt, 8)
+	compare_rune_rune(testName,' ', charRead, t)
+}
+
