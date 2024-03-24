@@ -21,6 +21,13 @@ in the code I intentionally avoid direct pointer usage - I think that is safer:
 
 
 This module: is the main logic of json parsing
+
+
+
+TODOS:
+ - stepB, validation
+
+
 */
 
 package jyp
@@ -58,8 +65,18 @@ func (t tokenElem_B) print(prefix string) {
 }
 
 type tokenElems_B []tokenElem_B
+func (tokenElems tokenElems_B) print() {
+	for _, tokenElem := range tokenElems {
+		fmt.Println(
+			string(tokenElem.tokenType),
+			fmt.Sprintf("%2d", tokenElem.posInSrcFirst),
+			fmt.Sprintf("%2d", tokenElem.posInSrcLast),
+		)
+	}
+}
 
-func tokensTableDetect_structuralTokens_strings__L1(srcStr string) tokenElems_B {
+
+func stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr string) tokenElems_B {
 	tokenTable := tokenElems_B{}
 	posUnknownBlockStart := -1 // used only if the token is longer than 1 char. numbers, false/true for example
 	
@@ -144,17 +161,7 @@ func tokensTableDetect_structuralTokens_strings__L1(srcStr string) tokenElems_B 
 	return tokenTable
 }
 
-func base__print_tokenElems(tokenElems tokenElems_B) {
-	for _, tokenElem := range tokenElems {
-		fmt.Println(
-			string(tokenElem.tokenType),
-			fmt.Sprintf("%2d", tokenElem.posInSrcFirst),
-			fmt.Sprintf("%2d", tokenElem.posInSrcLast),
-			)
-	}
-}
-
-func JSON_B_validation__L1(tokenTableB tokenElems_B) []error {
+func stepB__JSON_B_validation_L1(tokenTableB tokenElems_B) []error {
 	// TODO: loop over the table, find incorrect {..} [..], ".." pairs,
 	// incorrect numbers, everything that can be a problem
 	// so after this, we can be sure that every elem are in pairs.
@@ -162,9 +169,105 @@ func JSON_B_validation__L1(tokenTableB tokenElems_B) []error {
 }
 
 
+// L1: Level 1. A higher level is a more general fun, a lower level is a tool, lib func, or something small
+func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B, tokenPosStart int, errorsCollected []error) (JSON_value_B, int) {
+	if tokenPosStart >= len(tokensTableB) {
+		errorsCollected= append(errorsCollected, errors.New("wanted position index is higher than tokensTableB"))
+	}
+	if len(errorsCollected) > 0 {
+		return JSON_value_B{}, 0
+	}
+	elem := JSON_value_B{}
+	var pos int
+
+	for pos = tokenPosStart; pos<len(tokensTableB); pos++ {
+		tokenNow := tokensTableB[pos]
+
+		if tokenNow.tokenType == '{' {
+			elem = NewObj_JSON_value_B()
+
+			for ; pos <len(tokensTableB); { // detect children
+				// todo: error handling, use errorsCollected everywhere
+				pos, _ = token_find_next__L2(true, []rune{'"'}, pos+1, tokensTableB)
+
+				// the next string key, the objKey is not quoted, but interpreted, too
+				objKey := stringValueParsing_rawToInterpretedCharacters_L2(base__read_sourceCode_section(src, tokensTableB[pos], false), errorsCollected)
+
+				// find the next : but don't do anything with that
+				pos, _ = token_find_next__L2(true, []rune{':'}, pos+1, tokensTableB)
+
+				// find the next ANY token, the new VALUE
+				nextValueElem, posLastUsed := stepC__JSON_B_structure_building__L1(src, tokensTableB, pos+1, errorsCollected)
+				elem.ValObject[objKey] = nextValueElem
+				pos = posLastUsed
+
+				if pos+1 < len(tokensTableB) { // look forward:
+					if tokensTableB[pos+1].tokenType == '}' {
+						break
+					}
+				}
+				pos, _ = token_find_next__L2(true, []rune{','}, pos+1, tokensTableB)
+			} // for pos, internal children loop
+
+		} else if tokenNow.tokenType == '?' {
+			elem = NewString_JSON_value_quotedBothEnd("\"unknown_elem, maybe number or bool\"", errorsCollected)
+			break
+
+		} else if tokenNow.tokenType == '"' {
+			elem = NewString_JSON_value_quotedBothEnd(base__read_sourceCode_section(src, tokensTableB[pos], true), errorsCollected)
+			break
+
+		} else if tokenNow.tokenType == '[' {
+			elem = NewArr_JSON_value_B()
+			for ; pos < len(tokensTableB);  { // detect children
+				// find the next ANY token, the new VALUE
+				nextValueElem, posLastUsed := stepC__JSON_B_structure_building__L1(src, tokensTableB, pos+1, errorsCollected)
+				elem.ValArray = append(elem.ValArray, nextValueElem)
+				pos = posLastUsed
+
+				if pos+1 < len(tokensTableB) { // look forward:
+					if tokensTableB[pos+1].tokenType == ']' {  // if the next elem is ], this is the last child,
+						break // and stop the children detection, leave the detection for loop
+					}
+				}
+				pos, _ = token_find_next__L2(true, []rune{','}, pos+1, tokensTableB)
+			} // for pos, internal children loop
+		} else if tokenNow.tokenType == '}' { break   // ascii:125,
+		} else if tokenNow.tokenType == ']' { break } // elem prepared, exit
+	} // for BIG loop
+
+	return elem, pos // ret with last used position
+}
+
+
+type JSON_value_B struct {
+	ValType rune
+
+	// ...... these values represent a Json elem's value - and one of them is filled only.. ..........
+	ValObject map[string]JSON_value_B
+	ValArray  []JSON_value_B
+
+	ValBool bool // true, false
+
+	ValString   string     // the parsed string. \n means 1 char here, for example
+	ValStringRaw   string  // exact copy of the original source code, that was parsed (non-interpreted. \t means 2 chars, not 1!
+	ValNumberInt   int     // an integer JSON value is stored here
+	ValNumberFloat float64 // a float JSON value is saved here
+}
+
+func (v JSON_value_B) ValObject_keys_sorted() []string{
+	keys := make([]string, 0, len(v.ValObject))
+	for k, _ := range v.ValObject {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+
 // return with pos only to avoid elem copy with reading/passing
 // find the next token from allowed types
-func token_find_next__L1(wantedThem bool, types []rune, posActual int, tokensTable tokenElems_B) (int, error) {
+func token_find_next__L2(wantedThem bool, types []rune, posActual int, tokensTable tokenElems_B) (int, error) {
 	var pos int
 	if pos >= len(tokensTable) {
 		return pos, errors.New("token position is bigger than last elem index")
@@ -198,103 +301,11 @@ func token_find_next__L1(wantedThem bool, types []rune, posActual int, tokensTab
 	}
 }
 
-// L1: Level 1. A higher level is a more general fun, a lower level is a tool, lib func, or something small
-func JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B, tokenPosStart int, errorsCollected []error) (JSON_value_B, int) {
-	if tokenPosStart >= len(tokensTableB) {
-		errorsCollected= append(errorsCollected, errors.New("wanted position index is higher than tokensTableB"))
-	}
-	if len(errorsCollected) > 0 {
-		return JSON_value_B{}, 0
-	}
-	elem := JSON_value_B{}
-	var pos int
-
-	for pos = tokenPosStart; pos<len(tokensTableB); pos++ {
-		tokenNow := tokensTableB[pos]
-
-		if tokenNow.tokenType == '{' {
-			elem = NewObj_JSON_value_B()
-
-			for ; pos <len(tokensTableB); { // detect children
-				// todo: error handling, use errorsCollected everywhere
-				pos, _ = token_find_next__L1(true, []rune{'"'}, pos+1, tokensTableB)
-
-				// the next string key, the objKey is not quoted, but interpreted, too
-				objKey := stringValueParsing_rawToInterpretedCharacters(base__read_sourceCode_section(src, tokensTableB[pos], false), errorsCollected)
-
-				// find the next : but don't do anything with that
-				pos, _ = token_find_next__L1(true, []rune{':'}, pos+1, tokensTableB)
-
-				// find the next ANY token, the new VALUE
-				nextValueElem, posLastUsed := JSON_B_structure_building__L1(src, tokensTableB, pos+1, errorsCollected)
-				elem.ValObject[objKey] = nextValueElem
-				pos = posLastUsed
-
-				if pos+1 < len(tokensTableB) { // look forward:
-					if tokensTableB[pos+1].tokenType == '}' {
-						break
-					}
-				}
-				pos, _ = token_find_next__L1(true, []rune{','}, pos+1, tokensTableB)
-			} // for pos, internal children loop
-
-		} else if tokenNow.tokenType == '?' {
-			elem = NewString_JSON_value_quotedBothEnd("\"unknown_elem, maybe number or bool\"", errorsCollected)
-			break
-
-		} else if tokenNow.tokenType == '"' {
-			elem = NewString_JSON_value_quotedBothEnd(base__read_sourceCode_section(src, tokensTableB[pos], true), errorsCollected)
-			break
-
-		} else if tokenNow.tokenType == '[' {
-			elem = NewArr_JSON_value_B()
-			for ; pos < len(tokensTableB);  { // detect children
-				// find the next ANY token, the new VALUE
-				nextValueElem, posLastUsed := JSON_B_structure_building__L1(src, tokensTableB, pos+1, errorsCollected)
-				elem.ValArray = append(elem.ValArray, nextValueElem)
-				pos = posLastUsed
-
-				if pos+1 < len(tokensTableB) { // look forward:
-					if tokensTableB[pos+1].tokenType == ']' {  // if the next elem is ], this is the last child,
-						break // and stop the children detection, leave the detection for loop
-					}
-				}
-				pos, _ = token_find_next__L1(true, []rune{','}, pos+1, tokensTableB)
-			} // for pos, internal children loop
-		} else if tokenNow.tokenType == '}' { break   // ascii:125,
-		} else if tokenNow.tokenType == ']' { break } // elem prepared, exit
-	} // for BIG loop
-
-	return elem, pos // ret with last used position
-}
-type JSON_value_B struct {
-	ValType rune
-
-	// ...... these values represent a Json elem's value - and one of them is filled only.. ..........
-	ValObject map[string]JSON_value_B
-	ValArray  []JSON_value_B
-
-	ValBool bool // true, false
-
-	ValString   string     // the parsed string. \n means 1 char here, for example
-	ValStringRaw   string  // exact copy of the original source code, that was parsed (non-interpreted. \t means 2 chars, not 1!
-	ValNumberInt   int     // an integer JSON value is stored here
-	ValNumberFloat float64 // a float JSON value is saved here
-}
-
-func (v JSON_value_B) ValObject_keys_sorted() []string{
-	keys := make([]string, 0, len(v.ValObject))
-	for k, _ := range v.ValObject {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
-}
 
 // set the string value from raw strings
 // in orig soure code, \n means 2 chars: a backslash and 'n'.
 // but if it is interpreted, that is one newline "\n" char.
-func stringValueParsing_rawToInterpretedCharacters(src string, errorsCollected []error) string{ //
+func stringValueParsing_rawToInterpretedCharacters_L2(src string, errorsCollected []error) string{ //
 
 	/* Tasks:
 	- is it a valid string?
@@ -403,7 +414,4 @@ func stringValueParsing_rawToInterpretedCharacters(src string, errorsCollected [
 
 	return string(valueFromRawSrcParsing)
 }
-
-
-
 

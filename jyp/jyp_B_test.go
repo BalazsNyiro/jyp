@@ -30,7 +30,7 @@ func Test_tokensTableDetect_versionB(t *testing.T) {
 	timeStart := time.Now()
 	// src = `{"a": "b"}`
 	src = `{"a": "A", "b1": {"b2":"B2"}, "c":"C", "list":["k", "bh"]}`
-	tokensTableB := tokensTableDetect_structuralTokens_strings__L1(src)
+	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
 	fmt.Println("token table creation time:", time.Since(timeStart))
 
 	fmt.Println("tokensTableB")
@@ -38,8 +38,8 @@ func Test_tokensTableDetect_versionB(t *testing.T) {
 		tokenb.print("tokenTable:")
 	}
 
-	errorsCollected := []error{}
-	root, _ := JSON_B_structure_building__L1(src, tokensTableB, 0, errorsCollected)
+	errorsCollected := stepB__JSON_B_validation_L1(tokensTableB)
+	root, _ := stepC__JSON_B_structure_building__L1(src, tokensTableB, 0, errorsCollected)
 	fmt.Println(root.Repr(2))
 
 	_ = root
@@ -57,18 +57,18 @@ func Test_structure_building(t *testing.T) {
 	errorsCollected := []error{}
 
 	src := `{"a": "A"}`
-	tokensTableB := tokensTableDetect_structuralTokens_strings__L1(src)
-	errorsCollected = JSON_B_validation__L1(tokensTableB)
-	root, _ := JSON_B_structure_building__L1(src, tokensTableB, 0, errorsCollected)
+	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
+	errorsCollected = stepB__JSON_B_validation_L1(tokensTableB)
+	root, _ := stepC__JSON_B_structure_building__L1(src, tokensTableB, 0, errorsCollected)
 	compare_rune_rune(testName, '{', root.ValType, t)
 	compare_int_int(testName, 1, len(root.ValObject), t) // has 1 elem
 	compare_str_str(testName, "A", root.ValObject["a"].ValString, t)
 
 	testName = funName + "_basic_arr"
 	src = `["a", "A"]`
-	tokensTableB = tokensTableDetect_structuralTokens_strings__L1(src)
-	errorsCollected = JSON_B_validation__L1(tokensTableB)
-	root, _ = JSON_B_structure_building__L1(src, tokensTableB, 0, errorsCollected)
+	tokensTableB = stepA__tokensTableDetect_structuralTokens_strings_L1(src)
+	errorsCollected = stepB__JSON_B_validation_L1(tokensTableB)
+	root, _ = stepC__JSON_B_structure_building__L1(src, tokensTableB, 0, errorsCollected)
 	compare_rune_rune(testName, '[', root.ValType, t)
 	compare_int_int(testName, 2, len(root.ValArray), t) // has 1 elem
 	compare_str_str(testName, "a", root.ValArray[0].ValString, t) // has 1 elem
