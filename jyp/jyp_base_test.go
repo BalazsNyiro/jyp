@@ -94,6 +94,20 @@ func Test_base__prefixGenerator_for_repr(t *testing.T) {
 }
 
 
+func Test_base__read_sourceCode_section(t *testing.T) {
+	funName := "Test_base__read_sourceCode_section"
+	testName := funName + "_base"
+
+	src := `{"a": "A"}`
+
+	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
+	sectionReadBack := base__read_sourceCode_section(src, tokensTableB[1], true)
+	compare_str_str(testName, `"a"`, sectionReadBack, t)
+
+	sectionReadBack = base__read_sourceCode_section(src, tokensTableB[3], true)
+	compare_str_str(testName, `"A"`, sectionReadBack, t)
+}
+
 func Test_base__separator_set_if_no_last_elem(t *testing.T) {
 	funName := "Test_base__separator_set_if_no_last_elem"
 	testName := funName + "_base"

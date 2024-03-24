@@ -62,7 +62,7 @@ func base__prefixGenerator_for_repr(oneUnitPrefix string, repeatNum int) string 
 }
 
 // Elemental func, select/read section from src
-func base__read_sourceCode_section(src string, token tokenElem_B, quoted bool) string {
+func base__read_sourceCode_section(src string, token tokenElem_B, quoted bool) string { // TESTED
 	if quoted {
 		return src[token.posInSrcFirst:token.posInSrcLast+1]
 	}
@@ -71,7 +71,7 @@ func base__read_sourceCode_section(src string, token tokenElem_B, quoted bool) s
 
 // for list printing, set comma as a separator if NOT the last elem is printed.
 // after the last elem, separator has to be empty
-func base__separator_set_if_no_last_elem(position, length_numOfAllElems int, separator string) string {
+func base__separator_set_if_no_last_elem(position, length_numOfAllElems int, separator string) string { // TESTED
 	if position < length_numOfAllElems-1 {
 		return separator
 	}
@@ -86,7 +86,7 @@ func base__separator_set_if_no_last_elem(position, length_numOfAllElems int, sep
 // and if a space is returned, this has NO MEANING in that parse section
 // this fun is NOT used in string detection - and other places whitespaces can be neglected, too
 // getChar, with whitespace replace
-func base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src string, pos int) rune { //
+func base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src string, pos int) rune { // TESTED
 	char := base__srcGetChar__safeOverindexing(src, pos)
 	if base__is_whitespace_rune(char) {
 		return ' ' // simplify everything. if the char is ANY whitespace char,
