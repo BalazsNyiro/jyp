@@ -81,6 +81,19 @@ func Test_base__is_whitespace_rune(t *testing.T) {
 	compare_bool_bool(testName, false, isWhitespace, t)
 }
 
+
+func Test_base__prefixGenerator_for_repr(t *testing.T) {
+	funName := "Test_base__prefixGenerator_for_repr"
+	testName := funName + "_base"
+
+	prefix := base__prefixGenerator_for_repr("12", 2)
+	compare_str_str(testName, "1212", prefix, t)
+
+	prefix = base__prefixGenerator_for_repr("12", 0)
+	compare_str_str(testName, "", prefix, t)
+}
+
+
 func Test_base__separator_set_if_no_last_elem(t *testing.T) {
 	funName := "Test_base__separator_set_if_no_last_elem"
 	testName := funName + "_base"

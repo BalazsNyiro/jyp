@@ -49,6 +49,19 @@ func base__is_whitespace_rune(oneRune rune) bool { // TESTED
 }
 
 
+// repeat the wanted unit prefix a few times
+func base__prefixGenerator_for_repr(oneUnitPrefix string, repeatNum int) string {
+	if oneUnitPrefix == "" {
+		return "" // if there is nothing to repeat
+	}
+	out := ""
+	for i:=0; i<repeatNum; i++ {
+		out += oneUnitPrefix
+	}
+	return out
+}
+
+
 // for list printing, set comma as a separator if NOT the last elem is printed.
 // after the last elem, separator has to be empty
 func base__separator_set_if_no_last_elem(position, length_numOfAllElems int, separator string) string {
@@ -62,7 +75,7 @@ func base__separator_set_if_no_last_elem(position, length_numOfAllElems int, sep
 // get the rune IF the index is really in the range of the src.
 // return with ' ' space, IF the index is NOT in the range.
 // reason: avoid never ending index checking, so do it only once
-// the space can be answered because this func is used when a real char wanted to be detected,
+// the space can be answered because this fun is used when a real char wanted to be detected,
 // and if a space is returned, this has NO MEANING in that parse section
 // this fun is NOT used in string detection - and other places whitespaces can be neglected, too
 // getChar, with whitespace replace

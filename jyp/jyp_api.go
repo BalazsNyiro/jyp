@@ -21,7 +21,7 @@ func (v JSON_value_B) Repr(indentationLength ...int) string {
 	if indentationLength[0] < 1 { // a 0 or negative param is passed
 		return v.Repr_tuned("", 0)
 	}
-	indentation := prefixGen(" ", indentationLength[0])
+	indentation := base__prefixGenerator_for_repr(" ", indentationLength[0])
 	return v.Repr_tuned(indentation, 0)
 }
 
@@ -34,8 +34,8 @@ func (v JSON_value_B) Repr_tuned(indent string, level int) string {
 	colon := ":"
 
 	if len(indent) > 0 {
-		prefix = prefixGen(indent, level)
-		prefix2 = prefixGen(indent, level+1)
+		prefix = base__prefixGenerator_for_repr(indent, level)
+		prefix2 = base__prefixGenerator_for_repr(indent, level+1)
 		newLine = "\n"
 		colon = ": "
 	}
