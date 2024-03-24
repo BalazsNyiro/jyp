@@ -17,8 +17,6 @@ import (
 	"time"
 )
 
-var errorsCollected []error
-
 //  go test -v -run  Test_tokensTableDetect_versionB
 func Test_tokensTableDetect_versionB(t *testing.T) {
 	funName := "Test_tokensTableDetect_versionB"
@@ -39,8 +37,8 @@ func Test_tokensTableDetect_versionB(t *testing.T) {
 		print_tokenB("tokenTable:", tokenb)
 	}
 
-	errorsCollected = []error{}
-	root, _, _ := JSON_B_structure_building(src, tokensTableB, 0, errorsCollected)
+	errorsCollected := []error{}
+	root, _ := JSON_B_structure_building(src, tokensTableB, 0, errorsCollected)
 	fmt.Println(root.Repr(2))
 
 	_ = root
@@ -51,25 +49,28 @@ func Test_tokensTableDetect_versionB(t *testing.T) {
 }
 
 
-//  go test -v -run  Test_structure_building_simple
+//  go test -v -run  Test_structure_building
 func Test_structure_building(t *testing.T) {
-	funName := ""
+	funName := "Test_structure_building"
 	testName := funName + "_basic_obj"
-	errorsCollected = []error{}
+	errorsCollected := []error{}
 
 	src := `{"a": "A"}`
 	tokensTableB := tokensTableDetect_structuralTokens_strings(src)
-	root, _, _ := JSON_B_structure_building(src, tokensTableB, 0, errorsCollected)
+	errorsCollected = JSON_B_validation(tokensTableB)
+	root, _ := JSON_B_structure_building(src, tokensTableB, 0, errorsCollected)
 	compare_rune_rune(testName, '{', root.ValType, t)
 	compare_int_int(testName, 1, len(root.ValObject), t) // has 1 elem
 	compare_str_str(testName, "A", root.ValObject["a"].ValString, t)
 
-
 	testName = funName + "_basic_arr"
 	src = `["a", "A"]`
-	errorsCollected = []error{}
 	tokensTableB = tokensTableDetect_structuralTokens_strings(src)
-	root, _, _ = JSON_B_structure_building(src, tokensTableB, 0, errorsCollected)
+	errorsCollected = JSON_B_validation(tokensTableB)
+	root, _ = JSON_B_structure_building(src, tokensTableB, 0, errorsCollected)
 	compare_rune_rune(testName, '[', root.ValType, t)
 	compare_int_int(testName, 2, len(root.ValArray), t) // has 1 elem
+	compare_str_str(testName, "a", root.ValArray[0].ValString, t) // has 1 elem
+	compare_str_str(testName, "A", root.ValArray[1].ValString, t) // has 1 elem
+
 }

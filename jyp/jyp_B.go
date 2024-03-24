@@ -36,18 +36,19 @@ var errorPrefix = "Error: "
 
 type tokenElem_B struct {
 	tokenType rune /* one rune is stored here to represent a unit in the source code
-                      { objOpen
-                      } objClose
-                      [ arrayOpen
-                      ] arrayClose
-                      , comma
-                      : colon
-                      " string
-                      0 digit
-                      t true
-                      f false
-                      n null
-                      ? not identified, only saved: later the type can be defined
+                      { objOpen            123  (charCode)
+                      } objClose           125
+                      [ arrayOpen           91
+                      ] arrayClose          93
+                      , comma               44
+                      : colon               58
+                      " string              34
+                      0 digit               48
+                      t true               116
+                      f false              102
+                      n null               110
+                      ? not identified,     63
+	                    only saved: later the type can be defined
 	*/
 	posInSrcFirst int
 	posInSrcLast  int
@@ -225,13 +226,12 @@ func prefixGen(oneUnitPrefix string, repeatNum int) string {
 	return out
 }
 
-func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosStart int, errorsCollected []error) (JSON_value_B, []error, int) {
-	problems := JSON_B_validation(tokensTableB)
+func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosStart int, errorsCollected []error) (JSON_value_B, int) {
 	if tokenPosStart >= len(tokensTableB) {
-		problems = append(problems, errors.New("wanted position index is higher than tokensTableB"))
+		errorsCollected= append(errorsCollected, errors.New("wanted position index is higher than tokensTableB"))
 	}
-	if len(problems) > 0 {
-		return JSON_value_B{}, problems, 0
+	if len(errorsCollected) > 0 {
+		return JSON_value_B{}, 0
 	}
 	elem := JSON_value_B{}
 	var pos int
@@ -242,9 +242,9 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 		if tokenNow.tokenType == '{' {
 			elem = NewObj_JSON_value_B()
 
-			for ; pos <len(tokensTableB); pos++ { // detect children
-				// todo: error handling
-				pos, _ = build__find_next_token_pos(true, []rune{'"'}, pos, tokensTableB)
+			for ; pos <len(tokensTableB); { // detect children
+				// todo: error handling, use errorsCollected everywhere
+				pos, _ = build__find_next_token_pos(true, []rune{'"'}, pos+1, tokensTableB)
 
 				// the next string key, the objKey is not quoted, but interpreted, too
 				objKey := stringValueParsing_rawToInterpretedCharacters(getTextFromSrc(src, tokensTableB[pos], false), errorsCollected)
@@ -253,7 +253,7 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 				pos, _ = build__find_next_token_pos(true, []rune{':'}, pos+1, tokensTableB)
 
 				// find the next ANY token, the new VALUE
-				nextValueElem, _, posLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1, errorsCollected)
+				nextValueElem, posLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1, errorsCollected)
 				elem.ValObject[objKey] = nextValueElem
 				pos = posLastUsed
 
@@ -275,15 +275,15 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 
 		} else if tokenNow.tokenType == '[' {
 			elem = NewArr_JSON_value_B()
-			for ; pos < len(tokensTableB); pos++ { // detect children
+			for ; pos < len(tokensTableB);  { // detect children
 				// find the next ANY token, the new VALUE
-				nextValueElem, _, posLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1, errorsCollected)
+				nextValueElem, posLastUsed := JSON_B_structure_building(src, tokensTableB, pos+1, errorsCollected)
 				elem.ValArray = append(elem.ValArray, nextValueElem)
 				pos = posLastUsed
 
 				if pos+1 < len(tokensTableB) { // look forward:
-					if tokensTableB[pos+1].tokenType == ']' {
-						break
+					if tokensTableB[pos+1].tokenType == ']' {  // if the next elem is ], this is the last child,
+						break // and stop the children detection, leave the detection for loop
 					}
 				}
 				pos, _ = build__find_next_token_pos(true, []rune{','}, pos+1, tokensTableB)
@@ -292,7 +292,7 @@ func JSON_B_structure_building(src string, tokensTableB tokenElems_B, tokenPosSt
 		} else if tokenNow.tokenType == ']' { break } // elem prepared, exit
 	} // for BIG loop
 
-	return elem, problems, pos // ret with last used position
+	return elem, pos // ret with last used position
 }
 
 // TODO: newObject, newInt, newFloat, newBool....
