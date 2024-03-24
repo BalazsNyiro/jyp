@@ -150,7 +150,7 @@ func base__print_tokenElems(tokenElems tokenElems_B) {
 	}
 }
 
-func JSON_B_validation(tokenTableB tokenElems_B) []error {
+func JSON_B_validation__L1(tokenTableB tokenElems_B) []error {
 	// TODO: loop over the table, find incorrect {..} [..], ".." pairs,
 	// incorrect numbers, everything that can be a problem
 	// so after this, we can be sure that every elem are in pairs.
@@ -172,7 +172,7 @@ func print_tokenB(prefix string, t tokenElem_B) {
 
 // return with pos only to avoid elem copy with reading/passing
 // find the next token from allowed types
-func token_find_next(wantedThem bool, types []rune, posActual int, tokensTable tokenElems_B) (int, error) {
+func token_find_next__L1(wantedThem bool, types []rune, posActual int, tokensTable tokenElems_B) (int, error) {
 	var pos int
 	if pos >= len(tokensTable) {
 		return pos, errors.New("token position is bigger than last elem index")
@@ -225,13 +225,13 @@ func JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B, tokenP
 
 			for ; pos <len(tokensTableB); { // detect children
 				// todo: error handling, use errorsCollected everywhere
-				pos, _ = token_find_next(true, []rune{'"'}, pos+1, tokensTableB)
+				pos, _ = token_find_next__L1(true, []rune{'"'}, pos+1, tokensTableB)
 
 				// the next string key, the objKey is not quoted, but interpreted, too
 				objKey := stringValueParsing_rawToInterpretedCharacters(getTextFromSrc(src, tokensTableB[pos], false), errorsCollected)
 
 				// find the next : but don't do anything with that
-				pos, _ = token_find_next(true, []rune{':'}, pos+1, tokensTableB)
+				pos, _ = token_find_next__L1(true, []rune{':'}, pos+1, tokensTableB)
 
 				// find the next ANY token, the new VALUE
 				nextValueElem, posLastUsed := JSON_B_structure_building__L1(src, tokensTableB, pos+1, errorsCollected)
@@ -243,7 +243,7 @@ func JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B, tokenP
 						break
 					}
 				}
-				pos, _ = token_find_next(true, []rune{','}, pos+1, tokensTableB)
+				pos, _ = token_find_next__L1(true, []rune{','}, pos+1, tokensTableB)
 			} // for pos, internal children loop
 
 		} else if tokenNow.tokenType == '?' {
@@ -267,7 +267,7 @@ func JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B, tokenP
 						break // and stop the children detection, leave the detection for loop
 					}
 				}
-				pos, _ = token_find_next(true, []rune{','}, pos+1, tokensTableB)
+				pos, _ = token_find_next__L1(true, []rune{','}, pos+1, tokensTableB)
 			} // for pos, internal children loop
 		} else if tokenNow.tokenType == '}' { break   // ascii:125,
 		} else if tokenNow.tokenType == ']' { break } // elem prepared, exit
@@ -275,34 +275,6 @@ func JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B, tokenP
 
 	return elem, pos // ret with last used position
 }
-
-// TODO: newObject, newInt, newFloat, newBool....
-func NewString_JSON_value_quotedBothEnd(text string, errorsCollected []error) JSON_value_B {
-	// strictly have minimum one "opening....and...one..closing" quote!
-	valString := stringValueParsing_rawToInterpretedCharacters( text[1:len(text)-1], errorsCollected)
-
-	return JSON_value_B{
-		ValType:      '"',
-		ValStringRaw: text,
-		ValString: valString,
-	}
-}
-
-func NewObj_JSON_value_B() JSON_value_B {
-	return JSON_value_B{
-		ValType: '{',
-		ValObject: map[string]JSON_value_B{},
-	}
-}
-
-func NewArr_JSON_value_B() JSON_value_B {
-	return JSON_value_B{
-		ValType: '[',
-		ValArray: []JSON_value_B{},
-	}
-}
-
-
 type JSON_value_B struct {
 	ValType rune
 

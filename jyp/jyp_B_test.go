@@ -57,7 +57,7 @@ func Test_structure_building(t *testing.T) {
 
 	src := `{"a": "A"}`
 	tokensTableB := tokensTableDetect_structuralTokens_strings(src)
-	errorsCollected = JSON_B_validation(tokensTableB)
+	errorsCollected = JSON_B_validation__L1(tokensTableB)
 	root, _ := JSON_B_structure_building__L1(src, tokensTableB, 0, errorsCollected)
 	compare_rune_rune(testName, '{', root.ValType, t)
 	compare_int_int(testName, 1, len(root.ValObject), t) // has 1 elem
@@ -66,7 +66,7 @@ func Test_structure_building(t *testing.T) {
 	testName = funName + "_basic_arr"
 	src = `["a", "A"]`
 	tokensTableB = tokensTableDetect_structuralTokens_strings(src)
-	errorsCollected = JSON_B_validation(tokensTableB)
+	errorsCollected = JSON_B_validation__L1(tokensTableB)
 	root, _ = JSON_B_structure_building__L1(src, tokensTableB, 0, errorsCollected)
 	compare_rune_rune(testName, '[', root.ValType, t)
 	compare_int_int(testName, 2, len(root.ValArray), t) // has 1 elem

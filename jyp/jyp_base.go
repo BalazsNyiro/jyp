@@ -50,7 +50,7 @@ func base__is_whitespace_rune(oneRune rune) bool { // TESTED
 
 
 // repeat the wanted unit prefix a few times
-func base__prefixGenerator_for_repr(oneUnitPrefix string, repeatNum int) string {
+func base__prefixGenerator_for_repr(oneUnitPrefix string, repeatNum int) string { // TESTED
 	if oneUnitPrefix == "" {
 		return "" // if there is nothing to repeat
 	}
