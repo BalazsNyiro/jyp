@@ -141,7 +141,7 @@ func tokensTableDetect_structuralTokens_strings(srcStr string) tokenElems_B {
 	return tokenTable
 }
 
-func base__is_whitespace_rune(oneRune rune) bool { // TESTED
+func base__is_whitespace_rune(oneRune rune) bool { //
 	/*  https://stackoverflow.com/questions/29038314/determining-whitespace-in-go
 		'\t', '\n', '\v', '\f', '\r', ' ', U+0085 (NEL), U+00A0 (NBSP).
 		Other definitions of spacing characters are set by category Z and property Pattern_White_Space. */
@@ -357,7 +357,7 @@ func base__separator_set_if_no_last_elem(position, length_numOfAllElems int, sep
 // set the string value from raw strings
 // in orig soure code, \n means 2 chars: a backslash and 'n'.
 // but if it is interpreted, that is one newline "\n" char.
-func stringValueParsing_rawToInterpretedCharacters(src string, errorsCollected []error) string{ // TESTED
+func stringValueParsing_rawToInterpretedCharacters(src string, errorsCollected []error) string{ //
 
 	/* Tasks:
 	- is it a valid string?
@@ -476,7 +476,7 @@ func stringValueParsing_rawToInterpretedCharacters(src string, errorsCollected [
 // and if a space is returned, this has NO MEANING in that parse section
 // this fun is NOT used in string detection - and other places whitespaces can be neglected, too
 // getChar, with whitespace replace
-func base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src string, pos int) rune { // TESTED
+func base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src string, pos int) rune { //
 	char := base__srcGetChar__safeOverindexing(src, pos)
 	if base__is_whitespace_rune(char) {
 		return ' ' // simplify everything. if the char is ANY whitespace char,
@@ -486,7 +486,7 @@ func base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src str
 }
 
 // getChar, no whitespace replace
-func base__srcGetChar__safeOverindexing(src string, pos int) rune { // TESTED
+func base__srcGetChar__safeOverindexing(src string, pos int) rune { //
 	posPossibleMax := len(src) - 1  // if src is empty, max is -1,
 	posPossibleMin := 0             // and the condition cannot be true here:
 	if (pos >= posPossibleMin) && (pos <= posPossibleMax) {
@@ -531,7 +531,7 @@ func base__digit10BasedRune_integer_value(digit10based rune) (int, error) {
 	return 0, errors.New(errorPrefix + "rune (" + string(digit10based) + ")")
 }
 
-func base__hexaRune_to_intVal(hexaChar rune) (int, error) { // TESTED
+func base__hexaRune_to_intVal(hexaChar rune) (int, error) { //
 	hexaTable := map[rune]int{
 		'0': 0,
 		'1': 1,
