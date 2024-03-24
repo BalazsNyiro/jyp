@@ -61,6 +61,13 @@ func base__prefixGenerator_for_repr(oneUnitPrefix string, repeatNum int) string 
 	return out
 }
 
+// Elemental func, select/read section from src
+func base__read_sourceCode_section(src string, token tokenElem_B, quoted bool) string {
+	if quoted {
+		return src[token.posInSrcFirst:token.posInSrcLast+1]
+	}
+	return src[token.posInSrcFirst+1:token.posInSrcLast]
+}
 
 // for list printing, set comma as a separator if NOT the last elem is printed.
 // after the last elem, separator has to be empty
@@ -97,3 +104,5 @@ func base__srcGetChar__safeOverindexing(src string, pos int) rune { // TESTED
 	}
 	return ' '
 }
+
+

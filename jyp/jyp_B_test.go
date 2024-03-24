@@ -30,11 +30,12 @@ func Test_tokensTableDetect_versionB(t *testing.T) {
 	timeStart := time.Now()
 	// src = `{"a": "b"}`
 	src = `{"a": "A", "b1": {"b2":"B2"}, "c":"C", "list":["k", "bh"]}`
-	tokensTableB := tokensTableDetect_structuralTokens_strings(src)
+	tokensTableB := tokensTableDetect_structuralTokens_strings__L1(src)
 	fmt.Println("token table creation time:", time.Since(timeStart))
+
 	fmt.Println("tokensTableB")
 	for _, tokenb := range tokensTableB {
-		print_tokenB("tokenTable:", tokenb)
+		tokenb.print("tokenTable:")
 	}
 
 	errorsCollected := []error{}
@@ -56,7 +57,7 @@ func Test_structure_building(t *testing.T) {
 	errorsCollected := []error{}
 
 	src := `{"a": "A"}`
-	tokensTableB := tokensTableDetect_structuralTokens_strings(src)
+	tokensTableB := tokensTableDetect_structuralTokens_strings__L1(src)
 	errorsCollected = JSON_B_validation__L1(tokensTableB)
 	root, _ := JSON_B_structure_building__L1(src, tokensTableB, 0, errorsCollected)
 	compare_rune_rune(testName, '{', root.ValType, t)
@@ -65,7 +66,7 @@ func Test_structure_building(t *testing.T) {
 
 	testName = funName + "_basic_arr"
 	src = `["a", "A"]`
-	tokensTableB = tokensTableDetect_structuralTokens_strings(src)
+	tokensTableB = tokensTableDetect_structuralTokens_strings__L1(src)
 	errorsCollected = JSON_B_validation__L1(tokensTableB)
 	root, _ = JSON_B_structure_building__L1(src, tokensTableB, 0, errorsCollected)
 	compare_rune_rune(testName, '[', root.ValType, t)

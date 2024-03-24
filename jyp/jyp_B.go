@@ -53,9 +53,13 @@ type tokenElem_B struct {
 	posInSrcLast  int
 }
 
+func (t tokenElem_B) print(prefix string) {
+	fmt.Println(prefix, string(t.tokenType), t.posInSrcFirst, t.posInSrcLast)
+}
+
 type tokenElems_B []tokenElem_B
 
-func tokensTableDetect_structuralTokens_strings(srcStr string) tokenElems_B {
+func tokensTableDetect_structuralTokens_strings__L1(srcStr string) tokenElems_B {
 	tokenTable := tokenElems_B{}
 	posUnknownBlockStart := -1 // used only if the token is longer than 1 char. numbers, false/true for example
 	
@@ -158,18 +162,6 @@ func JSON_B_validation__L1(tokenTableB tokenElems_B) []error {
 }
 
 
-func getTextFromSrc(src string, token tokenElem_B, quoted bool) string {
-	if quoted {
-		return src[token.posInSrcFirst:token.posInSrcLast+1]
-	}
-	return src[token.posInSrcFirst+1:token.posInSrcLast]
-}
-
-func print_tokenB(prefix string, t tokenElem_B) {
-	fmt.Println(prefix, string(t.tokenType), t.posInSrcFirst, t.posInSrcLast)
-}
-
-
 // return with pos only to avoid elem copy with reading/passing
 // find the next token from allowed types
 func token_find_next__L1(wantedThem bool, types []rune, posActual int, tokensTable tokenElems_B) (int, error) {
@@ -181,7 +173,7 @@ func token_find_next__L1(wantedThem bool, types []rune, posActual int, tokensTab
 		for pos = posActual; pos<len(tokensTable); pos++ {
 			for _, wanted := range types {
 				if tokensTable[pos].tokenType == wanted {
-					// print_tokenB("wanted1:", tokensTable[pos])
+					// base__print_tokenB("wanted1:", tokensTable[pos])
 					return pos, nil
 				}
 			}
@@ -198,7 +190,7 @@ func token_find_next__L1(wantedThem bool, types []rune, posActual int, tokensTab
 				}
 			}
 			if ! actualTypeIsNonWanted {
-				// print_tokenB("wanted2:", tokensTable[pos])
+				// base__print_tokenB("wanted2:", tokensTable[pos])
 				return pos, nil
 			}
 		}
@@ -228,7 +220,7 @@ func JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B, tokenP
 				pos, _ = token_find_next__L1(true, []rune{'"'}, pos+1, tokensTableB)
 
 				// the next string key, the objKey is not quoted, but interpreted, too
-				objKey := stringValueParsing_rawToInterpretedCharacters(getTextFromSrc(src, tokensTableB[pos], false), errorsCollected)
+				objKey := stringValueParsing_rawToInterpretedCharacters(base__read_sourceCode_section(src, tokensTableB[pos], false), errorsCollected)
 
 				// find the next : but don't do anything with that
 				pos, _ = token_find_next__L1(true, []rune{':'}, pos+1, tokensTableB)
@@ -251,7 +243,7 @@ func JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B, tokenP
 			break
 
 		} else if tokenNow.tokenType == '"' {
-			elem = NewString_JSON_value_quotedBothEnd(getTextFromSrc(src, tokensTableB[pos], true), errorsCollected)
+			elem = NewString_JSON_value_quotedBothEnd(base__read_sourceCode_section(src, tokensTableB[pos], true), errorsCollected)
 			break
 
 		} else if tokenNow.tokenType == '[' {
