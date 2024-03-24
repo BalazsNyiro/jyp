@@ -49,6 +49,16 @@ func base__is_whitespace_rune(oneRune rune) bool { // TESTED
 }
 
 
+// for list printing, set comma as a separator if NOT the last elem is printed.
+// after the last elem, separator has to be empty
+func base__separator_set_if_no_last_elem(position, length_numOfAllElems int, separator string) string {
+	if position < length_numOfAllElems-1 {
+		return separator
+	}
+	return ""
+}
+
+
 // get the rune IF the index is really in the range of the src.
 // return with ' ' space, IF the index is NOT in the range.
 // reason: avoid never ending index checking, so do it only once

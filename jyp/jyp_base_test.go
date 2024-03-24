@@ -81,6 +81,25 @@ func Test_base__is_whitespace_rune(t *testing.T) {
 	compare_bool_bool(testName, false, isWhitespace, t)
 }
 
+func Test_base__separator_set_if_no_last_elem(t *testing.T) {
+	funName := "Test_base__separator_set_if_no_last_elem"
+	testName := funName + "_base"
+
+	// [0,1,2,3]
+	// before last elem, comma has to be used between elems
+	sep := base__separator_set_if_no_last_elem(0, 4, ",")
+	compare_str_str(testName, ",", sep, t)
+
+	// after the last elem, no separator used
+	sep = base__separator_set_if_no_last_elem(4, 4, ",")
+	compare_str_str(testName, "", sep, t)
+
+	sep = base__separator_set_if_no_last_elem(5, 4, ",")
+	compare_str_str(testName, "", sep, t)
+}
+
+
+
 // go test -v -run
 func Test_base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(t *testing.T) {
 	funName := "Test_base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces"

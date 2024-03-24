@@ -338,14 +338,6 @@ func (v JSON_value_B) ValObject_keys_sorted() []string{
 	return keys
 }
 
-
-func base__separator_set_if_no_last_elem(position, length_numOfAllElems int, separator string) string {
-	if position < length_numOfAllElems-1 {
-		return separator
-	}
-	return ""
-}
-
 // set the string value from raw strings
 // in orig soure code, \n means 2 chars: a backslash and 'n'.
 // but if it is interpreted, that is one newline "\n" char.
