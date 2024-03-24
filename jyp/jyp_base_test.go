@@ -54,3 +54,29 @@ func Test_hexaRune_to_intVal(t *testing.T) {
 	intValDetected, err = base__hexaRune_to_intVal('m')
 	compare_bool_bool(testName, true, err != nil, t)
 }
+
+// go test -v -run Test_hexaRune_to_intVal
+func Test_base__is_whitespace_rune(t *testing.T) {
+	funName := "Test_base__is_whitespace_rune"
+	testName := funName + "_base"
+
+	var isWhitespace bool
+
+	isWhitespace = base__is_whitespace_rune('\r')
+	compare_bool_bool(testName, true, isWhitespace, t)
+
+	isWhitespace = base__is_whitespace_rune('\n')
+	compare_bool_bool(testName, true, isWhitespace, t)
+
+	isWhitespace = base__is_whitespace_rune('\t')
+	compare_bool_bool(testName, true, isWhitespace, t)
+
+	isWhitespace = base__is_whitespace_rune(' ')
+	compare_bool_bool(testName, true, isWhitespace, t)
+
+	isWhitespace = base__is_whitespace_rune('.')
+	compare_bool_bool(testName, false, isWhitespace, t)
+
+	isWhitespace = base__is_whitespace_rune('1')
+	compare_bool_bool(testName, false, isWhitespace, t)
+}

@@ -10,7 +10,10 @@ LICENSE file in the root directory of this source tree.
 
 package jyp
 
-import "errors"
+import (
+	"errors"
+	"unicode"
+)
 
 
 func base__hexaRune_to_intVal(hexaChar rune) (int, error) { // TESTED
@@ -38,3 +41,11 @@ func base__hexaRune_to_intVal(hexaChar rune) (int, error) { // TESTED
 	}
 	return 0, errors.New("hexa char(" + string(hexaChar) + ") was not in hexa table")
 }
+
+func base__is_whitespace_rune(oneRune rune) bool { // TESTED
+	/*  https://stackoverflow.com/questions/29038314/determining-whitespace-in-go
+	'\t', '\n', '\v', '\f', '\r', ' ', U+0085 (NEL), U+00A0 (NBSP).
+	Other definitions of spacing characters are set by category Z and property Pattern_White_Space. */
+	return unicode.IsSpace(oneRune)
+}
+

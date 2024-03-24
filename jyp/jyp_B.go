@@ -29,7 +29,6 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"unicode"
 )
 
 var errorPrefix = "Error: "
@@ -139,13 +138,6 @@ func tokensTableDetect_structuralTokens_strings(srcStr string) tokenElems_B {
 
 	} // for, tokenTable
 	return tokenTable
-}
-
-func base__is_whitespace_rune(oneRune rune) bool { //
-	/*  https://stackoverflow.com/questions/29038314/determining-whitespace-in-go
-		'\t', '\n', '\v', '\f', '\r', ' ', U+0085 (NEL), U+00A0 (NBSP).
-		Other definitions of spacing characters are set by category Z and property Pattern_White_Space. */
-	return unicode.IsSpace(oneRune)
 }
 
 func base__print_tokenElems(tokenElems tokenElems_B) {
