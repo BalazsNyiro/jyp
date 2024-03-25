@@ -149,7 +149,7 @@ func Test_speed(t *testing.T) {
 	// python3 json.loads() speed: 0.24469351768493652 sec
 	// my speed: 3.82s (2024 Marc 16)
 	//           3.47s (2024 Marc 17)
-	//           1.56s (2024 Marc 25)
+	//           1.24s (2024 Marc 25)
 
 }
 

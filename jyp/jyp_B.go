@@ -301,7 +301,6 @@ type JSON_value_B struct {
 	ValBool bool // true, false
 
 	ValString   string     // the parsed string. \n means 1 char here, for example
-	ValStringRaw   string  // exact copy of the original source code, that was parsed (non-interpreted. \t means 2 chars, not 1!
 	ValNumberInt   int     // an integer JSON value is stored here
 	ValNumberFloat float64 // a float JSON value is saved here
 }

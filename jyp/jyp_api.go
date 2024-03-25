@@ -118,12 +118,9 @@ func NewNumFloat(num float64) JSON_value_B {
 
 func NewString_JSON_value_quotedBothEnd(text string, errorsCollected []error) JSON_value_B {
 	// strictly have minimum one "opening....and...one..closing" quote!
-	valString := stringValueParsing_rawToInterpretedCharacters_L2( text[1:len(text)-1], errorsCollected)
-
 	return JSON_value_B{
 		ValType:      '"',
-		ValStringRaw: text,
-		ValString: valString,
+		ValString: stringValueParsing_rawToInterpretedCharacters_L2( text[1:len(text)-1], errorsCollected),
 	}
 }
 
