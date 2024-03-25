@@ -10,6 +10,7 @@ LICENSE file in the root directory of this source tree.
 
 package jyp
 
+import "strconv"
 
 // example usage: Repr(2) means: use "  " 2 spaces as indentation
 // if ind
@@ -44,6 +45,10 @@ func (v JSON_value_B) Repr_tuned(indent string, level int) string {
 		return "\""+v.ValString + "\""
 	}
 
+	if v.ValType == 'I' {
+		return strconv.Itoa(v.ValNumberInt)
+	}
+
 	if v.ValType == '{' {
 		out := prefix + "{" + newLine
 		for counter, childKey := range v.ValObject_keys_sorted() {
@@ -71,14 +76,14 @@ func (v JSON_value_B) Repr_tuned(indent string, level int) string {
 // TODO: newObject, newInt, newFloat, newBool....
 func NewNumInt(num int) JSON_value_B {
 	return JSON_value_B{
-		ValType:      '0',
+		ValType:      'I', // Integer
 		ValNumberInt: num,
 	}
 }
 
 func NewNumFloat(num float64) JSON_value_B {
 	return JSON_value_B{
-		ValType:      '0',
+		ValType:      'F',    // Float
 		ValNumberFloat: num,
 	}
 }

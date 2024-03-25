@@ -89,10 +89,8 @@ func stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr string) tokenEl
 	
 	//////////// TOKEN ADD //////////////////////////
 	tokenAdd := func (typeOfToken rune, posFirst, posLast int) {
-		// TODO: unknown token processing here, to avoid second loop? w
 		if typeOfToken == '?' {
 			textInSrc := srcStr[posFirst:posLast+1]
-			fmt.Println("text in src DEBUG:", textInSrc, "<<<")
 			if textInSrc == "true" { typeOfToken = 't' } else
 			if textInSrc == "false" { typeOfToken = 'f' } else
 			if textInSrc == "null" { typeOfToken = 'n' } else {
