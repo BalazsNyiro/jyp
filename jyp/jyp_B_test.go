@@ -99,4 +99,11 @@ func Test_structure_building_complex(t *testing.T) {
 	compare_str_str(testName, "1", array.ValArray[1].ValString, t) // has 1 elem
 	compare_str_str(testName, "2", array.ValArray[2].ValString, t) // has 1 elem
 
+	obj := root.ValObject["obj"]
+	compare_rune_rune(testName, '{', obj.ValType, t)
+
+	val := obj.ValObject["key"].ValArray[0]
+	compare_rune_rune(testName, '"', val.ValType, t)
+	compare_str_str(testName, "val", val.ValString, t) // has 1 elem
+
 }
