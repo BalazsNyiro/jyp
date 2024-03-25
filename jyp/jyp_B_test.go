@@ -82,10 +82,12 @@ func Test_structure_building_complex(t *testing.T) {
 	testName := funName + "_base"
 	errorsCollected := []error{}
 
-	src := `{"a": "A", "arr": ["1", "2", "3"], "obj": {"key": ["val"]} }`
+	src := `{"a": "A", "arr": ["0", "1", "2"], "obj": {"key": ["val"]} }`
 	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
+	tokensTableB.print()
 	errorsCollected = stepB__JSON_B_validation_L1(tokensTableB)
 	root, _ := stepC__JSON_B_structure_building__L1(src, tokensTableB, 0, errorsCollected)
+	fmt.Println(root.Repr())
 	compare_rune_rune(testName, '{', root.ValType, t)
 	compare_int_int(testName, 3, len(root.ValObject), t) // has 1 elem
 	compare_str_str(testName, "A", root.ValObject["a"].ValString, t)
@@ -93,5 +95,8 @@ func Test_structure_building_complex(t *testing.T) {
 	array := root.ValObject["arr"]
 	compare_rune_rune(testName, '[', array.ValType, t)
 	compare_int_int(testName, 3, len(array.ValArray), t) // has 1 elem
+	compare_str_str(testName, "0", array.ValArray[0].ValString, t) // has 1 elem
+	compare_str_str(testName, "1", array.ValArray[1].ValString, t) // has 1 elem
+	compare_str_str(testName, "2", array.ValArray[2].ValString, t) // has 1 elem
 
 }
