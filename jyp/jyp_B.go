@@ -37,6 +37,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
 )
 
 var errorPrefix = "Error: "
@@ -91,6 +92,7 @@ func stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr string) tokenEl
 		// TODO: unknown token processing here, to avoid second loop? w
 		if typeOfToken == '?' {
 			textInSrc := srcStr[posFirst:posLast+1]
+			fmt.Println("text in src DEBUG:", textInSrc, "<<<")
 			if textInSrc == "true" { typeOfToken = 't' } else
 			if textInSrc == "false" { typeOfToken = 'f' } else
 			if textInSrc == "null" { typeOfToken = 'n' } else {
@@ -138,12 +140,13 @@ func stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr string) tokenEl
 				} else { // whitespace AFTER an unknown token
 					// save the previously detected unknownBlock,
 					// and skip the whitespace
-					tokenTable = append(tokenTable, tokenElem_B{tokenType: '?', posInSrcFirst: posUnknownBlockStart, posInSrcLast: pos-1}  )
+
+					tokenAdd('?', posUnknownBlockStart, pos-1)
 					posUnknownBlockStart = -1
 				}
 			} else if runeNow == '{' || runeNow == '}' || runeNow == '[' || runeNow == ']' || runeNow == ',' || runeNow == ':' {
 				if inUnknownBlock() {
-					tokenTable = append(tokenTable, tokenElem_B{tokenType: '?', posInSrcFirst: posUnknownBlockStart, posInSrcLast: pos-1}  )
+					tokenAdd('?', posUnknownBlockStart, pos-1)
 					posUnknownBlockStart = -1
 				}
 				tokenAdd(runeNow, pos, pos)
@@ -237,7 +240,13 @@ func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B,
 			textInSrc := base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[pos], false)
 			// detect simple integers first
 			_ = textInSrc
+			i, err := strconv.Atoi(textInSrc)
+			if err == nil { // it was really an integer...
+				elem = NewNumInt(i)
+				break
+			}
 
+			// worst case, I don't know what is this, so insert it as a string
 			elem = NewString_JSON_value_quotedBothEnd(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[pos], false), errorsCollected)
 			break
 

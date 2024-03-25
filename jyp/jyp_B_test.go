@@ -105,5 +105,32 @@ func Test_structure_building_complex(t *testing.T) {
 	val := obj.ValObject["key"].ValArray[0]
 	compare_rune_rune(testName, '"', val.ValType, t)
 	compare_str_str(testName, "val", val.ValString, t) // has 1 elem
+}
 
+
+//  go test -v -run  Test_numbers_int
+func Test_numbers_int(t *testing.T) {
+	funName := "Test_numbers_int"
+	testName := funName + "_base"
+	errorsCollected := []error{}
+	_ = testName
+	_ = errorsCollected
+
+	src := `{"age": -123, "favouriteNums": [4, 5, 6] } }`
+	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
+	tokensTableB.print()
+
+	errorsCollected = stepB__JSON_B_validation_L1(tokensTableB)
+	root, _ := stepC__JSON_B_structure_building__L1(src, tokensTableB, 0, errorsCollected)
+	fmt.Println(root.Repr())
+
+	compare_rune_rune(testName, '{', root.ValType, t)
+
+	age := root.ValObject["age"]
+	compare_int_int(testName, -123, age.ValNumberInt, t)
+
+	nums := root.ValObject["favouriteNums"]
+	compare_int_int(testName, 4, nums.ValArray[0].ValNumberInt, t)
+	compare_int_int(testName, 5, nums.ValArray[1].ValNumberInt, t)
+	compare_int_int(testName, 6, nums.ValArray[2].ValNumberInt, t)
 }
