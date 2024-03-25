@@ -82,6 +82,32 @@ func (tokenElems tokenElems_B) print() {
 	}
 }
 
+// What if this is re-organised? JSON_value_B has only an Id,
+// and every different type has a special storage?
+type JSON_value_B struct {
+	ValType rune
+
+	// ...... these values represent a Json elem's value - and one of them is filled only.. ..........
+	ValObject map[string]JSON_value_B
+	ValArray  []JSON_value_B
+
+	ValBool bool // true, false
+
+	ValString   string     // the parsed string. \n means 1 char here, for example
+	ValNumberInt   int     // an integer JSON value is stored here
+	ValNumberFloat float64 // a float JSON value is saved here
+}
+
+func (v JSON_value_B) ValObject_keys_sorted() []string{
+	keys := make([]string, 0, len(v.ValObject))
+	for k, _ := range v.ValObject {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+
 
 func stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr string) tokenElems_B {
 	tokenTable := tokenElems_B{}
@@ -290,29 +316,6 @@ func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B,
 	return elem, pos // ret with last used position
 }
 
-
-type JSON_value_B struct {
-	ValType rune
-
-	// ...... these values represent a Json elem's value - and one of them is filled only.. ..........
-	ValObject map[string]JSON_value_B
-	ValArray  []JSON_value_B
-
-	ValBool bool // true, false
-
-	ValString   string     // the parsed string. \n means 1 char here, for example
-	ValNumberInt   int     // an integer JSON value is stored here
-	ValNumberFloat float64 // a float JSON value is saved here
-}
-
-func (v JSON_value_B) ValObject_keys_sorted() []string{
-	keys := make([]string, 0, len(v.ValObject))
-	for k, _ := range v.ValObject {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
-}
 
 
 // return with pos only to avoid elem copy with reading/passing
