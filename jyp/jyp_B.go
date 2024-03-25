@@ -377,13 +377,13 @@ func stringValueParsing_rawToInterpretedCharacters_L2(src string, errorsCollecte
 
 		runeActual := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos)
 		//fmt.Println("rune actual (string value set):", pos, string(runeActual), runeActual)
-		runeNext1 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+1)
 
 		if runeActual != runeBackSlash { // a non-backSlash char
 			valueFromRawSrcParsing = append(valueFromRawSrcParsing, runeActual)
 			continue
 		} else {
 			// runeActual is \\ here, so ESCAPING started
+			runeNext1 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+1)
 
 			if runeNext1 == 'u' {
 				// this is \u.... unicode code point - special situation,
