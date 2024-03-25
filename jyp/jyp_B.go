@@ -25,9 +25,10 @@ This module: is the main logic of json parsing
 
 
 TODOS:
- - stepB, validation
-
-
+ - stepB, validation: {} [] "" pairings, missing commas, colons?
+ - error handling, use errorsCollected everywhere
+ - true/false/null
+ - special number handling (e, hexa)
 */
 
 package jyp
@@ -49,7 +50,7 @@ type tokenElem_B struct {
                       , comma               44
                       : colon               58
                       " string              34
-                      0 digit               48
+                      0 number              48
                       t true               116
                       f false              102
                       n null               110
@@ -187,7 +188,6 @@ func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B,
 			elem = NewObj_JSON_value_B()
 
 			for ; pos <len(tokensTableB); { // detect children
-				// todo: error handling, use errorsCollected everywhere
 				pos, _ = token_find_next__L2(true, []rune{'"'}, pos+1, tokensTableB)
 
 				// the next string key, the objKey is not quoted, but interpreted, too
