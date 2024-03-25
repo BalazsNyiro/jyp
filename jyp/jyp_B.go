@@ -83,15 +83,15 @@ func (tokens tokenElems) print() {
 	}
 }
 
-// What if this is re-organised? JSON_value_B has only an Id,
+// What if this is re-organised? JSON_value has only an Id,
 // and every different type has a special storage?
 // with that idea, 30ms can be saved, but the code becomes more complex
-type JSON_value_B struct {
+type JSON_value struct {
 	ValType rune
 
 	// ...... these values represent a Json elem's value - and one of them is filled only.. ..........
-	ValObject map[string]JSON_value_B
-	ValArray  []JSON_value_B
+	ValObject map[string]JSON_value
+	ValArray  []JSON_value
 
 	ValBool bool // true, false
 
@@ -100,7 +100,7 @@ type JSON_value_B struct {
 	ValNumberFloat float64 // a float JSON value is saved here
 }
 
-func (v JSON_value_B) ValObject_keys_sorted() []string{
+func (v JSON_value) ValObject_keys_sorted() []string{
 	keys := make([]string, 0, len(v.ValObject))
 	for k, _ := range v.ValObject {
 		keys = append(keys, k)
@@ -205,7 +205,7 @@ func stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr string) tokenEl
 	return tokenTable
 }
 
-func stepB__JSON_B_validation_L1(tokenTableB tokenElems) []error {
+func stepB__JSON_validation_L1(tokenTableB tokenElems) []error {
 	// TODO: loop over the table, find incorrect {..} [..], ".." pairs,
 	// incorrect numbers, everything that can be a problem
 	// so after this, we can be sure that every elem are in pairs.
@@ -214,15 +214,15 @@ func stepB__JSON_B_validation_L1(tokenTableB tokenElems) []error {
 
 
 // L1: Level 1. A higher level is a more general fun, a lower level is a tool, lib func, or something small
-func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems, tokenPosStart int, errorsCollected []error) (JSON_value_B, int) {
+func stepC__JSON_structure_building__L1(src string, tokensTableB tokenElems, tokenPosStart int, errorsCollected []error) (JSON_value, int) {
 	if tokenPosStart >= len(tokensTableB) {
 		errorsCollected= append(errorsCollected, errors.New("wanted position index is higher than tokensTableB"))
 	}
 
 	if len(errorsCollected) > 0 {
-		return JSON_value_B{}, 0
+		return JSON_value{}, 0
 	}
-	elem := JSON_value_B{}
+	elem := JSON_value{}
 	var pos int
 
 	for pos = tokenPosStart; pos<len(tokensTableB); pos++ {
@@ -264,7 +264,7 @@ func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems, t
 					pos, _ = token_find_next__L2(true, []rune{':'}, pos+1, tokensTableB)
 
 					// find the next ANY token, the new VALUE
-					nextValueElem, posLastUsed := stepC__JSON_B_structure_building__L1(src, tokensTableB, pos+1, errorsCollected)
+					nextValueElem, posLastUsed := stepC__JSON_structure_building__L1(src, tokensTableB, pos+1, errorsCollected)
 					elem.ValObject[objKey] = nextValueElem
 					pos = posLastUsed
 
@@ -280,7 +280,7 @@ func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems, t
 			elem = NewArr_JSON_value_B()
 			for ; pos < len(tokensTableB);  { // detect children
 				// find the next ANY token, the new VALUE
-				nextValueElem, posLastUsed := stepC__JSON_B_structure_building__L1(src, tokensTableB, pos+1, errorsCollected)
+				nextValueElem, posLastUsed := stepC__JSON_structure_building__L1(src, tokensTableB, pos+1, errorsCollected)
 				elem.ValArray = append(elem.ValArray, nextValueElem)
 				pos = posLastUsed
 

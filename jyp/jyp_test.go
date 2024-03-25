@@ -141,8 +141,8 @@ func Test_speed(t *testing.T) {
 	fmt.Println("time tokensTableDetect structuralTokens:", time.Since(timeSimpleStringPassing))
 
 	timeStructure := time.Now()
-	errorsCollected := stepB__JSON_B_validation_L1(tokensTableB)
-	root, _ := stepC__JSON_B_structure_building__L1(srcStr, tokensTableB, 0, errorsCollected)
+	errorsCollected := stepB__JSON_validation_L1(tokensTableB)
+	root, _ := stepC__JSON_structure_building__L1(srcStr, tokensTableB, 0, errorsCollected)
 	fmt.Println("time structure:", time.Since(timeStructure))
 	_ = root
 

@@ -16,11 +16,11 @@ import (
 	"strings"
 )
 
-func JsonParse(srcStr string) (JSON_value_B, []error) {
+func JsonParse(srcStr string) (JSON_value, []error) {
 
 	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr)
-	errorsCollected := stepB__JSON_B_validation_L1(tokensTableB)
-	elemRoot, _ := stepC__JSON_B_structure_building__L1(srcStr, tokensTableB, 0, errorsCollected)
+	errorsCollected := stepB__JSON_validation_L1(tokensTableB)
+	elemRoot, _ := stepC__JSON_structure_building__L1(srcStr, tokensTableB, 0, errorsCollected)
 
 	return elemRoot, errorsCollected
 }
@@ -28,7 +28,7 @@ func JsonParse(srcStr string) (JSON_value_B, []error) {
 // example usage: Repr(2) means: use "  " 2 spaces as indentation
 // if ind
 // otherwise a simple formatted output
-func (v JSON_value_B) Repr(indentationLength ...int) string {
+func (v JSON_value) Repr(indentationLength ...int) string {
 	if len(indentationLength) == 0 { // so no param is passed
 		return v.Repr_tuned("", 0)
 	}
@@ -41,7 +41,7 @@ func (v JSON_value_B) Repr(indentationLength ...int) string {
 
 // tunable repr: with this, tabulator can be used for example instead of spaces as indent,
 // level 0 means left align - if higher level is used, the output will be moved to right on the screen
-func (v JSON_value_B) Repr_tuned(indent string, level int) string {
+func (v JSON_value) Repr_tuned(indent string, level int) string {
 	prefix := "" // indentOneLevelPrefix
 	prefix2 := "" // indentTwoLevelPrefix
 	newLine := ""
@@ -101,65 +101,65 @@ func (v JSON_value_B) Repr_tuned(indent string, level int) string {
 }
 
 
-func NewNull() JSON_value_B {
-	return JSON_value_B{
+func NewNull() JSON_value {
+	return JSON_value{
 		ValType: 'n',
 	}
 }
 
-func NewBool(val bool) JSON_value_B {
-	return JSON_value_B{
+func NewBool(val bool) JSON_value {
+	return JSON_value{
 		ValType: 'b', // bool
 		ValBool: val,
 	}
 }
 
-func NewNumInt(num int) JSON_value_B {
-	return JSON_value_B{
+func NewNumInt(num int) JSON_value {
+	return JSON_value{
 		ValType:      'I', // Integer
 		ValNumberInt: num,
 	}
 }
 
-func NewNumFloat(num float64) JSON_value_B {
-	return JSON_value_B{
+func NewNumFloat(num float64) JSON_value {
+	return JSON_value{
 		ValType:      'F',    // Float
 		ValNumberFloat: num,
 	}
 }
 
 
-func NewString_JSON_value_quotedBothEnd(text string, errorsCollected []error) JSON_value_B {
+func NewString_JSON_value_quotedBothEnd(text string, errorsCollected []error) JSON_value {
 	// strictly have minimum one "opening....and...one..closing" quote!
-	return JSON_value_B{
+	return JSON_value{
 		ValType:      '"',
 		ValString: stringValueParsing_rawToInterpretedCharacters_L2( text[1:len(text)-1], errorsCollected),
 	}
 }
 
-func NewObj_JSON_value_B() JSON_value_B {
-	return JSON_value_B{
+func NewObj_JSON_value_B() JSON_value {
+	return JSON_value{
 		ValType: '{',
-		ValObject: map[string]JSON_value_B{},
+		ValObject: map[string]JSON_value{},
 	}
 }
 
-func NewArr_JSON_value_B() JSON_value_B {
-	return JSON_value_B{
+func NewArr_JSON_value_B() JSON_value {
+	return JSON_value{
 		ValType: '[',
-		ValArray: []JSON_value_B{},
+		ValArray: []JSON_value{},
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-func (v JSON_value_B) ObjPath(keysMerged string) (JSON_value_B, error) {
+func (v JSON_value) ObjPath(keysMerged string) (JSON_value, error) {
 	// object reader with merged string keys (first character is the key elem separator
 	// elem_root.ObjPath("/personal/list")     separator: /
 	// elem_root.ObjPath("|personal|list")     separator: |
 	// elem_root.ObjPath(">personal>list")     separator: |
 	// the separator can be any character.
-	var valueEmpty JSON_value_B
+	var valueEmpty JSON_value
 
 	if len(keysMerged) < 2 {
 		return valueEmpty, errors.New(errorPrefix + "missing separator and key(s) in merged ObjPath")
@@ -195,9 +195,9 @@ func ObjPath_merged_expand__split_with_first_char(path string) ([]string, error)
 	*/
 }
 
-func (v JSON_value_B) ObjPathKeys(keysEmbedded []string) (JSON_value_B, error) {
+func (v JSON_value) ObjPathKeys(keysEmbedded []string) (JSON_value, error) {
 	// object reader with separated string keys:  elem_root.ObjPathKeys([]string{"personal", "list"})
-	var valueEmpty JSON_value_B
+	var valueEmpty JSON_value
 
 	if len(keysEmbedded) < 1 {
 		return valueEmpty, errors.New(errorPrefix + "missing object keys (no keys are passed)")
