@@ -136,31 +136,20 @@ func Test_speed(t *testing.T) {
 	srcStr := file_read_to_string("large-file.json")
 	fmt.Println("time read file to string:", time.Since(timeReadFileStart))
 
-	timeConvertToRunes := time.Now()
-	runes := []rune(srcStr)
-	_ = runes
-	fmt.Println("time read file to string -> to runes", time.Since(timeConvertToRunes))
-
-	timeReadFileToRunes := time.Now()
-	runes = file_read_to_runes("large-file.json")
-	fmt.Println("time read file into runes:", time.Since(timeReadFileToRunes))
-
 	timeSimpleStringPassing := time.Now()
-	stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr)
-	fmt.Println("time pointer string passing:", time.Since(timeSimpleStringPassing))
+	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr)
+	fmt.Println("time tokensTableDetect structuralTokens:", time.Since(timeSimpleStringPassing))
 
-	timeLoopOverStringSrc := time.Now()
-	counter := 0
-	for _, runeNow := range srcStr {
-		if runeNow > 22 {
-			counter++
-		}
-	}
-	fmt.Println(counter, "time Loop over string chars as runes:", time.Since(timeLoopOverStringSrc))
+	timeStructure := time.Now()
+	errorsCollected := stepB__JSON_B_validation_L1(tokensTableB)
+	root, _ := stepC__JSON_B_structure_building__L1(srcStr, tokensTableB, 0, errorsCollected)
+	fmt.Println("time structure:", time.Since(timeStructure))
+	_ = root
 
 	// python3 json.loads() speed: 0.24469351768493652 sec
 	// my speed: 3.82s (2024 Marc 16)
 	//           3.47s (2024 Marc 17)
+	//           1.58s (2024 Marc 25)
 
 }
 

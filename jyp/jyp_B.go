@@ -27,7 +27,6 @@ This module: is the main logic of json parsing
 TODOS:
  - stepB, validation: {} [] "" pairings, missing commas, colons?
  - error handling, use errorsCollected everywhere
- - true/false/null
  - special number handling (e, hexa)
 */
 
@@ -191,6 +190,7 @@ func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B,
 	if tokenPosStart >= len(tokensTableB) {
 		errorsCollected= append(errorsCollected, errors.New("wanted position index is higher than tokensTableB"))
 	}
+
 	if len(errorsCollected) > 0 {
 		return JSON_value_B{}, 0
 	}
@@ -200,38 +200,7 @@ func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B,
 	for pos = tokenPosStart; pos<len(tokensTableB); pos++ {
 		tokenNow := tokensTableB[pos]
 
-		if tokenNow.tokenType == '{' {
-			elem = NewObj_JSON_value_B()
-
-			for ; pos <len(tokensTableB); { // detect children
-				pos, _ = token_find_next__L2(true, []rune{'"'}, pos+1, tokensTableB)
-
-				// the next string key, the objKey is not quoted, but interpreted, too
-				objKey := stringValueParsing_rawToInterpretedCharacters_L2(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[pos], true), errorsCollected)
-
-				// find the next : but don't do anything with that
-				pos, _ = token_find_next__L2(true, []rune{':'}, pos+1, tokensTableB)
-
-				// find the next ANY token, the new VALUE
-				nextValueElem, posLastUsed := stepC__JSON_B_structure_building__L1(src, tokensTableB, pos+1, errorsCollected)
-				elem.ValObject[objKey] = nextValueElem
-				pos = posLastUsed
-
-				if pos+1 < len(tokensTableB) { // look forward:
-					if tokensTableB[pos+1].tokenType == '}' {
-						break
-					}
-				}
-				pos, _ = token_find_next__L2(true, []rune{','}, pos+1, tokensTableB)
-			} // for pos, internal children loop
-
-		/*	This is not possible anymore, every possible token type is detected now
-		} else if tokenNow.tokenType == '?' {
-			elem = NewString_JSON_value_quotedBothEnd("\"unknown_elem, maybe number or bool\"", errorsCollected)
-			break
-		*/
-
-		} else if tokenNow.tokenType == '"' {
+		if tokenNow.tokenType == '"' {
 			elem = NewString_JSON_value_quotedBothEnd(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[pos], false), errorsCollected)
 			break
 
@@ -254,6 +223,37 @@ func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B,
 			// worst case, I don't know what is this, so insert it as a string
 			elem = NewString_JSON_value_quotedBothEnd(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[pos], false), errorsCollected)
 			break
+
+		} else if tokenNow.tokenType == '{' {
+				elem = NewObj_JSON_value_B()
+
+				for ; pos <len(tokensTableB); { // detect children
+					pos, _ = token_find_next__L2(true, []rune{'"'}, pos+1, tokensTableB)
+
+					// the next string key, the objKey is not quoted, but interpreted, too
+					objKey := stringValueParsing_rawToInterpretedCharacters_L2(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[pos], true), errorsCollected)
+
+					// find the next : but don't do anything with that
+					pos, _ = token_find_next__L2(true, []rune{':'}, pos+1, tokensTableB)
+
+					// find the next ANY token, the new VALUE
+					nextValueElem, posLastUsed := stepC__JSON_B_structure_building__L1(src, tokensTableB, pos+1, errorsCollected)
+					elem.ValObject[objKey] = nextValueElem
+					pos = posLastUsed
+
+					if pos+1 < len(tokensTableB) { // look forward:
+						if tokensTableB[pos+1].tokenType == '}' {
+							break
+						}
+					}
+					pos, _ = token_find_next__L2(true, []rune{','}, pos+1, tokensTableB)
+				} // for pos, internal children loop
+
+			/*	This is not possible anymore, every possible token type is detected now
+			} else if tokenNow.tokenType == '?' {
+				elem = NewString_JSON_value_quotedBothEnd("\"unknown_elem, maybe number or bool\"", errorsCollected)
+				break
+			*/
 
 
 		} else if tokenNow.tokenType == '[' {
