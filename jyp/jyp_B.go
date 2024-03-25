@@ -207,7 +207,6 @@ func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B,
 		} else if tokenNow.tokenType == '0' { // general number detection
 			textInSrc := base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[pos], false)
 			// detect simple integers first
-			_ = textInSrc
 			i, err := strconv.Atoi(textInSrc)  // it can't interpret Scientific nums!
 			if err == nil { // it was really an integer...
 				elem = NewNumInt(i)
@@ -249,13 +248,6 @@ func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B,
 					pos, _ = token_find_next__L2(true, []rune{','}, pos+1, tokensTableB)
 				} // for pos, internal children loop
 
-			/*	This is not possible anymore, every possible token type is detected now
-			} else if tokenNow.tokenType == '?' {
-				elem = NewString_JSON_value_quotedBothEnd("\"unknown_elem, maybe number or bool\"", errorsCollected)
-				break
-			*/
-
-
 		} else if tokenNow.tokenType == '[' {
 			elem = NewArr_JSON_value_B()
 			for ; pos < len(tokensTableB);  { // detect children
@@ -272,6 +264,9 @@ func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B,
 				pos, _ = token_find_next__L2(true, []rune{','}, pos+1, tokensTableB)
 			} // for pos, internal children loop
 
+		} else if tokenNow.tokenType == '}' { break   // ascii:125,
+		} else if tokenNow.tokenType == ']' { break   // elem prepared, exit
+
 		} else if tokenNow.tokenType == 't' {
 			elem = NewBool(true)
 			break
@@ -283,9 +278,13 @@ func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B,
 		} else if tokenNow.tokenType == 'n' {
 			elem = NewNull()
 			break
+		}
 
-		} else if tokenNow.tokenType == '}' { break   // ascii:125,
-		} else if tokenNow.tokenType == ']' { break } // elem prepared, exit
+		/*	This is not possible anymore, every possible token type is detected now
+			} else if tokenNow.tokenType == '?' {
+				elem = NewString_JSON_value_quotedBothEnd("\"unknown_elem, maybe number or bool\"", errorsCollected)
+				break
+		*/
 	} // for BIG loop
 
 	return elem, pos // ret with last used position
