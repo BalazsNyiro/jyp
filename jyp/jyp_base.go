@@ -62,8 +62,8 @@ func base__prefixGenerator_for_repr(oneUnitPrefix string, repeatNum int) string 
 }
 
 // Elemental func, select/read section from src
-func base__read_sourceCode_section(src string, token tokenElem_B, quoted bool) string { // TESTED
-	if quoted {
+func base__read_sourceCode_section_basedOnTokenPositions(src string, token tokenElem_B, removeFirstLastChar bool) string { // TESTED
+	if !removeFirstLastChar {
 		return src[token.posInSrcFirst:token.posInSrcLast+1]
 	}
 	return src[token.posInSrcFirst+1:token.posInSrcLast]

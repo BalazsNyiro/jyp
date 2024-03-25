@@ -69,6 +69,21 @@ func (v JSON_value_B) Repr_tuned(indent string, level int) string {
 
 
 // TODO: newObject, newInt, newFloat, newBool....
+func NewNumInt(num int) JSON_value_B {
+	return JSON_value_B{
+		ValType:      '0',
+		ValNumberInt: num,
+	}
+}
+
+func NewNumFloat(num float64) JSON_value_B {
+	return JSON_value_B{
+		ValType:      '0',
+		ValNumberFloat: num,
+	}
+}
+
+
 func NewString_JSON_value_quotedBothEnd(text string, errorsCollected []error) JSON_value_B {
 	// strictly have minimum one "opening....and...one..closing" quote!
 	valString := stringValueParsing_rawToInterpretedCharacters_L2( text[1:len(text)-1], errorsCollected)

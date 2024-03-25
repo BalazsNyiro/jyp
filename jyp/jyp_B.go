@@ -50,7 +50,12 @@ type tokenElem_B struct {
                       , comma               44
                       : colon               58
                       " string              34
-                      0 number              48
+
+                      0 number              48    number is a general type, at this point we don't know is it an integer or a float or other
+	                  I integer
+                      F float64
+
+
                       t true               116
                       f false              102
                       n null               110
@@ -84,6 +89,15 @@ func stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr string) tokenEl
 	//////////// TOKEN ADD //////////////////////////
 	tokenAdd := func (typeOfToken rune, posFirst, posLast int) {
 		// TODO: unknown token processing here, to avoid second loop? w
+		if typeOfToken == '?' {
+			textInSrc := srcStr[posFirst:posLast+1]
+			if textInSrc == "true" { typeOfToken = 't' } else
+			if textInSrc == "false" { typeOfToken = 'f' } else
+			if textInSrc == "null" { typeOfToken = 'n' } else {
+				typeOfToken = '0' // if eveything else is processed, only number can be the last choice
+			}
+		}
+
 		tokenTable = append(tokenTable, tokenElem_B{tokenType: typeOfToken, posInSrcFirst: posFirst, posInSrcLast: posLast}  )
 	} ////////// TOKEN ADD //////////////////////////
 
@@ -191,7 +205,7 @@ func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B,
 				pos, _ = token_find_next__L2(true, []rune{'"'}, pos+1, tokensTableB)
 
 				// the next string key, the objKey is not quoted, but interpreted, too
-				objKey := stringValueParsing_rawToInterpretedCharacters_L2(base__read_sourceCode_section(src, tokensTableB[pos], false), errorsCollected)
+				objKey := stringValueParsing_rawToInterpretedCharacters_L2(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[pos], true), errorsCollected)
 
 				// find the next : but don't do anything with that
 				pos, _ = token_find_next__L2(true, []rune{':'}, pos+1, tokensTableB)
@@ -209,13 +223,24 @@ func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B,
 				pos, _ = token_find_next__L2(true, []rune{','}, pos+1, tokensTableB)
 			} // for pos, internal children loop
 
+		/*	This is not possible anymore, every possible token type is detected now
 		} else if tokenNow.tokenType == '?' {
 			elem = NewString_JSON_value_quotedBothEnd("\"unknown_elem, maybe number or bool\"", errorsCollected)
 			break
+		*/
 
 		} else if tokenNow.tokenType == '"' {
-			elem = NewString_JSON_value_quotedBothEnd(base__read_sourceCode_section(src, tokensTableB[pos], true), errorsCollected)
+			elem = NewString_JSON_value_quotedBothEnd(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[pos], false), errorsCollected)
 			break
+
+		} else if tokenNow.tokenType == '0' { // general number detection
+			textInSrc := base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[pos], false)
+			// detect simple integers first
+			_ = textInSrc
+
+			elem = NewString_JSON_value_quotedBothEnd(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[pos], false), errorsCollected)
+			break
+
 
 		} else if tokenNow.tokenType == '[' {
 			elem = NewArr_JSON_value_B()

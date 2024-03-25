@@ -101,10 +101,10 @@ func Test_base__read_sourceCode_section(t *testing.T) {
 	src := `{"a": "A"}`
 
 	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
-	sectionReadBack := base__read_sourceCode_section(src, tokensTableB[1], true)
+	sectionReadBack := base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[1], false)
 	compare_str_str(testName, `"a"`, sectionReadBack, t)
 
-	sectionReadBack = base__read_sourceCode_section(src, tokensTableB[3], true)
+	sectionReadBack = base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[3], false)
 	compare_str_str(testName, `"A"`, sectionReadBack, t)
 }
 
