@@ -73,7 +73,19 @@ func (v JSON_value_B) Repr_tuned(indent string, level int) string {
 }
 
 
-// TODO: newObject, newInt, newFloat, newBool....
+func NewNull() JSON_value_B {
+	return JSON_value_B{
+		ValType: 'n',
+	}
+}
+
+func NewBool(val bool) JSON_value_B {
+	return JSON_value_B{
+		ValType: 'b', // bool
+		ValBool: val,
+	}
+}
+
 func NewNumInt(num int) JSON_value_B {
 	return JSON_value_B{
 		ValType:      'I', // Integer

@@ -56,9 +56,10 @@ type tokenElem_B struct {
 	                  I integer
                       F float64
 
-
+                      b bool                98 // general collector type for true/false types
                       t true               116
                       f false              102
+
                       n null               110
                       ? not identified,     63
 	                    only saved: later the type can be defined
@@ -238,9 +239,15 @@ func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B,
 			textInSrc := base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[pos], false)
 			// detect simple integers first
 			_ = textInSrc
-			i, err := strconv.Atoi(textInSrc)
+			i, err := strconv.Atoi(textInSrc)  // it can't interpret Scientific nums!
 			if err == nil { // it was really an integer...
 				elem = NewNumInt(i)
+				break
+			}
+
+			f, err := strconv.ParseFloat(textInSrc, 64)
+			if err == nil { // it was really an integer...
+				elem = NewNumFloat(f)
 				break
 			}
 
