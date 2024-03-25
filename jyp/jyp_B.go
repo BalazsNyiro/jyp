@@ -28,6 +28,7 @@ TODOS:
  - stepB, validation: {} [] "" pairings, missing commas, colons?
  - error handling, use errorsCollected everywhere
  - special number handling (e, hexa)
+ - dedicated tests for all files against errors, for all functions
 */
 
 package jyp
@@ -41,7 +42,7 @@ import (
 
 var errorPrefix = "Error: "
 
-type tokenElem_B struct {
+type tokenElem struct {
 	tokenType rune /* one rune is stored here to represent a unit in the source code
                       { objOpen            123  (charCode)
                       } objClose           125
@@ -67,13 +68,13 @@ type tokenElem_B struct {
 	posInSrcLast  int
 }
 
-func (t tokenElem_B) print(prefix string) {
+func (t tokenElem) print(prefix string) {
 	fmt.Println(prefix, string(t.tokenType), t.posInSrcFirst, t.posInSrcLast)
 }
 
-type tokenElems_B []tokenElem_B
-func (tokenElems tokenElems_B) print() {
-	for _, tokenElem := range tokenElems {
+type tokenElems []tokenElem
+func (tokens tokenElems) print() {
+	for _, tokenElem := range tokens {
 		fmt.Println(
 			string(tokenElem.tokenType),
 			fmt.Sprintf("%2d", tokenElem.posInSrcFirst),
@@ -110,8 +111,8 @@ func (v JSON_value_B) ValObject_keys_sorted() []string{
 
 
 
-func stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr string) tokenElems_B {
-	tokenTable := tokenElems_B{}
+func stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr string) tokenElems {
+	tokenTable := tokenElems{}
 	posUnknownBlockStart := -1 // used only if the token is longer than 1 char. numbers, false/true for example
 	
 	//////////// TOKEN ADD //////////////////////////
@@ -125,7 +126,7 @@ func stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr string) tokenEl
 			}
 		}
 
-		tokenTable = append(tokenTable, tokenElem_B{tokenType: typeOfToken, posInSrcFirst: posFirst, posInSrcLast: posLast}  )
+		tokenTable = append(tokenTable, tokenElem{tokenType: typeOfToken, posInSrcFirst: posFirst, posInSrcLast: posLast}  )
 	} ////////// TOKEN ADD //////////////////////////
 
 	inUnknownBlock := func () bool { return posUnknownBlockStart != -1	}
@@ -204,7 +205,7 @@ func stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr string) tokenEl
 	return tokenTable
 }
 
-func stepB__JSON_B_validation_L1(tokenTableB tokenElems_B) []error {
+func stepB__JSON_B_validation_L1(tokenTableB tokenElems) []error {
 	// TODO: loop over the table, find incorrect {..} [..], ".." pairs,
 	// incorrect numbers, everything that can be a problem
 	// so after this, we can be sure that every elem are in pairs.
@@ -213,7 +214,7 @@ func stepB__JSON_B_validation_L1(tokenTableB tokenElems_B) []error {
 
 
 // L1: Level 1. A higher level is a more general fun, a lower level is a tool, lib func, or something small
-func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B, tokenPosStart int, errorsCollected []error) (JSON_value_B, int) {
+func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems, tokenPosStart int, errorsCollected []error) (JSON_value_B, int) {
 	if tokenPosStart >= len(tokensTableB) {
 		errorsCollected= append(errorsCollected, errors.New("wanted position index is higher than tokensTableB"))
 	}
@@ -321,12 +322,13 @@ func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B,
 
 // return with pos only to avoid elem copy with reading/passing
 // find the next token from allowed types
-func token_find_next__L2(wantedThem bool, types []rune, posActual int, tokensTable tokenElems_B) (int, error) {
+// one token, or more than one token can be searched
+func token_find_next__L2(wantSomethingFromTypes bool, types []rune, posActual int, tokensTable tokenElems) (int, error) {
 	var pos int
 	if pos >= len(tokensTable) {
 		return pos, errors.New("token position is bigger than last elem index")
 	}
-	if wantedThem { // want one from types:
+	if wantSomethingFromTypes { // want one from types:
 		for pos = posActual; pos<len(tokensTable); pos++ {
 			for _, wanted := range types {
 				if tokensTable[pos].tokenType == wanted {
@@ -359,7 +361,7 @@ func token_find_next__L2(wantedThem bool, types []rune, posActual int, tokensTab
 // set the string value from raw strings
 // in orig soure code, \n means 2 chars: a backslash and 'n'.
 // but if it is interpreted, that is one newline "\n" char.
-func stringValueParsing_rawToInterpretedCharacters_L2(src string, errorsCollected []error) string{ //
+func stringValueParsing_rawToInterpretedCharacters_L2(src string, errorsCollected []error) string{ // TESTED
 
 	/* Tasks:
 	- is it a valid string?

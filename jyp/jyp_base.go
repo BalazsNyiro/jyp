@@ -62,7 +62,7 @@ func base__prefixGenerator_for_repr(oneUnitPrefix string, repeatNum int) string 
 }
 
 // first/last char removal can be important with "strings" if quotes are not important
-func base__read_sourceCode_section_basedOnTokenPositions(src string, token tokenElem_B, removeFirstLastChar bool) string { // TESTED
+func base__read_sourceCode_section_basedOnTokenPositions(src string, token tokenElem, removeFirstLastChar bool) string { // TESTED
 	if !removeFirstLastChar {
 		return src[token.posInSrcFirst:token.posInSrcLast+1]
 	}

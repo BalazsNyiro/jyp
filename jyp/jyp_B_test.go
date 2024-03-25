@@ -179,6 +179,22 @@ func Test_true_false_null(t *testing.T) {
 }
 
 
+
+// go test -v -run  Test_token_find_next__L2
+func Test_token_find_next__L2(t *testing.T) {
+	funName := "Test_token_find_next__L2"
+	testName := funName + "_base"
+	_ = testName
+	src := `{"a": "A", "l": [4, 5, 6], "end": "E" }`
+
+	tokensTable := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
+
+	posTokenNextWanted, _ := token_find_next__L2(true, []rune{'['}, 0, tokensTable)
+	compare_int_int(testName, 7, posTokenNextWanted, t)
+}
+
+
+
 // go test -v -run Test_stringValueParsing_rawToInterpretedCharacters_L2
 func Test_stringValueParsing_rawToInterpretedCharacters_L2(t *testing.T) {
 	funName := "Test_stringValueParsing_rawToInterpretedCharacters_L2"
