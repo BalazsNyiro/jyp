@@ -43,11 +43,26 @@ func (v JSON_value_B) Repr_tuned(indent string, level int) string {
 
 	if v.ValType == '"' {
 		return "\""+v.ValString + "\""
-	}
+	} else
 
 	if v.ValType == 'I' {
 		return strconv.Itoa(v.ValNumberInt)
-	}
+	} else
+
+	if v.ValType == 'F' {
+		return strconv.FormatFloat(v.ValNumberFloat, 'f', -1, 64)
+	} else
+
+	if v.ValType == 'b' {
+		if v.ValBool {
+			return "true"
+		}
+		return "false"
+	} else
+
+	if v.ValType == 'n' {
+		return "null"
+	} else
 
 	if v.ValType == '{' {
 		out := prefix + "{" + newLine
@@ -58,7 +73,7 @@ func (v JSON_value_B) Repr_tuned(indent string, level int) string {
 		}
 		out += prefix + "}"
 		return out
-	}
+	} else
 
 	if v.ValType == '[' {
 		out := prefix + "[" + newLine

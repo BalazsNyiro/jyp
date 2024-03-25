@@ -271,6 +271,19 @@ func stepC__JSON_B_structure_building__L1(src string, tokensTableB tokenElems_B,
 				}
 				pos, _ = token_find_next__L2(true, []rune{','}, pos+1, tokensTableB)
 			} // for pos, internal children loop
+
+		} else if tokenNow.tokenType == 't' {
+			elem = NewBool(true)
+			break
+
+		} else if tokenNow.tokenType == 'f' {
+			elem = NewBool(false)
+			break
+
+		} else if tokenNow.tokenType == 'n' {
+			elem = NewNull()
+			break
+
 		} else if tokenNow.tokenType == '}' { break   // ascii:125,
 		} else if tokenNow.tokenType == ']' { break } // elem prepared, exit
 	} // for BIG loop

@@ -155,3 +155,25 @@ func Test_numbers_float(t *testing.T) {
 	compare_flt_flt(testName, -3.45,celsiusDegrees.ValArray[1].ValNumberFloat, t)
 	compare_flt_flt(testName, 6.789, celsiusDegrees.ValArray[2].ValNumberFloat, t)
 }
+
+// go test -v -run Test_true_false_null
+func Test_true_false_null(t *testing.T) {
+	funName := "Test_true_false_null"
+	testName := funName + "_base"
+	errorsCollected := []error{}
+
+	src := `{"atoms": [true, false, null] }`
+	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
+	tokensTableB.print()
+
+	errorsCollected = stepB__JSON_B_validation_L1(tokensTableB)
+	root, _ := stepC__JSON_B_structure_building__L1(src, tokensTableB, 0, errorsCollected)
+	fmt.Println(root.Repr())
+
+	compare_rune_rune(testName, '{', root.ValType, t)
+
+	atoms := root.ValObject["atoms"]
+	compare_bool_bool(testName, true, atoms.ValArray[0].ValBool, t)
+	compare_bool_bool(testName, false, atoms.ValArray[1].ValBool, t)
+	compare_rune_rune(testName, 'n', atoms.ValArray[2].ValType, t)
+}
