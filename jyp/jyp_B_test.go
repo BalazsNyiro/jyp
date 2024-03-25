@@ -177,3 +177,27 @@ func Test_true_false_null(t *testing.T) {
 	compare_bool_bool(testName, false, atoms.ValArray[1].ValBool, t)
 	compare_rune_rune(testName, 'n', atoms.ValArray[2].ValType, t)
 }
+
+
+// go test -v -run Test_stringValueParsing_rawToInterpretedCharacters_L2
+func Test_stringValueParsing_rawToInterpretedCharacters_L2(t *testing.T) {
+	funName := "Test_stringValueParsing_rawToInterpretedCharacters_L2"
+	testName := funName + "_base"
+	errorsCollected := []error{}
+
+	src := `backQuote:\",backBack:\\,backForward:\/,backB:\b,backF:\f,newline:\n,cr:\r,tab:\t,B:\u0042`
+	textInterpreted :=  stringValueParsing_rawToInterpretedCharacters_L2(src, errorsCollected)
+	fmt.Println("text interpreted:", textInterpreted)
+	textRunes := []rune(textInterpreted)
+	compare_rune_rune(testName, '"',  textRunes[10], t)
+	compare_rune_rune(testName, '\\', textRunes[21], t) // backback:\\
+	compare_rune_rune(testName, ',',  textRunes[22], t) // comma after backBAck:\\,
+	compare_rune_rune(testName, '/',  textRunes[35], t)
+	compare_rune_rune(testName, '\b', textRunes[43], t)
+	compare_rune_rune(testName, '\f', textRunes[51], t)
+	compare_rune_rune(testName, '\n', textRunes[61], t)
+	compare_rune_rune(testName, '\r', textRunes[66], t)
+	compare_rune_rune(testName, '\t', textRunes[72], t)
+	compare_rune_rune(testName, 'B',  textRunes[76], t)
+
+}
