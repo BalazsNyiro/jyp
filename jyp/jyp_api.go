@@ -10,7 +10,20 @@ LICENSE file in the root directory of this source tree.
 
 package jyp
 
-import "strconv"
+import (
+	"errors"
+	"strconv"
+	"strings"
+)
+
+func JsonParse(srcStr string) (JSON_value_B, []error) {
+
+	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr)
+	errorsCollected := stepB__JSON_B_validation_L1(tokensTableB)
+	elemRoot, _ := stepC__JSON_B_structure_building__L1(srcStr, tokensTableB, 0, errorsCollected)
+
+	return elemRoot, errorsCollected
+}
 
 // example usage: Repr(2) means: use "  " 2 spaces as indentation
 // if ind
@@ -138,4 +151,73 @@ func NewArr_JSON_value_B() JSON_value_B {
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////////////////
 
+func (v JSON_value_B) ObjPath(keysMerged string) (JSON_value_B, error) {
+	// object reader with merged string keys (first character is the key elem separator
+	// elem_root.ObjPath("/personal/list")     separator: /
+	// elem_root.ObjPath("|personal|list")     separator: |
+	// elem_root.ObjPath(">personal>list")     separator: |
+	// the separator can be any character.
+	var valueEmpty JSON_value_B
+
+	if len(keysMerged) < 2 {
+		return valueEmpty, errors.New(errorPrefix + "missing separator and key(s) in merged ObjPath")
+	}
+	// possible errors are handled with len(...)<2
+	keys, _ := ObjPath_merged_expand__split_with_first_char(keysMerged)
+	// fmt.Println("KEYS:", keys, len(keys))
+	return v.ObjPathKeys(keys)
+}
+
+
+
+func ObjPath_merged_expand__split_with_first_char(path string) ([]string, error){
+	if len(path) < 1 {
+		return []string{}, errors.New("separator is NOT defined")
+	}
+	if len(path) < 2 { // minimum one path elem is necessary, that we want to read or write
+		// if there is nothing after the separator, the path is empty
+		return []string{}, errors.New("separator and minimum one path elem are NOT defined")
+	}
+	separatorChar := path[0]
+	return strings.Split(path, string(separatorChar))[1:], nil
+	// so the first empty elem has to be removed (empty string), this is the reason of [1:]
+	/*
+		if you try to use this:  '/embedded/level2' then before the first separator, an empty string will be in elems
+		separator: /
+		>>> ''           // EMPTY STRING
+		>>> 'embedded'
+		>>> 'level2'
+		for _, key := range keys {
+			print(fmt.Sprintf(">>> '%s' \n", key))
+		}
+	*/
+}
+
+func (v JSON_value_B) ObjPathKeys(keysEmbedded []string) (JSON_value_B, error) {
+	// object reader with separated string keys:  elem_root.ObjPathKeys([]string{"personal", "list"})
+	var valueEmpty JSON_value_B
+
+	if len(keysEmbedded) < 1 {
+		return valueEmpty, errors.New(errorPrefix + "missing object keys (no keys are passed)")
+	}
+
+	// minimum 1 key is received
+	valueCollected, keyFirstIsKnownInObject := v.ValObject[keysEmbedded[0]]
+	if ! keyFirstIsKnownInObject {
+		return valueEmpty, errors.New(errorPrefix + "unknown object key (key:"+keysEmbedded[0]+")")
+	}
+
+	if len(keysEmbedded) == 1 {
+		if keyFirstIsKnownInObject {
+			return valueCollected, nil
+		}
+	}
+
+	// len(keys) > 1
+	if valueCollected.ValType !=  '{' {
+		return valueEmpty, errors.New(errorPrefix + keysEmbedded[0] + "-> child is not object, key cannot be used")
+	}
+	return valueCollected.ObjPathKeys(keysEmbedded[1:])
+}

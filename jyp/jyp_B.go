@@ -84,6 +84,7 @@ func (tokenElems tokenElems_B) print() {
 
 // What if this is re-organised? JSON_value_B has only an Id,
 // and every different type has a special storage?
+// with that idea, 30ms can be saved, but the code becomes more complex
 type JSON_value_B struct {
 	ValType rune
 
