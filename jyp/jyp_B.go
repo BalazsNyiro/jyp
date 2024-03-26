@@ -208,7 +208,7 @@ func stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr string) tokenEl
 
 
 func stepB__JSON_validation_L1(tokenTable tokenElems) []error {
-	// find incorrect {..} [..], ".." pairs,
+	// find incorrect {..} [..] pairs,
 	errorsCollected := []error{}
 	tokenOpeners := []rune{}
 

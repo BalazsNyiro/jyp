@@ -14,37 +14,27 @@ package jyp
 import (
 	"fmt"
 	"testing"
-	"time"
 )
 
-//  go test -v -run  Test_tokensTableDetect_versionB
-func Test_tokensTableDetect_versionB(t *testing.T) {
-	funName := "Test_tokensTableDetect_versionB"
+//  go test -v -run  Test_stepA__tokensTableDetect_structuralTokens_strings_L1
+func Test_stepA__tokensTableDetect_structuralTokens_strings_L1(t *testing.T) {
+	funName := "Test_stepA__tokensTableDetect_structuralTokens_strings_L1"
 	testName := funName + "_basic"
 
-	//src := `{"text":{"level2":[321,4.5,"string\"Escaped",true,false,null]}}`
-	src := ""
-	// src := file_read_to_string("large-file.json")
-
-
-	timeStart := time.Now()
 	// src = `{"a": "b"}`
-	src = `{"a": "A", "b1": {"b2":"B2"}, "c":"C", "list":["k", "bh"]}`
+	src := `{"a": "A", "b1": {"b2":"B2"}, "c":"C", "list":["k", "bh"]}`
 	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
-	fmt.Println("token table creation time:", time.Since(timeStart))
+	tokenA := tokensTableB[3]
+	// "A"
+	compare_int_int(testName, 6, tokenA.posInSrcFirst, t)
+	compare_int_int(testName, 8, tokenA.posInSrcLast, t)
 
-	fmt.Println("tokensTableB")
-	for _, tokenb := range tokensTableB {
-		tokenb.print("tokenTable:")
-	}
+	// } first
+	tokenObjFirstClose := tokensTableB[11]
+	compare_int_int(testName, 27, tokenObjFirstClose.posInSrcLast, t)
 
-	errorsCollected := stepB__JSON_validation_L1(tokensTableB)
-	root, _ := stepC__JSON_structure_building__L1(src, tokensTableB, 0, errorsCollected)
-	fmt.Println(root.Repr(2))
-
-	_ = root
-	_ = tokensTableB
-	_ = testName
+	compare_int_int(testName, 4,  tokensTableB[2].posInSrcLast, t)
+	compare_int_int(testName, 15, tokensTableB[6].posInSrcLast, t)
 
 	// base__print_tokenElems(tokensTableB)
 }
