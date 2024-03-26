@@ -43,6 +43,7 @@ import (
 var errorPrefix = "Error: "
 
 type tokenElem struct {
+	// type is reserved keyword, so tokenType name is necessary.
 	tokenType rune /* one rune is stored here to represent a unit in the source code
                       { objOpen            123  (charCode)
                       } objClose           125
@@ -74,11 +75,11 @@ func (t tokenElem) print(prefix string) {
 
 type tokenElems []tokenElem
 func (tokens tokenElems) print() {
-	for _, tokenElem := range tokens {
+	for _, token:= range tokens {
 		fmt.Println(
-			string(tokenElem.tokenType),
-			fmt.Sprintf("%2d", tokenElem.posInSrcFirst),
-			fmt.Sprintf("%2d", tokenElem.posInSrcLast),
+			string(token.tokenType),
+			fmt.Sprintf("%2d", token.posInSrcFirst),
+			fmt.Sprintf("%2d", token.posInSrcLast),
 		)
 	}
 }
@@ -205,18 +206,59 @@ func stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr string) tokenEl
 	return tokenTable
 }
 
-func stepB__JSON_validation_L1(tokenTableB tokenElems) []error {
-	// TODO: loop over the table, find incorrect {..} [..], ".." pairs,
-	// incorrect numbers, everything that can be a problem
-	// so after this, we can be sure that every elem are in pairs.
-	return []error{}
+
+func stepB__JSON_validation_L1(tokenTable tokenElems) []error {
+	// find incorrect {..} [..], ".." pairs,
+	errorsCollected := []error{}
+	tokenOpeners := []rune{}
+
+	errMsg := func (tokenType rune, pos int) string {
+		posTxt := strconv.Itoa(pos)
+		if tokenType == '}' { return "unpaired Object closer, charPosInFile: " + posTxt }
+		//if tokenType == ']' {  }
+		return "unpaired Array closer, charPosInFile: " + posTxt
+	}
+	_ = errMsg('"', 0)
+
+	lastTokenOpener := func() rune {
+		if len(tokenOpeners) == 0 {
+			return '?' // no real content, return with unknown token type
+		} else {
+			return tokenOpeners[len(tokenOpeners)-1]
+		}
+	}
+
+	for _, token := range tokenTable {
+		if token.tokenType == '[' || token.tokenType == '{' {
+			tokenOpeners = append(tokenOpeners, token.tokenType)
+		} else {
+
+			if token.tokenType == ']' {
+				if lastTokenOpener() == '[' {
+					tokenOpeners = tokenOpeners[:len(tokenOpeners)-1] // remove the last elem
+			 	} else {
+					errorsCollected = append(errorsCollected, errors.New(errMsg(']', token.posInSrcFirst)))
+				}
+			}
+
+			if token.tokenType == '}' {
+				if lastTokenOpener() == '{' {
+					tokenOpeners = tokenOpeners[:len(tokenOpeners)-1] // remove the last elem
+				} else {
+					errorsCollected = append(errorsCollected, errors.New(errMsg('}', token.posInSrcFirst)))
+					panic("error")
+				}
+			}
+		}
+	}
+	return errorsCollected
 }
 
 
 // L1: Level 1. A higher level is a more general fun, a lower level is a tool, lib func, or something small
-func stepC__JSON_structure_building__L1(src string, tokensTableB tokenElems, tokenPosStart int, errorsCollected []error) (JSON_value, int) {
-	if tokenPosStart >= len(tokensTableB) {
-		errorsCollected= append(errorsCollected, errors.New("wanted position index is higher than tokensTableB"))
+func stepC__JSON_structure_building__L1(src string, tokensTable tokenElems, tokenPosStart int, errorsCollected []error) (JSON_value, int) { // TESTED
+	if tokenPosStart >= len(tokensTable) {
+		errorsCollected= append(errorsCollected, errors.New("wanted position index is higher than tokensTable"))
 	}
 
 	if len(errorsCollected) > 0 {
@@ -225,15 +267,15 @@ func stepC__JSON_structure_building__L1(src string, tokensTableB tokenElems, tok
 	elem := JSON_value{}
 	var pos int
 
-	for pos = tokenPosStart; pos<len(tokensTableB); pos++ {
-		tokenNow := tokensTableB[pos]
+	for pos = tokenPosStart; pos<len(tokensTable); pos++ {
+		tokenNow := tokensTable[pos]
 
 		if tokenNow.tokenType == '"' {
-			elem = NewString_JSON_value_quotedBothEnd(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[pos], false), errorsCollected)
+			elem = NewString_JSON_value_quotedBothEnd(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTable[pos], false), errorsCollected)
 			break
 
 		} else if tokenNow.tokenType == '0' { // general number detection
-			textInSrc := base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[pos], false)
+			textInSrc := base__read_sourceCode_section_basedOnTokenPositions(src, tokensTable[pos], false)
 			// detect simple integers first
 			i, err := strconv.Atoi(textInSrc)  // it can't interpret Scientific nums!
 			if err == nil { // it was really an integer...
@@ -248,48 +290,48 @@ func stepC__JSON_structure_building__L1(src string, tokensTableB tokenElems, tok
 			}
 
 			// worst case, I don't know what is this, so insert it as a string
-			elem = NewString_JSON_value_quotedBothEnd(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[pos], false), errorsCollected)
+			elem = NewString_JSON_value_quotedBothEnd(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTable[pos], false), errorsCollected)
 			break
 
 		} else if tokenNow.tokenType == '{' {
 				elem = NewObj_JSON_value_B()
 
-				for ; pos <len(tokensTableB); { // detect children
-					pos, _ = token_find_next__L2(true, []rune{'"'}, pos+1, tokensTableB)
+				for ; pos <len(tokensTable); { // detect children
+					pos, _ = token_find_next__L2(true, []rune{'"'}, pos+1, tokensTable)
 
 					// the next string key, the objKey is not quoted, but interpreted, too
-					objKey := stringValueParsing_rawToInterpretedCharacters_L2(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[pos], true), errorsCollected)
+					objKey := stringValueParsing_rawToInterpretedCharacters_L2(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTable[pos], true), errorsCollected)
 
 					// find the next : but don't do anything with that
-					pos, _ = token_find_next__L2(true, []rune{':'}, pos+1, tokensTableB)
+					pos, _ = token_find_next__L2(true, []rune{':'}, pos+1, tokensTable)
 
 					// find the next ANY token, the new VALUE
-					nextValueElem, posLastUsed := stepC__JSON_structure_building__L1(src, tokensTableB, pos+1, errorsCollected)
+					nextValueElem, posLastUsed := stepC__JSON_structure_building__L1(src, tokensTable, pos+1, errorsCollected)
 					elem.ValObject[objKey] = nextValueElem
 					pos = posLastUsed
 
-					if pos+1 < len(tokensTableB) { // look forward:
-						if tokensTableB[pos+1].tokenType == '}' {
+					if pos+1 < len(tokensTable) { // look forward:
+						if tokensTable[pos+1].tokenType == '}' {
 							break
 						}
 					}
-					pos, _ = token_find_next__L2(true, []rune{','}, pos+1, tokensTableB)
+					pos, _ = token_find_next__L2(true, []rune{','}, pos+1, tokensTable)
 				} // for pos, internal children loop
 
 		} else if tokenNow.tokenType == '[' {
 			elem = NewArr_JSON_value_B()
-			for ; pos < len(tokensTableB);  { // detect children
+			for ; pos < len(tokensTable);  { // detect children
 				// find the next ANY token, the new VALUE
-				nextValueElem, posLastUsed := stepC__JSON_structure_building__L1(src, tokensTableB, pos+1, errorsCollected)
+				nextValueElem, posLastUsed := stepC__JSON_structure_building__L1(src, tokensTable, pos+1, errorsCollected)
 				elem.ValArray = append(elem.ValArray, nextValueElem)
 				pos = posLastUsed
 
-				if pos+1 < len(tokensTableB) { // look forward:
-					if tokensTableB[pos+1].tokenType == ']' {  // if the next elem is ], this is the last child,
+				if pos+1 < len(tokensTable) { // look forward:
+					if tokensTable[pos+1].tokenType == ']' { // if the next elem is ], this is the last child,
 						break // and stop the children detection, leave the detection for loop
 					}
 				}
-				pos, _ = token_find_next__L2(true, []rune{','}, pos+1, tokensTableB)
+				pos, _ = token_find_next__L2(true, []rune{','}, pos+1, tokensTable)
 			} // for pos, internal children loop
 
 		} else if tokenNow.tokenType == '}' { break   // ascii:125,
@@ -323,7 +365,7 @@ func stepC__JSON_structure_building__L1(src string, tokensTableB tokenElems, tok
 // return with pos only to avoid elem copy with reading/passing
 // find the next token from allowed types
 // one token, or more than one token can be searched
-func token_find_next__L2(wantSomethingFromTypes bool, types []rune, posActual int, tokensTable tokenElems) (int, error) {
+func token_find_next__L2(wantSomethingFromTypes bool, types []rune, posActual int, tokensTable tokenElems) (int, error) { // TESTED
 	var pos int
 	if pos >= len(tokensTable) {
 		return pos, errors.New("token position is bigger than last elem index")

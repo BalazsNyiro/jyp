@@ -114,7 +114,7 @@ func Test_numbers_int(t *testing.T) {
 	testName := funName + "_base"
 	errorsCollected := []error{}
 
-	src := `{"age": -123, "favouriteNums": [4, 5, 6] } }`
+	src := `{"age": -123, "favouriteNums": [4, 5, 6] }`
 	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
 	tokensTableB.print()
 
@@ -190,25 +190,25 @@ func Test_token_find_next__L2(t *testing.T) {
 	tokensTable := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
 
 	posTokenNextWanted, _ := token_find_next__L2(true, []rune{'['}, 0, tokensTable)
-	compare_int_int(testName, 7, posTokenNextWanted, t)
+	compare_int_int(testName, 7, posTokenNextWanted, t) // [
 
 	posTokenNextWanted, _ = token_find_next__L2(true, []rune{'0'}, 0, tokensTable)
-	compare_int_int(testName, 8, posTokenNextWanted, t)
+	compare_int_int(testName, 8, posTokenNextWanted, t) // 4
 
 	posTokenNextWanted, _ = token_find_next__L2(true, []rune{'0'}, posTokenNextWanted+1, tokensTable)
-	compare_int_int(testName, 10, posTokenNextWanted, t)
+	compare_int_int(testName, 10, posTokenNextWanted, t) // 5
 
 	posTokenNextWanted, _ = token_find_next__L2(true, []rune{'0'}, posTokenNextWanted+1, tokensTable)
 	compare_int_int(testName, 12, posTokenNextWanted, t) // the last num: 6 in the array
 
 	posTokenNextWanted, _ = token_find_next__L2(true, []rune{':', '0'}, posTokenNextWanted+1, tokensTable)
-	compare_int_int(testName, 16, posTokenNextWanted, t)
+	compare_int_int(testName, 16, posTokenNextWanted, t) // end:
 
 	posTokenNextWanted, _ = token_find_next__L2(true, []rune{':', '0'}, posTokenNextWanted+1, tokensTable)
-	compare_int_int(testName, 20, posTokenNextWanted, t)
+	compare_int_int(testName, 20, posTokenNextWanted, t) // num:
 
 	posTokenNextWanted, _ = token_find_next__L2(true, []rune{':', '0'}, posTokenNextWanted+1, tokensTable)
-	compare_int_int(testName, 21, posTokenNextWanted, t)
+	compare_int_int(testName, 21, posTokenNextWanted, t) // 42
 }
 
 
