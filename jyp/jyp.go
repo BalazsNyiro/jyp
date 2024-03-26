@@ -112,7 +112,7 @@ func (v JSON_value) ValObject_keys_sorted() []string{
 
 
 
-func stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr string) tokenElems {
+func stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr string) tokenElems { // TESTED
 	tokenTable := tokenElems{}
 	posUnknownBlockStart := -1 // used only if the token is longer than 1 char. numbers, false/true for example
 	

@@ -6,222 +6,222 @@ This source code (all file in this repo) is licensed
 under the Apache-2 style license found in the
 LICENSE file in the root directory of this source tree.
 
-TODO, tests:
-non-closed string error detection
-incorrect numbers test (start with 0)
-incorrect atoms test (something else than true/false/null)
 */
+
 
 package jyp
 
 import (
 	"fmt"
-	"os"
 	"testing"
-	"time"
-	"unicode/utf8"
 )
 
-var srcEverything string = `{
-    "whatIsThis": "a global, general json structure that has everything - the final test",
-
-    "trueKey"  : true,
-    "falseKey" : false,
-    "nullKey"  : null,
-    "stringKey": "str",
-
-    "numbers": {
-        "zeroPos":  0,
-        "zeroNeg": -0,
-        "intPos":   8,
-        "intNeg":  -8,
-
-        "what is this 0":  "zero started nums are different cases in Json spec",
-        "floatPosZero":  0.1023,
-        "floatNegZero": -0.4056,
-
-        "what is this 1":  "non-zero started nums are different cases in Json spec",
-        "floatPosOne":   1.809 ,
-        "floatNegOne":  -1.5067,
-
-
-        "what is this 2": "exponent without fraction",
-        "exp_minus_e_plus":   -4e+3,
-        "exp_minus_e_minus":  -4e-4,
-        "exp_plus_e_plus":     4e+5,
-        "exp_plus_e_minus":    4e-6,
-
-        "exp_minus_E_plus":   -4E+3,
-        "exp_minus_E_minus":  -4E-4,
-        "exp_plus_E_plus":     4E+5,
-        "exp_plus_E_minus":    4E-6,
-
-        "what is this 3": "exponent with fraction",
-        "exp_minus_e_plus__fract":  -1.1e+3,
-        "exp_minus_e_minus_fract":  -2.2e-4,
-        "exp_plus_e_plus___fract":   3.3e+5,
-        "exp_plus_e_minus__fract":   4.4e-6,
-
-        "exp_minus_E_plus__fract":  -5.5E+3,
-        "exp_minus_E_minus_fract":  -6.6E-4,
-        "exp_plus_E_plus___fract":   7.7E+5,
-        "exp_plus_E_minus__fract":   8.8E-6,
-
-        "what is this 4": "zero exponents",
-        "exp_minus_e_plus__zero":  -1.1e+0,
-        "exp_plus__e_plus__zero":   2.1e+0,
-        "exp_minus_e_minus_zero":  -1.1e-0,
-        "exp_plus__e_minus_zero":   2.1e-0,
-    },
-
-    "array_with_everything": ["str", -2, 0, 3, -4.5, -0, 6.7,
-                              {"obj_in_array": ["embeddedArr":   null,
-                                                "embeddedTrue":  true,
-                                                "embeddedFalse": false,
-                                               ]}
-    ],
-
-    "stringsAllPossibleOption": [
-        "usedSource":             "https://www.json.org/json-en.html",
-        "simple":                 "text",
-
-        "quotation_mark": `     + "quote: \"wisdom\"" + `,
-        "reverse_solidus": `    + "reversed: '\\' "   + `,
-
-		"solidusExplanationUrl":  "https://groups.google.com/g/opensocial-and-gadgets-spec/c/FkLsC-2blbo?pli=1",
-		"solidusExplanation":     "http:\/\/example.org" is the right way to encode a URL in a JSON string",
-        "solidus":                "solidus:  http:\/\/example.org",
-
-        "backspace": `          + "a\bb" + `,
-        "formfeed": `           + "a\fb" + `,
-        "linefeed": `           + "a\nb" + `,
-        "carriage_return": `    + "a\rb" + `,
-        "horizontal_tab": `     + "a\tb" + `,
-        "4hex digits":            "quotation mark digit: \u0022",
-    ]
-}`
-
-// TODO: test json src with errors!
-
-
-
-//  go test -v -run Test_speed
-func Test_speed(t *testing.T) {
-	funName := "Test_speed"
+//  go test -v -run  Test_stepA__tokensTableDetect_structuralTokens_strings_L1
+func Test_stepA__tokensTableDetect_structuralTokens_strings_L1(t *testing.T) {
+	funName := "Test_stepA__tokensTableDetect_structuralTokens_strings_L1"
 	testName := funName + "_basic"
+
+	// src = `{"a": "b"}`
+	src := `{"a": "A", "b1": {"b2":"B2"}, "c":"C", "list":["k", "bh"]}`
+	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
+	tokenA := tokensTableB[3]
+	// "A"
+	compare_int_int(testName, 6, tokenA.posInSrcFirst, t)
+	compare_int_int(testName, 8, tokenA.posInSrcLast, t)
+
+	// } first
+	tokenObjFirstClose := tokensTableB[11]
+	compare_int_int(testName, 27, tokenObjFirstClose.posInSrcLast, t)
+
+	compare_int_int(testName, 4,  tokensTableB[2].posInSrcLast, t)
+	compare_int_int(testName, 15, tokensTableB[6].posInSrcLast, t)
+
+	// base__print_tokenElems(tokensTableB)
+}
+
+
+//  go test -v -run  Test_structure_building
+func Test_structure_building(t *testing.T) {
+	funName := "Test_structure_building"
+	testName := funName + "_basic_obj"
+	errorsCollected := []error{}
+
+	src := `{"a": "A"}`
+	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
+	errorsCollected = stepB__JSON_validation_L1(tokensTableB)
+	root, _ := stepC__JSON_structure_building__L1(src, tokensTableB, 0, errorsCollected)
+	compare_rune_rune(testName, '{', root.ValType, t)
+	compare_int_int(testName, 1, len(root.ValObject), t) // has 1 elem
+	compare_str_str(testName, "A", root.ValObject["a"].ValString, t)
+
+	testName = funName + "_basic_arr"
+	src = `["a", "A"]`
+	tokensTableB = stepA__tokensTableDetect_structuralTokens_strings_L1(src)
+	errorsCollected = stepB__JSON_validation_L1(tokensTableB)
+	root, _ = stepC__JSON_structure_building__L1(src, tokensTableB, 0, errorsCollected)
+	compare_rune_rune(testName, '[', root.ValType, t)
+	compare_int_int(testName, 2, len(root.ValArray), t) // has 1 elem
+	compare_str_str(testName, "a", root.ValArray[0].ValString, t) // has 1 elem
+	compare_str_str(testName, "A", root.ValArray[1].ValString, t) // has 1 elem
+}
+
+
+//  go test -v -run  Test_structure_building_complex
+func Test_structure_building_complex(t *testing.T) {
+	funName := "Test_structure_building_complex"
+	testName := funName + "_base"
+	errorsCollected := []error{}
+
+	src := `{"a": "A", "arr": ["0", "1", "2"], "obj": {"key": ["val"]} }`
+	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
+	tokensTableB.print()
+	errorsCollected = stepB__JSON_validation_L1(tokensTableB)
+	root, _ := stepC__JSON_structure_building__L1(src, tokensTableB, 0, errorsCollected)
+	fmt.Println(root.Repr())
+	compare_rune_rune(testName, '{', root.ValType, t)
+	compare_int_int(testName, 3, len(root.ValObject), t) // has 1 elem
+	compare_str_str(testName, "A", root.ValObject["a"].ValString, t)
+
+	array := root.ValObject["arr"]
+	compare_rune_rune(testName, '[', array.ValType, t)
+	compare_int_int(testName, 3, len(array.ValArray), t) // has 1 elem
+	compare_str_str(testName, "0", array.ValArray[0].ValString, t) // has 1 elem
+	compare_str_str(testName, "1", array.ValArray[1].ValString, t) // has 1 elem
+	compare_str_str(testName, "2", array.ValArray[2].ValString, t) // has 1 elem
+
+	obj := root.ValObject["obj"]
+	compare_rune_rune(testName, '{', obj.ValType, t)
+
+	val := obj.ValObject["key"].ValArray[0]
+	compare_rune_rune(testName, '"', val.ValType, t)
+	compare_str_str(testName, "val", val.ValString, t) // has 1 elem
+}
+
+
+//  go test -v -run  Test_numbers_int
+func Test_numbers_int(t *testing.T) {
+	funName := "Test_numbers_int"
+	testName := funName + "_base"
+	errorsCollected := []error{}
+
+	src := `{"age": -123, "favouriteNums": [4, 5, 6] }`
+	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
+	tokensTableB.print()
+
+	errorsCollected = stepB__JSON_validation_L1(tokensTableB)
+	root, _ := stepC__JSON_structure_building__L1(src, tokensTableB, 0, errorsCollected)
+	fmt.Println(root.Repr())
+
+	compare_rune_rune(testName, '{', root.ValType, t)
+
+	age := root.ValObject["age"]
+	compare_int_int(testName, -123, age.ValNumberInt, t)
+
+	nums := root.ValObject["favouriteNums"]
+	compare_int_int(testName, 4, nums.ValArray[0].ValNumberInt, t)
+	compare_int_int(testName, 5, nums.ValArray[1].ValNumberInt, t)
+	compare_int_int(testName, 6, nums.ValArray[2].ValNumberInt, t)
+}
+
+
+//  go test -v -run  Test_numbers_float
+func Test_numbers_float(t *testing.T) {
+	funName := "Test_numbers_float"
+	testName := funName + "_base"
+	errorsCollected := []error{}
+
+	src := `{"celsiusDegrees": [0.12, -3.45, 6.789] }`
+	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
+	tokensTableB.print()
+
+	errorsCollected = stepB__JSON_validation_L1(tokensTableB)
+	root, _ := stepC__JSON_structure_building__L1(src, tokensTableB, 0, errorsCollected)
+	fmt.Println(root.Repr())
+
+	compare_rune_rune(testName, '{', root.ValType, t)
+
+	celsiusDegrees := root.ValObject["celsiusDegrees"]
+	compare_flt_flt(testName, 0.12, celsiusDegrees.ValArray[0].ValNumberFloat, t)
+	compare_flt_flt(testName, -3.45,celsiusDegrees.ValArray[1].ValNumberFloat, t)
+	compare_flt_flt(testName, 6.789, celsiusDegrees.ValArray[2].ValNumberFloat, t)
+}
+
+// go test -v -run Test_true_false_null
+func Test_true_false_null(t *testing.T) {
+	funName := "Test_true_false_null"
+	testName := funName + "_base"
+	errorsCollected := []error{}
+
+	src := `{"atoms": [true, false, null] }`
+	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
+	tokensTableB.print()
+
+	errorsCollected = stepB__JSON_validation_L1(tokensTableB)
+	root, _ := stepC__JSON_structure_building__L1(src, tokensTableB, 0, errorsCollected)
+	fmt.Println(root.Repr())
+
+	compare_rune_rune(testName, '{', root.ValType, t)
+
+	atoms := root.ValObject["atoms"]
+	compare_bool_bool(testName, true, atoms.ValArray[0].ValBool, t)
+	compare_bool_bool(testName, false, atoms.ValArray[1].ValBool, t)
+	compare_rune_rune(testName, 'n', atoms.ValArray[2].ValType, t)
+}
+
+
+
+// go test -v -run  Test_token_find_next__L2
+func Test_token_find_next__L2(t *testing.T) {
+	funName := "Test_token_find_next__L2"
+	testName := funName + "_base"
 	_ = testName
+	src := `{"a": "A", "l": [4, 5, 6], "end": "E", "num": 42}`
 
-	/*
-		files := []string{"large-file_03percent.json", "large-file_06percent.json", "large-file_12percent.json", "large-file_25percent.json", "large-file_50percent.json", "large-file.json"}
+	tokensTable := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
 
-		for _, file := range files {
-			srcStr := file_read_to_string(file)
-			src := []rune(srcStr)
-			tokens := tokenTable_startPositionIndexed{}
-			errorsCollected := []error{}
+	posTokenNextWanted, _ := token_find_next__L2(true, []rune{'['}, 0, tokensTable)
+	compare_int_int(testName, 7, posTokenNextWanted, t) // [
 
-			start1 := time.Now()
-			jsonDetect_strings______(src, tokens, errorsCollected)
-			time_str := time.Since(start1)
-			fmt.Println("time_str", time_str, file)
+	posTokenNextWanted, _ = token_find_next__L2(true, []rune{'0'}, 0, tokensTable)
+	compare_int_int(testName, 8, posTokenNextWanted, t) // 4
 
-		}
+	posTokenNextWanted, _ = token_find_next__L2(true, []rune{'0'}, posTokenNextWanted+1, tokensTable)
+	compare_int_int(testName, 10, posTokenNextWanted, t) // 5
 
-	*/
+	posTokenNextWanted, _ = token_find_next__L2(true, []rune{'0'}, posTokenNextWanted+1, tokensTable)
+	compare_int_int(testName, 12, posTokenNextWanted, t) // the last num: 6 in the array
 
-	// 	srcStr := strings.Repeat(srcEverything, 100)
-	// https://raw.githubusercontent.com/json-iterator/test-data/master/large-file.json
+	posTokenNextWanted, _ = token_find_next__L2(true, []rune{':', '0'}, posTokenNextWanted+1, tokensTable)
+	compare_int_int(testName, 16, posTokenNextWanted, t) // end:
 
-	timeReadFileStart := time.Now()
-	srcStr := file_read_to_string("large-file.json")
-	fmt.Println("time read file to string:", time.Since(timeReadFileStart))
+	posTokenNextWanted, _ = token_find_next__L2(true, []rune{':', '0'}, posTokenNextWanted+1, tokensTable)
+	compare_int_int(testName, 20, posTokenNextWanted, t) // num:
 
-	timeSimpleStringPassing := time.Now()
-	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr)
-	fmt.Println("time tokensTableDetect structuralTokens:", time.Since(timeSimpleStringPassing))
-
-	timeStructure := time.Now()
-	errorsCollected := stepB__JSON_validation_L1(tokensTableB)
-	root, _ := stepC__JSON_structure_building__L1(srcStr, tokensTableB, 0, errorsCollected)
-	fmt.Println("time structure:", time.Since(timeStructure))
-	_ = root
-
-	// python3 json.loads() speed: 0.24469351768493652 sec
-	// my speed: 3.82s (2024 Marc 16)
-	//           3.47s (2024 Marc 17)
-	//           1.24s (2024 Marc 25)
-
+	posTokenNextWanted, _ = token_find_next__L2(true, []rune{':', '0'}, posTokenNextWanted+1, tokensTable)
+	compare_int_int(testName, 21, posTokenNextWanted, t) // 42
 }
 
 
 
+// go test -v -run Test_stringValueParsing_rawToInterpretedCharacters_L2
+func Test_stringValueParsing_rawToInterpretedCharacters_L2(t *testing.T) {
+	funName := "Test_stringValueParsing_rawToInterpretedCharacters_L2"
+	testName := funName + "_base"
+	errorsCollected := []error{}
 
-//////////////////////////// TEST BASE FUNCS ///////////////////
-func compare_int_int(testName string, wantedNum, received int, t *testing.T) {
-	if wantedNum != received {
-		t.Fatalf("\nError in %s wanted: %d, received: %d", testName, wantedNum, received)
-	}
-}
+	src := `backQuote:\",backBack:\\,backForward:\/,backB:\b,backF:\f,newline:\n,cr:\r,tab:\t,B:\u0042`
+	textInterpreted :=  stringValueParsing_rawToInterpretedCharacters_L2(src, errorsCollected)
+	fmt.Println("text interpreted:", textInterpreted)
+	textRunes := []rune(textInterpreted)
+	compare_rune_rune(testName, '"',  textRunes[10], t)
+	compare_rune_rune(testName, '\\', textRunes[21], t) // backback:\\
+	compare_rune_rune(testName, ',',  textRunes[22], t) // comma after backBAck:\\,
+	compare_rune_rune(testName, '/',  textRunes[35], t)
+	compare_rune_rune(testName, '\b', textRunes[43], t)
+	compare_rune_rune(testName, '\f', textRunes[51], t)
+	compare_rune_rune(testName, '\n', textRunes[61], t)
+	compare_rune_rune(testName, '\r', textRunes[66], t)
+	compare_rune_rune(testName, '\t', textRunes[72], t)
+	compare_rune_rune(testName, 'B',  textRunes[76], t)
 
-func compare_flt_flt(testName string, wantedNum, received float64, t *testing.T) {
-	if wantedNum != received {
-		t.Fatalf("\nError in %s wanted: %f, received: %f", testName, wantedNum, received)
-	}
-}
-
-
-func compare_bool_bool(testName string, wanted, received bool, t *testing.T) {
-	if wanted != received {
-		t.Fatalf("\nError, different bool comparison %s wanted: %t, received: %t", testName, wanted, received)
-	}
-}
-
-func compare_str_str(callerInfo, strWanted, strReceived string, t *testing.T) {
-	if strWanted != strReceived {
-		t.Fatalf("\nErr String difference (%s):\n  wanted -->>%s<<-- ??\nreceived -->>%s<<--\n\n", callerInfo, strWanted, strReceived)
-	}
-}
-
-func compare_runes_runes(callerInfo string, runesWanted, runesReceived []rune, t *testing.T) {
-	errMsg := fmt.Sprintf("\nErr (%s) []rune <>[]rune:\n  wanted -->>%s<<-- ??\nreceived -->>%s<<--\n\n", callerInfo, string(runesWanted), string(runesReceived))
-	if len(runesWanted) != len(runesReceived) {
-		t.Fatalf(errMsg)
-		return
-	}
-
-	for pos, runeWanted:= range runesWanted {
-		if runeWanted != runesReceived[pos] {
-			t.Fatalf(errMsg)
-			return
-		}
-	}
-}
-
-func compare_rune_rune(callerInfo string, runeWanted, runeReceived rune, t *testing.T) {
-	if runeWanted != runeReceived {
-		errMsg := fmt.Sprintf("\nErr (%s) rune <>rune:\n  wanted -->>%s<<-- ??\nreceived -->>%s<<--\n\n", callerInfo, string(runeWanted), string(runeReceived))
-		t.Fatalf(errMsg)
-	}
-}
-
-
-func file_read_to_string(fn string) string {
-	dat, err := os.ReadFile(fn)
-	if err != nil {
-		panic(err)
-	}
-	return string(dat)
-}
-
-func file_read_to_runes(fn string) []rune {
-	bytes, err := os.ReadFile(fn)
-	if err != nil { panic(err) }
-	runes := []rune{}
-	// https://pkg.go.dev/unicode/utf8#DecodeRune
-	for len(bytes) > 0 {
-		r, size := utf8.DecodeRune(bytes)
-		bytes = bytes[size:]
-		runes = append(runes, r)
-	}
-	return runes
 }
