@@ -170,7 +170,7 @@ func NewArr(elems ...JSON_value) JSON_value { // TESTED
 
 // if autoCreateChildren == true, a complex path can be added, and if the Children doesn't exist,
 // the func creates it recursively
-func (v JSON_value) AddKeyVal_path(keysMerged string, value JSON_value, autoCreateChildren bool) error { // TESTED
+func (v JSON_value) SetPath(keysMerged string, value JSON_value, autoCreateChildren bool) error { // TESTED
 	if v.ValType ==  '{' {
 		keys, err:= ObjPath_merged_expand__split_with_first_char(keysMerged)
 		if err != nil {
@@ -196,7 +196,7 @@ func (v JSON_value) AddKeyVal_path(keysMerged string, value JSON_value, autoCrea
 
 			separator := string(keysMerged[0])
 			pathAfterFirstKey := separator+strings.Join(keys[1:], separator)
-			err2 := children.AddKeyVal_path(pathAfterFirstKey, value, autoCreateChildren)
+			err2 := children.SetPath(pathAfterFirstKey, value, autoCreateChildren)
 			if err2 != nil {
 				return err2
 			}
@@ -250,26 +250,26 @@ func (v JSON_value) Arr(index int) (JSON_value, error) { // TESTED
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-func (v JSON_value) ObjPath(keysMerged string) (JSON_value, error) { // TESTED
+func (v JSON_value) GetPath(keysMerged string) (JSON_value, error) { // TESTED
 	// object reader with merged string keys (first character is the key elem separator
-	// elem_root.ObjPath("/personal/list")     separator: /
-	// elem_root.ObjPath("|personal|list")     separator: |
-	// elem_root.ObjPath(">personal>list")     separator: |
+	// elem_root.GetPath("/personal/list")     separator: /
+	// elem_root.GetPath("|personal|list")     separator: |
+	// elem_root.GetPath(">personal>list")     separator: |
 	// the separator can be any character.
 	var valueEmpty JSON_value
 
 	if len(keysMerged) < 2 {
-		return valueEmpty, errors.New(errorPrefix + "missing separator and key(s) in merged ObjPath")
+		return valueEmpty, errors.New(errorPrefix + "missing separator and key(s) in merged GetPath")
 	}
 	// possible errors are handled with len(...)<2
 	keys, _ := ObjPath_merged_expand__split_with_first_char(keysMerged)
 	// fmt.Println("KEYS:", keys, len(keys))
-	return v.ObjPathKeys(keys)
+	return v.GetPathKeys(keys)
 }
 
 
 
-func ObjPath_merged_expand__split_with_first_char(path string) ([]string, error){
+func ObjPath_merged_expand__split_with_first_char(path string) ([]string, error){ // TESTED
 	if len(path) < 1 {
 		return []string{}, errors.New("separator is NOT defined")
 	}
@@ -292,8 +292,8 @@ func ObjPath_merged_expand__split_with_first_char(path string) ([]string, error)
 	*/
 }
 
-func (v JSON_value) ObjPathKeys(keysEmbedded []string) (JSON_value, error) {
-	// object reader with separated string keys:  elem_root.ObjPathKeys([]string{"personal", "list"})
+func (v JSON_value) GetPathKeys(keysEmbedded []string) (JSON_value, error) { // TESTED
+	// object reader with separated string keys:  elem_root.GetPathKeys([]string{"personal", "list"})
 	var valueEmpty JSON_value
 
 	if len(keysEmbedded) < 1 {
@@ -316,5 +316,5 @@ func (v JSON_value) ObjPathKeys(keysEmbedded []string) (JSON_value, error) {
 	if valueCollected.ValType !=  '{' {
 		return valueEmpty, errors.New(errorPrefix + keysEmbedded[0] + "-> child is not object, key cannot be used")
 	}
-	return valueCollected.ObjPathKeys(keysEmbedded[1:])
+	return valueCollected.GetPathKeys(keysEmbedded[1:])
 }

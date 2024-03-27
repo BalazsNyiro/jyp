@@ -15,6 +15,18 @@ import (
 	"fmt"
 	"testing"
 )
+// Negative testcases/errors will be checked in a different file
+
+
+//  go test -v -run Test_ObjPath_merged_expand__split_with_first_char
+func Test_ObjPath_merged_expand__split_with_first_char(t *testing.T) {
+	funName := "Test_ObjPath_merged_expand__split_with_first_char"
+	testName := funName + "_basic"
+
+	keys, _ := ObjPath_merged_expand__split_with_first_char("/a/b/c/d")
+	compare_int_int(testName, 4, len(keys), t)
+	compare_str_str(testName, "d", keys[3], t)
+}
 
 //  go test -v -run  TestJSON_value_AddKeyVal_path
 func TestJSON_value_AddKeyVal_path(t *testing.T) {
@@ -23,22 +35,25 @@ func TestJSON_value_AddKeyVal_path(t *testing.T) {
 
 	src := `{"a": "A"}`
 	root, _ := JsonParse(src)
-	root.AddKeyVal_path("/b", NewObj(), false)
-	root.AddKeyVal_path("/b/c", NewObj(), false)
-	root.AddKeyVal_path("/b/c/d", NewStr("Delta"), false)
-	root.AddKeyVal_path("/e/f/g/h", NewStr("Hugo"),true)
-	root.AddKeyVal_path("/array/a2", NewArr( NewNumInt(1), NewNumInt(2)), true)
+	root.SetPath("/b", NewObj(), false)
+	root.SetPath("/b/c", NewObj(), false)
+	root.SetPath("/b/c/d", NewStr("Delta"), false)
+	root.SetPath("/e/f/g/h", NewStr("Hugo"),true)
+	root.SetPath("/array/a2", NewArr( NewNumInt(1), NewNumInt(2)), true)
 
 	fmt.Println("root with new value, path-insert:")
 	fmt.Println(root.Repr())
 
 	compare_str_str(testName, "Delta", root.ValObject["b"].ValObject["c"].ValObject["d"].ValString, t)
 
-	hVal, _ := root.ObjPath("/e/f/g/h")
+	hVal, _ := root.GetPath("/e/f/g/h")
 	compare_str_str(testName, "Hugo", hVal.ValString, t)
 
-	arrVal, _ := root.ObjPath("/array/a2")
+	arrVal, _ := root.GetPath("/array/a2")
 	compare_int_int(testName, 2, arrVal.ValArray[1].ValNumberInt, t)
+
+	hValWithKeys, _ := root.GetPathKeys([]string{"e", "f", "g", "h"})
+	compare_str_str(testName, "Hugo", hValWithKeys.ValString, t)
 }
 
 
@@ -50,7 +65,7 @@ func Test_JsonParse_and_ObjPathKeys(t *testing.T) {
 
 	src := `{"a": {"b": {"c": "C"}}}`
 	root, _ := JsonParse(src)
-	elemC, _ := root.ObjPath("/a/b/c")
+	elemC, _ := root.GetPath("/a/b/c")
 	compare_str_str(testName, "C", elemC.ValString, t)
 }
 
