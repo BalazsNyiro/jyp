@@ -11,7 +11,36 @@ LICENSE file in the root directory of this source tree.
 
 package jyp
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
+
+//  go test -v -run  TestJSON_value_AddKeyVal_path
+func TestJSON_value_AddKeyVal_path(t *testing.T) {
+	funName := "TestJSON_value_AddKeyVal_path"
+	testName := funName + "_basic"
+
+	src := `{"a": "A"}`
+	root, _ := JsonParse(src)
+	root.AddKeyVal_path("/b", NewObj(), false)
+	root.AddKeyVal_path("/b/c", NewObj(), false)
+	root.AddKeyVal_path("/b/c/d", NewStr("Delta"), false)
+	root.AddKeyVal_path("/e/f/g/h", NewStr("Hugo"),true)
+	root.AddKeyVal_path("/array/a2", NewArr( NewNumInt(1), NewNumInt(2)), true)
+
+	fmt.Println("root with new value, path-insert:")
+	fmt.Println(root.Repr())
+
+	compare_str_str(testName, "Delta", root.ValObject["b"].ValObject["c"].ValObject["d"].ValString, t)
+
+	hVal, _ := root.ObjPath("/e/f/g/h")
+	compare_str_str(testName, "Hugo", hVal.ValString, t)
+
+	arrVal, _ := root.ObjPath("/array/a2")
+	compare_int_int(testName, 2, arrVal.ValArray[1].ValNumberInt, t)
+}
+
 
 //  go test -v -run Test_JsonParse_and_ObjPathKeys
 func Test_JsonParse_and_ObjPathKeys(t *testing.T) {

@@ -114,7 +114,7 @@ func NewBool(val bool) JSON_value {
 	}
 }
 
-func NewNumInt(num int) JSON_value {
+func NewNumInt(num int) JSON_value { // TESTED
 	return JSON_value{
 		ValType:      'I', // Integer
 		ValNumberInt: num,
@@ -129,7 +129,17 @@ func NewNumFloat(num float64) JSON_value {
 }
 
 
-func NewString_JSON_value_quotedBothEnd(text string, errorsCollected []error) JSON_value {
+var exampleNewString string = "backslashTab\t or newline \n represents 1 char, not two"
+// new string object from simple Go string (interpreted)
+func NewStr(text string) JSON_value { // TESTED
+	return JSON_value{
+		ValType:      '"',
+		ValString: text,
+	}
+}
+
+// raw: the string needs to be interpreted. "a\tb": \t represents 2 chars, it needs to be interpreted.
+func NewString__rawToInterpreted__QuotedBothEnd(text string, errorsCollected []error) JSON_value {
 	// strictly have minimum one "opening....and...one..closing" quote!
 	return JSON_value{
 		ValType:      '"',
@@ -137,23 +147,110 @@ func NewString_JSON_value_quotedBothEnd(text string, errorsCollected []error) JS
 	}
 }
 
-func NewObj_JSON_value_B() JSON_value {
+func NewObj() JSON_value { // TESTED
 	return JSON_value{
 		ValType: '{',
 		ValObject: map[string]JSON_value{},
 	}
 }
 
-func NewArr_JSON_value_B() JSON_value {
+// newArray creation, with possible children
+func NewArr(elems ...JSON_value) JSON_value { // TESTED
+	children := []JSON_value{}
+	for _, elem := range elems {
+		children = append(children, elem)
+	}
 	return JSON_value{
 		ValType: '[',
-		ValArray: []JSON_value{},
+		ValArray: children,
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-func (v JSON_value) ObjPath(keysMerged string) (JSON_value, error) {
+// if autoCreateChildren == true, a complex path can be added, and if the Children doesn't exist,
+// the func creates it recursively
+func (v JSON_value) AddKeyVal_path(keysMerged string, value JSON_value, autoCreateChildren bool) error { // TESTED
+	if v.ValType ==  '{' {
+		keys, err:= ObjPath_merged_expand__split_with_first_char(keysMerged)
+		if err != nil {
+			return err
+		}
+
+		if len(keys) == 1 {
+			return v.AddKeyVal(keys[0], value)
+		}
+
+		if len(keys) > 1 {
+
+			children, isChildInObj := v.ValObject[keys[0]]
+			if autoCreateChildren {
+				if !isChildInObj {
+					children = NewObj()
+				}
+			} else {  // not autoCreateChildren
+				if ! isChildInObj {
+					return errors.New("unknown key: " + keys[0])
+				}
+			}
+
+			separator := string(keysMerged[0])
+			pathAfterFirstKey := separator+strings.Join(keys[1:], separator)
+			err2 := children.AddKeyVal_path(pathAfterFirstKey, value, autoCreateChildren)
+			if err2 != nil {
+				return err2
+			}
+			v.ValObject[keys[0]] = children
+		}
+
+		return nil
+	}
+	return errors.New(errorPrefix + "add value into non-object")
+}
+
+
+func (v JSON_value) AddKeyVal(key string, value JSON_value) error {
+	if v.ValType ==  '{' {
+		objects := v.ValObject
+		objects[key] = value
+		v.ValObject = objects
+		return nil
+	}
+	return errors.New(errorPrefix + "add value into non-object")
+}
+
+// add value into an ARRAY
+func (v JSON_value) AddVal_into_array(value JSON_value) error {
+	if v.ValType ==  '[' {
+		elems := v.ValArray
+		elems = append(elems, value)
+		v.ValArray = elems
+		return nil
+	}
+	return errors.New(errorPrefix + "add value into non-array")
+}
+
+
+
+// new value has to be inserted into the array
+func (v JSON_value) Arr(index int) (JSON_value, error) { // TESTED
+	// ask ONE indexed elem from an array
+
+	var valueEmpty JSON_value
+	indexMax := len(v.ValArray) - 1
+	if index > indexMax {
+		return valueEmpty, errors.New(errorPrefix + "index ("+strconv.Itoa(index)+") is not in array")
+	}
+
+	valueCollected := v.ValArray[index]
+	return valueCollected, nil
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+func (v JSON_value) ObjPath(keysMerged string) (JSON_value, error) { // TESTED
 	// object reader with merged string keys (first character is the key elem separator
 	// elem_root.ObjPath("/personal/list")     separator: /
 	// elem_root.ObjPath("|personal|list")     separator: |

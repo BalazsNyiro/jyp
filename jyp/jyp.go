@@ -271,7 +271,7 @@ func stepC__JSON_structure_building__L1(src string, tokensTable tokenElems, toke
 		tokenNow := tokensTable[pos]
 
 		if tokenNow.tokenType == '"' {
-			elem = NewString_JSON_value_quotedBothEnd(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTable[pos], false), errorsCollected)
+			elem = NewString__rawToInterpreted__QuotedBothEnd(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTable[pos], false), errorsCollected)
 			break
 
 		} else if tokenNow.tokenType == '0' { // general number detection
@@ -290,11 +290,11 @@ func stepC__JSON_structure_building__L1(src string, tokensTable tokenElems, toke
 			}
 
 			// worst case, I don't know what is this, so insert it as a string
-			elem = NewString_JSON_value_quotedBothEnd(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTable[pos], false), errorsCollected)
+			elem = NewString__rawToInterpreted__QuotedBothEnd(base__read_sourceCode_section_basedOnTokenPositions(src, tokensTable[pos], false), errorsCollected)
 			break
 
 		} else if tokenNow.tokenType == '{' {
-				elem = NewObj_JSON_value_B()
+				elem = NewObj()
 
 				for ; pos <len(tokensTable); { // detect children
 					pos, _ = token_find_next__L2(true, []rune{'"'}, pos+1, tokensTable)
@@ -319,7 +319,7 @@ func stepC__JSON_structure_building__L1(src string, tokensTable tokenElems, toke
 				} // for pos, internal children loop
 
 		} else if tokenNow.tokenType == '[' {
-			elem = NewArr_JSON_value_B()
+			elem = NewArr()
 			for ; pos < len(tokensTable);  { // detect children
 				// find the next ANY token, the new VALUE
 				nextValueElem, posLastUsed := stepC__JSON_structure_building__L1(src, tokensTable, pos+1, errorsCollected)
@@ -352,7 +352,7 @@ func stepC__JSON_structure_building__L1(src string, tokensTable tokenElems, toke
 
 		/*	This is not possible anymore, every possible token type is detected now
 			} else if tokenNow.tokenType == '?' {
-				elem = NewString_JSON_value_quotedBothEnd("\"unknown_elem, maybe number or bool\"", errorsCollected)
+				elem = NewString__rawToInterpreted__QuotedBothEnd("\"unknown_elem, maybe number or bool\"", errorsCollected)
 				break
 		*/
 	} // for BIG loop
