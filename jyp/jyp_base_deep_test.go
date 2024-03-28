@@ -17,7 +17,7 @@ func Test_base__srcGetChar__safeOverindexing__deep(t *testing.T) {
 	funName := "Test_base__srcGetChar__safeOverindexing"
 	testName := funName + "_base"
 
-	txt := "" // this is the smallest string that can be passed
+	txt := []rune("") // this is the smallest string that can be passed
 	// posPossibleMax == -1
 	// posPossibleMin == 0
 
@@ -25,17 +25,16 @@ func Test_base__srcGetChar__safeOverindexing__deep(t *testing.T) {
 	charRead := base__srcGetChar__safeOverindexing(txt, 0)
 	compare_rune_rune(testName,' ', charRead, t)
 
-	txt = "" // what if we get negative index?
+	// what if we get negative index?
 	charRead = base__srcGetChar__safeOverindexing(txt, -1)
 	// in that case, posWanted>=0 is the guard.
 	compare_rune_rune(testName,' ', charRead, t)
 
-
-	txt = "ww"
+	txt = []rune("ww")
 	charRead = base__srcGetChar__safeOverindexing(txt, 999)
 	compare_rune_rune(testName,' ', charRead, t)
 
-	txt = "abc" // and a normal test, not corner-case
+	txt = []rune("abc") // and a normal test, not corner-case
 	charRead = base__srcGetChar__safeOverindexing(txt, 2)
 	compare_rune_rune(testName,'c', charRead, t)
 }

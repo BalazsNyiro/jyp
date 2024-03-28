@@ -132,7 +132,7 @@ func Test_base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(t 
 	funName := "Test_base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces"
 	testName := funName + "_base"
 
-	txt := "ab\ncd"
+	txt := []rune("ab\ncd")
 
 	charRead := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(txt, 0)
 	compare_rune_rune(testName,'a', charRead, t)
@@ -150,7 +150,7 @@ func Test_base__srcGetChar__safeOverindexing(t *testing.T) {
 	funName := "Test_base__srcGetChar__safeOverindexing"
 	testName := funName + "_base"
 
-	txt := "ab\ncd"
+	txt := []rune("ab\ncd")
 
 	charRead := base__srcGetChar__safeOverindexing(txt, 0)
 	compare_rune_rune(testName,'a', charRead, t)

@@ -413,6 +413,12 @@ func stringValueParsing_rawToInterpretedCharacters_L2(src string, errorsCollecte
 	but sometime with 6: \u0123, so I need to look forward for the next 5 chars
 	*/
 
+
+	// in  base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces ->  base__srcGetChar__safeOverindexing
+	// the src is read often, as rune. so the string->rune conversion is often used (in the past)
+	// so this conversion is done now, only once, to speed up the process
+	srcRunes := []rune(src)
+
 	valueFromRawSrcParsing := []rune{}
 
 	// fmt.Println("string token value detection:", src)
@@ -422,7 +428,7 @@ func stringValueParsing_rawToInterpretedCharacters_L2(src string, errorsCollecte
 	// post end -1  closing " after string content
 	for pos := 0; pos < len(src); pos++ {
 
-		runeActual := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos)
+		runeActual := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(srcRunes, pos)
 		//fmt.Println("rune actual (string value set):", pos, string(runeActual), runeActual)
 
 		if runeActual != runeBackSlash { // a non-backSlash char
@@ -430,16 +436,16 @@ func stringValueParsing_rawToInterpretedCharacters_L2(src string, errorsCollecte
 			continue
 		} else {
 			// runeActual is \\ here, so ESCAPING started
-			runeNext1 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+1)
+			runeNext1 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(srcRunes, pos+1)
 
 			if runeNext1 == 'u' {
 				// this is \u.... unicode code point - special situation,
 				// because after the \u four other chars has to be handled
 
-				runeNext2 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+2)
-				runeNext3 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+3)
-				runeNext4 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+4)
-				runeNext5 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src, pos+5)
+				runeNext2 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(srcRunes, pos+2)
+				runeNext3 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(srcRunes, pos+3)
+				runeNext4 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(srcRunes, pos+4)
+				runeNext5 := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(srcRunes, pos+5)
 
 				base10_val_2, err2 := base__hexaRune_to_intVal(runeNext2)
 				if err2 != nil {

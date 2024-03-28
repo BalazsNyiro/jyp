@@ -86,7 +86,7 @@ func base__separator_set_if_no_last_elem(position, length_numOfAllElems int, sep
 // and if a space is returned, this has NO MEANING in that parse section
 // this fun is NOT used in string detection - and other places whitespaces can be neglected, too
 // getChar, with whitespace replace
-func base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src string, pos int) rune { // TESTED
+func base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src []rune, pos int) rune { // TESTED
 	char := base__srcGetChar__safeOverindexing(src, pos)
 	if base__is_whitespace_rune(char) {
 		return ' ' // simplify everything. if the char is ANY whitespace char,
@@ -99,13 +99,17 @@ func base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src str
 /* https://stackoverflow.com/questions/30263607/how-to-get-a-single-unicode-character-from-string
 If the string is encoded in UTF-8, there is no direct way to access the nth rune of the string,
 because the size of the runes (in bytes) is not constant.
+
+performance: the string->rune conversion used too often. is it possible to do the conversion once?
+so src has to be a string
+
 */
 // getChar, no whitespace replace
-func base__srcGetChar__safeOverindexing(src string, pos int) rune { // TESTED
+func base__srcGetChar__safeOverindexing(src []rune, pos int) rune { //DEEP-TESTED
 	posPossibleMax := len(src) - 1  // if src is empty, max is -1,
 	posPossibleMin := 0             // and the condition cannot be true here:
 	if (pos >= posPossibleMin) && (pos <= posPossibleMax) {
-		return []rune(src[pos:pos+1])[0]
+		return src[pos]
 	}
 	return ' '
 }
