@@ -134,15 +134,16 @@ func Test_speed(t *testing.T) {
 
 	timeReadFileStart := time.Now()
 	srcStr := file_read_to_string("large-file.json")
+	srcRunes := []rune(srcStr)
 	fmt.Println("time read file to string:", time.Since(timeReadFileStart))
 
 	timeSimpleStringPassing := time.Now()
-	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr)
+	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(srcRunes)
 	fmt.Println("time tokensTableDetect structuralTokens:", time.Since(timeSimpleStringPassing))
 
 	timeStructure := time.Now()
 	errorsCollected := stepB__JSON_validation_L1(tokensTableB)
-	root, _ := stepC__JSON_structure_building__L1(srcStr, tokensTableB, 0, errorsCollected)
+	root, _ := stepC__JSON_structure_building__L1(srcRunes, tokensTableB, 0, errorsCollected)
 	fmt.Println("time structure:", time.Since(timeStructure))
 	_ = root
 

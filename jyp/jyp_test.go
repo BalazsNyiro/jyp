@@ -22,7 +22,7 @@ func Test_stepA__tokensTableDetect_structuralTokens_strings_L1(t *testing.T) {
 	testName := funName + "_basic"
 
 	// src = `{"a": "b"}`
-	src := `{"a": "A", "b1": {"b2":"B2"}, "c":"C", "list":["k", "bh"]}`
+	src := []rune(`{"a": "A", "b1": {"b2":"B2"}, "c":"C", "list":["k", "bh"]}`)
 	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
 	tokenA := tokensTableB[3]
 	// "A"
@@ -46,23 +46,23 @@ func Test_structure_building(t *testing.T) {
 	testName := funName + "_basic_obj"
 	errorsCollected := []error{}
 
-	src := `{"a": "A"}`
+	src := []rune(`{"a": "A"}`)
 	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
 	errorsCollected = stepB__JSON_validation_L1(tokensTableB)
 	root, _ := stepC__JSON_structure_building__L1(src, tokensTableB, 0, errorsCollected)
 	compare_rune_rune(testName, '{', root.ValType, t)
 	compare_int_int(testName, 1, len(root.ValObject), t) // has 1 elem
-	compare_str_str(testName, "A", root.ValObject["a"].ValString, t)
+	compare_str_str(testName, "A", root.ValObject["a"].ValRunes, t)
 
 	testName = funName + "_basic_arr"
-	src = `["a", "A"]`
+	src = []rune(`["a", "A"]`)
 	tokensTableB = stepA__tokensTableDetect_structuralTokens_strings_L1(src)
 	errorsCollected = stepB__JSON_validation_L1(tokensTableB)
 	root, _ = stepC__JSON_structure_building__L1(src, tokensTableB, 0, errorsCollected)
 	compare_rune_rune(testName, '[', root.ValType, t)
-	compare_int_int(testName, 2, len(root.ValArray), t) // has 1 elem
-	compare_str_str(testName, "a", root.ValArray[0].ValString, t) // has 1 elem
-	compare_str_str(testName, "A", root.ValArray[1].ValString, t) // has 1 elem
+	compare_int_int(testName, 2, len(root.ValArray), t)          // has 1 elem
+	compare_str_str(testName, "a", root.ValArray[0].ValRunes, t) // has 1 elem
+	compare_str_str(testName, "A", root.ValArray[1].ValRunes, t) // has 1 elem
 }
 
 
@@ -72,7 +72,7 @@ func Test_structure_building_complex(t *testing.T) {
 	testName := funName + "_base"
 	errorsCollected := []error{}
 
-	src := `{"a": "A", "arr": ["0", "1", "2"], "obj": {"key": ["val"]} }`
+	src := []rune(`{"a": "A", "arr": ["0", "1", "2"], "obj": {"key": ["val"]} }`)
 	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
 	tokensTableB.print()
 	errorsCollected = stepB__JSON_validation_L1(tokensTableB)
@@ -80,21 +80,21 @@ func Test_structure_building_complex(t *testing.T) {
 	fmt.Println(root.Repr())
 	compare_rune_rune(testName, '{', root.ValType, t)
 	compare_int_int(testName, 3, len(root.ValObject), t) // has 1 elem
-	compare_str_str(testName, "A", root.ValObject["a"].ValString, t)
+	compare_str_str(testName, "A", root.ValObject["a"].ValRunes, t)
 
 	array := root.ValObject["arr"]
 	compare_rune_rune(testName, '[', array.ValType, t)
-	compare_int_int(testName, 3, len(array.ValArray), t) // has 1 elem
-	compare_str_str(testName, "0", array.ValArray[0].ValString, t) // has 1 elem
-	compare_str_str(testName, "1", array.ValArray[1].ValString, t) // has 1 elem
-	compare_str_str(testName, "2", array.ValArray[2].ValString, t) // has 1 elem
+	compare_int_int(testName, 3, len(array.ValArray), t)          // has 1 elem
+	compare_str_str(testName, "0", array.ValArray[0].ValRunes, t) // has 1 elem
+	compare_str_str(testName, "1", array.ValArray[1].ValRunes, t) // has 1 elem
+	compare_str_str(testName, "2", array.ValArray[2].ValRunes, t) // has 1 elem
 
 	obj := root.ValObject["obj"]
 	compare_rune_rune(testName, '{', obj.ValType, t)
 
 	val := obj.ValObject["key"].ValArray[0]
 	compare_rune_rune(testName, '"', val.ValType, t)
-	compare_str_str(testName, "val", val.ValString, t) // has 1 elem
+	compare_str_str(testName, "val", val.ValRunes, t) // has 1 elem
 }
 
 
@@ -104,7 +104,7 @@ func Test_numbers_int(t *testing.T) {
 	testName := funName + "_base"
 	errorsCollected := []error{}
 
-	src := `{"age": -123, "favouriteNums": [4, 5, 6] }`
+	src := []rune(`{"age": -123, "favouriteNums": [4, 5, 6] }`)
 	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
 	tokensTableB.print()
 
@@ -130,7 +130,7 @@ func Test_numbers_float(t *testing.T) {
 	testName := funName + "_base"
 	errorsCollected := []error{}
 
-	src := `{"celsiusDegrees": [0.12, -3.45, 6.789] }`
+	src := []rune(`{"celsiusDegrees": [0.12, -3.45, 6.789] }`)
 	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
 	tokensTableB.print()
 
@@ -152,7 +152,7 @@ func Test_true_false_null(t *testing.T) {
 	testName := funName + "_base"
 	errorsCollected := []error{}
 
-	src := `{"atoms": [true, false, null] }`
+	src := []rune(`{"atoms": [true, false, null] }`)
 	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
 	tokensTableB.print()
 
@@ -175,7 +175,7 @@ func Test_token_find_next__L2(t *testing.T) {
 	funName := "Test_token_find_next__L2"
 	testName := funName + "_base"
 	_ = testName
-	src := `{"a": "A", "l": [4, 5, 6], "end": "E", "num": 42}`
+	src := []rune(`{"a": "A", "l": [4, 5, 6], "end": "E", "num": 42}`)
 
 	tokensTable := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
 
@@ -209,7 +209,7 @@ func Test_stringValueParsing_rawToInterpretedCharacters_L2(t *testing.T) {
 	testName := funName + "_base"
 	errorsCollected := []error{}
 
-	src := `backQuote:\",backBack:\\,backForward:\/,backB:\b,backF:\f,newline:\n,cr:\r,tab:\t,B:\u0042`
+	src := []rune(`backQuote:\",backBack:\\,backForward:\/,backB:\b,backF:\f,newline:\n,cr:\r,tab:\t,B:\u0042`)
 	textInterpreted :=  stringValueParsing_rawToInterpretedCharacters_L2(src, errorsCollected)
 	fmt.Println("text interpreted:", textInterpreted)
 	textRunes := []rune(textInterpreted)

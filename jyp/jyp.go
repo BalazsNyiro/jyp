@@ -96,7 +96,7 @@ type JSON_value struct {
 
 	ValBool bool // true, false
 
-	ValString   string     // the parsed string. \n means 1 char here, for example
+	ValRunes       string  // the parsed string. \n means 1 char here, for example
 	ValNumberInt   int     // an integer JSON value is stored here
 	ValNumberFloat float64 // a float JSON value is saved here
 }
@@ -112,14 +112,14 @@ func (v JSON_value) ValObject_keys_sorted() []string{
 
 
 
-func stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr string) tokenElems { // TESTED
+func stepA__tokensTableDetect_structuralTokens_strings_L1(srcRunes []rune) tokenElems { // TESTED
 	tokenTable := tokenElems{}
 	posUnknownBlockStart := -1 // used only if the token is longer than 1 char. numbers, false/true for example
 	
 	//////////// TOKEN ADD //////////////////////////
 	tokenAdd := func (typeOfToken rune, posFirst, posLast int) {
 		if typeOfToken == '?' {
-			textInSrc := srcStr[posFirst:posLast+1]
+			textInSrc := string(srcRunes[posFirst:posLast+1])
 			if textInSrc == "true" { typeOfToken = 't' } else
 			if textInSrc == "false" { typeOfToken = 'f' } else
 			if textInSrc == "null" { typeOfToken = 'n' } else {
@@ -145,7 +145,7 @@ func stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr string) tokenEl
 	 */
 	isEscaped := false
 
-	for pos, runeNow := range srcStr {
+	for pos, runeNow := range srcRunes {
 
 		stringCloseAtEnd := false
 		if runeNow == '"' {
@@ -256,7 +256,7 @@ func stepB__JSON_validation_L1(tokenTable tokenElems) []error {
 
 
 // L1: Level 1. A higher level is a more general fun, a lower level is a tool, lib func, or something small
-func stepC__JSON_structure_building__L1(src string, tokensTable tokenElems, tokenPosStart int, errorsCollected []error) (JSON_value, int) { // TESTED
+func stepC__JSON_structure_building__L1(src []rune, tokensTable tokenElems, tokenPosStart int, errorsCollected []error) (JSON_value, int) { // TESTED
 	if tokenPosStart >= len(tokensTable) {
 		errorsCollected= append(errorsCollected, errors.New("wanted position index is higher than tokensTable"))
 	}
@@ -277,13 +277,13 @@ func stepC__JSON_structure_building__L1(src string, tokensTable tokenElems, toke
 		} else if tokenNow.tokenType == '0' { // general number detection
 			textInSrc := base__read_sourceCode_section_basedOnTokenPositions(src, tokensTable[pos], false)
 			// detect simple integers first
-			i, err := strconv.Atoi(textInSrc)  // it can't interpret Scientific nums!
+			i, err := strconv.Atoi(string(textInSrc))  // it can't interpret Scientific nums!
 			if err == nil { // it was really an integer...
 				elem = NewNumInt(i)
 				break
 			}
 
-			f, err := strconv.ParseFloat(textInSrc, 64)
+			f, err := strconv.ParseFloat(string(textInSrc), 64)
 			if err == nil { // it was really an integer...
 				elem = NewNumFloat(f)
 				break
@@ -403,7 +403,7 @@ func token_find_next__L2(wantSomethingFromTypes bool, types []rune, posActual in
 // set the string value from raw strings
 // in orig soure code, \n means 2 chars: a backslash and 'n'.
 // but if it is interpreted, that is one newline "\n" char.
-func stringValueParsing_rawToInterpretedCharacters_L2(src string, errorsCollected []error) string{ // TESTED
+func stringValueParsing_rawToInterpretedCharacters_L2(srcRunes []rune, errorsCollected []error) string{ // TESTED
 
 	/* Tasks:
 	- is it a valid string?
@@ -416,8 +416,7 @@ func stringValueParsing_rawToInterpretedCharacters_L2(src string, errorsCollecte
 
 	// in  base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces ->  base__srcGetChar__safeOverindexing
 	// the src is read often, as rune. so the string->rune conversion is often used (in the past)
-	// so this conversion is done now, only once, to speed up the process
-	srcRunes := []rune(src)
+	// so this conversion is done now, only once, to speed up the process, and runes are passed
 
 	valueFromRawSrcParsing := []rune{}
 
@@ -426,7 +425,7 @@ func stringValueParsing_rawToInterpretedCharacters_L2(src string, errorsCollecte
 
 	// pos start + 1: strings has initial " in runes
 	// post end -1  closing " after string content
-	for pos := 0; pos < len(src); pos++ {
+	for pos := 0; pos < len(srcRunes); pos++ {
 
 		runeActual := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(srcRunes, pos)
 		//fmt.Println("rune actual (string value set):", pos, string(runeActual), runeActual)

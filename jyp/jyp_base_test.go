@@ -98,14 +98,14 @@ func Test_base__read_sourceCode_section(t *testing.T) {
 	funName := "Test_base__read_sourceCode_section"
 	testName := funName + "_base"
 
-	src := `{"a": "A"}`
+	src := []rune(`{"a": "A"}`)
 
 	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(src)
 	sectionReadBack := base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[1], false)
-	compare_str_str(testName, `"a"`, sectionReadBack, t)
+	compare_str_str(testName, `"a"`, string(sectionReadBack), t)
 
 	sectionReadBack = base__read_sourceCode_section_basedOnTokenPositions(src, tokensTableB[3], false)
-	compare_str_str(testName, `"A"`, sectionReadBack, t)
+	compare_str_str(testName, `"A"`, string(sectionReadBack), t)
 }
 
 func Test_base__separator_set_if_no_last_elem(t *testing.T) {

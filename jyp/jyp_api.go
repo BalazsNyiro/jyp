@@ -17,10 +17,10 @@ import (
 )
 
 func JsonParse(srcStr string) (JSON_value, []error) {
-
-	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(srcStr)
+	srcRunes := []rune(srcStr)
+	tokensTableB := stepA__tokensTableDetect_structuralTokens_strings_L1(srcRunes)
 	errorsCollected := stepB__JSON_validation_L1(tokensTableB)
-	elemRoot, _ := stepC__JSON_structure_building__L1(srcStr, tokensTableB, 0, errorsCollected)
+	elemRoot, _ := stepC__JSON_structure_building__L1(srcRunes, tokensTableB, 0, errorsCollected)
 
 	return elemRoot, errorsCollected
 }
@@ -55,7 +55,7 @@ func (v JSON_value) Repr_tuned(indent string, level int) string {
 	}
 
 	if v.ValType == '"' {
-		return "\""+v.ValString + "\""
+		return "\""+v.ValRunes + "\""
 	} else
 
 	if v.ValType == 'I' {
@@ -133,17 +133,17 @@ var exampleNewString string = "backslashTab\t or newline \n represents 1 char, n
 // new string object from simple Go string (interpreted)
 func NewStr(text string) JSON_value { // TESTED
 	return JSON_value{
-		ValType:      '"',
-		ValString: text,
+		ValType:  '"',
+		ValRunes: text,
 	}
 }
 
 // raw: the string needs to be interpreted. "a\tb": \t represents 2 chars, it needs to be interpreted.
-func NewString__rawToInterpreted__QuotedBothEnd(text string, errorsCollected []error) JSON_value {
+func NewString__rawToInterpreted__QuotedBothEnd(text []rune, errorsCollected []error) JSON_value {
 	// strictly have minimum one "opening....and...one..closing" quote!
 	return JSON_value{
-		ValType:      '"',
-		ValString: stringValueParsing_rawToInterpretedCharacters_L2( text[1:len(text)-1], errorsCollected),
+		ValType:  '"',
+		ValRunes: stringValueParsing_rawToInterpretedCharacters_L2( text[1:len(text)-1], errorsCollected),
 	}
 }
 
