@@ -123,6 +123,11 @@ func Test_base__separator_set_if_no_last_elem(t *testing.T) {
 
 	sep = base__separator_set_if_no_last_elem(5, 4, ",")
 	compare_str_str(testName, "", sep, t)
+
+	// there is no meaning for a negative value - but comma has to be used if the position is less than lass elem,
+	// so by definition, that is comma (corner case?)
+	sep = base__separator_set_if_no_last_elem(-1, 4, ",")
+	compare_str_str(testName, ",", sep, t)
 }
 
 
