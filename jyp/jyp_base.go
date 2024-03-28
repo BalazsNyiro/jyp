@@ -95,6 +95,11 @@ func base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src str
 	return char
 }
 
+
+/* https://stackoverflow.com/questions/30263607/how-to-get-a-single-unicode-character-from-string
+If the string is encoded in UTF-8, there is no direct way to access the nth rune of the string,
+because the size of the runes (in bytes) is not constant.
+*/
 // getChar, no whitespace replace
 func base__srcGetChar__safeOverindexing(src string, pos int) rune { // TESTED
 	posPossibleMax := len(src) - 1  // if src is empty, max is -1,
