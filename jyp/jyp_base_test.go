@@ -132,7 +132,7 @@ func Test_base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(t 
 	funName := "Test_base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces"
 	testName := funName + "_base"
 
-	txt := []rune("ab\ncd")
+	txt := []rune("ab\ncd\t")
 
 	charRead := base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(txt, 0)
 	compare_rune_rune(testName,'a', charRead, t)
@@ -142,6 +142,12 @@ func Test_base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(t 
 
 	charRead = base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(txt, 9)
 	compare_rune_rune(testName,' ', charRead, t)
+
+	charRead = base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(txt, -2)
+	compare_rune_rune(testName,' ', charRead, t)
+
+	charRead = base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(txt, 5)
+	compare_rune_rune(testName,' ', charRead, t) // space instead of \t
 }
 
 

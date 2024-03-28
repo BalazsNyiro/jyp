@@ -41,7 +41,7 @@ func base__hexaRune_to_intVal(hexaChar rune) (int, error) { // TESTED
 	return 0, errors.New("hexa char(" + string(hexaChar) + ") was not in hexa table")
 }
 
-func base__is_whitespace_rune(oneRune rune) bool { // TESTED
+func base__is_whitespace_rune(oneRune rune) bool { // TESTED, DEEP-test is not necessary, wrapper func
 	/*  https://stackoverflow.com/questions/29038314/determining-whitespace-in-go
 	'\t', '\n', '\v', '\f', '\r', ' ', U+0085 (NEL), U+00A0 (NBSP).
 	Other definitions of spacing characters are set by category Z and property Pattern_White_Space. */
@@ -86,7 +86,7 @@ func base__separator_set_if_no_last_elem(position, length_numOfAllElems int, sep
 // and if a space is returned, this has NO MEANING in that parse section
 // this fun is NOT used in string detection - and other places whitespaces can be neglected, too
 // getChar, with whitespace replace
-func base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src []rune, pos int) rune { // TESTED
+func base__srcGetChar__safeOverindexing__spaceGivenBackForAllWhitespaces(src []rune, pos int) rune { // TESTED, safeOverindexing is DEEP-tested.
 	char := base__srcGetChar__safeOverindexing(src, pos)
 	if base__is_whitespace_rune(char) {
 		return ' ' // simplify everything. if the char is ANY whitespace char,
